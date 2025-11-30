@@ -23,9 +23,9 @@ class SuperAdminPanelProvider extends PanelProvider
     public function panel(Panel $panel): Panel
     {
         return $panel
-            ->id('admin')
-            ->path('admin')
-            ->domain(env('SUPER_ADMIN_PANEL_DOMAIN', 'admin.localhost'))
+            ->id('super-admin')
+            ->path('super-admin')
+            ->domain(null)
             ->login()
             ->colors([
                 'primary' => Color::Blue,
