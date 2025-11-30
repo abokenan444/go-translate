@@ -17,12 +17,15 @@ use App\Http\Controllers\LanguageController;
 |--------------------------------------------------------------------------
 | Admin Subdomain Routes
 |--------------------------------------------------------------------------
-// | Routes for admin.culturaltranslate.com subdomain
-// | Redirects to Filament Admin Panel
-// */
-// 
-// Route::domain('admin.culturaltranslate.com')->group(function () {
-// });
+| Routes for admin.culturaltranslate.com subdomain
+| Redirects to Filament Admin Panel
+*/
+
+Route::domain('admin.culturaltranslate.com')->group(function () {
+    Route::get('/', function () {
+        return redirect('/admin');
+    });
+});
 
 /*
 |--------------------------------------------------------------------------
