@@ -1,0 +1,77 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+/* Mobile Responsive Overrides */
+@media (max-width: 768px) {
+    /* Ensure touch-friendly targets */
+    .fi-btn,
+    button,
+    a[class*="fi-link"] {
+        min-height: 44px;
+        min-width: 44px;
+        padding: 0.75rem 1rem;
+    }
+    
+    /* Form inputs spacing */
+    .fi-input,
+    .fi-select,
+    .fi-textarea {
+        font-size: 16px !important; /* Prevents zoom on iOS */
+        min-height: 44px;
+    }
+    
+    /* Container padding */
+    .fi-section-content,
+    .fi-page {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+    
+    /* Card spacing */
+    .fi-card {
+        margin-bottom: 1rem;
+    }
+    
+    /* Table responsiveness - handled by Filament stacked mode */
+    .fi-ta {
+        font-size: 0.875rem;
+    }
+    
+    /* Sidebar improvements - Filament handles collapse automatically */
+    .fi-sidebar {
+        width: 100% !important;
+    }
+    
+    /* Action buttons stack */
+    .fi-form-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .fi-form-actions > * {
+        width: 100%;
+    }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    /* Larger touch targets */
+    .fi-ta-actions button,
+    .fi-dropdown-trigger {
+        padding: 0.625rem;
+    }
+    
+    /* Remove hover states that don't work on touch */
+    .fi-link:hover {
+        text-decoration: none;
+    }
+}

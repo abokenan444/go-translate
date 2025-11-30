@@ -1,0 +1,136 @@
+[
+  {
+    "code": "nl_nl",
+    "name": "Netherlands – Dutch",
+    "locale": "nl",
+    "region": "EU",
+    "description": "Direct, honest, low-context culture. Values clarity, equality and practicality. Allergic to exaggerated marketing claims.",
+    "values_json": {
+      "communication_style": "direct",
+      "humor": "dry, subtle, sometimes sarcastic",
+      "formality": "informal in most B2C, more formal in B2B",
+      "sensitivity": [
+        "discrimination",
+        "colonial history",
+        "religion"
+      ],
+      "buying_triggers": [
+        "value for money",
+        "transparency",
+        "no-nonsense tone"
+      ]
+    },
+    "examples_json": {
+      "bad_marketing": "Overpromising, loud American-style hype, unrealistic claims.",
+      "good_marketing": "Straight-to-the-point offers, clear pricing, simple benefits.",
+      "tone_advice": "Speak like a smart but down-to-earth friend."
+    }
+  },
+  {
+    "code": "sa_ar",
+    "name": "Saudi Arabia – Arabic (KSA)",
+    "locale": "ar",
+    "region": "MENA",
+    "description": "Relationship-based, high-context culture. Values respect, family, tradition and religion. Marketing must be tasteful and aligned with local values.",
+    "values_json": {
+      "communication_style": "indirect and respectful",
+      "humor": "light, non-offensive, family-friendly",
+      "formality": "medium to high",
+      "sensitivity": [
+        "religion",
+        "family values",
+        "modesty"
+      ],
+      "buying_triggers": [
+        "trust",
+        "social proof",
+        "family benefits"
+      ]
+    },
+    "examples_json": {
+      "bad_marketing": "Sexualized imagery, disrespecting traditions, mocking religion.",
+      "good_marketing": "Messages about family, community, pride, and trust.",
+      "tone_advice": "Respectful, warm, inspiring, with care for community."
+    }
+  },
+  {
+    "code": "jp_jp",
+    "name": "Japan – Japanese",
+    "locale": "ja",
+    "region": "APAC",
+    "description": "Polite, harmony-oriented, high-context culture. Indirect feedback, strong focus on quality and detail.",
+    "values_json": {
+      "communication_style": "indirect, polite, layered",
+      "humor": "contextual, often situational",
+      "formality": "usually high in business",
+      "sensitivity": [
+        "conflict",
+        "loss of face",
+        "overly direct criticism"
+      ],
+      "buying_triggers": [
+        "reliability",
+        "quality",
+        "social harmony"
+      ]
+    },
+    "examples_json": {
+      "bad_marketing": "Aggressive calls-to-action, hard sales, rude jokes.",
+      "good_marketing": "Calm explanations, subtle persuasion, focus on quality and harmony.",
+      "tone_advice": "Polite, modest, subtly confident."
+    }
+  },
+  {
+    "code": "us_en",
+    "name": "United States – English",
+    "locale": "en",
+    "region": "NA",
+    "description": "Individualistic, low-context, opportunity-driven culture. Comfortable with direct marketing and strong calls-to-action.",
+    "values_json": {
+      "communication_style": "direct, enthusiastic",
+      "humor": "varied, including sarcasm and bold jokes depending on audience",
+      "formality": "low to medium",
+      "sensitivity": [
+        "identity politics",
+        "discrimination",
+        "health claims"
+      ],
+      "buying_triggers": [
+        "benefits",
+        "speed",
+        "innovation"
+      ]
+    },
+    "examples_json": {
+      "bad_marketing": "Overly vague or bureaucratic language.",
+      "good_marketing": "Clear benefits, strong headlines, urgency.",
+      "tone_advice": "Confident, energetic, benefit-driven."
+    }
+  },
+  {
+    "code": "fr_fr",
+    "name": "France – French",
+    "locale": "fr",
+    "region": "EU",
+    "description": "Appreciates elegance, nuance and intellectual depth. Sensitive to linguistic quality.",
+    "values_json": {
+      "communication_style": "nuanced, eloquent",
+      "humor": "witty, sometimes intellectual",
+      "formality": "medium to high in writing",
+      "sensitivity": [
+        "language quality",
+        "culture-related stereotypes"
+      ],
+      "buying_triggers": [
+        "quality",
+        "taste",
+        "heritage"
+      ]
+    },
+    "examples_json": {
+      "bad_marketing": "Sloppy French, too much English, generic corporate buzzwords.",
+      "good_marketing": "Well-written copy, cultural references, sense of style.",
+      "tone_advice": "Elegant, precise, with a touch of sophistication."
+    }
+  }
+]

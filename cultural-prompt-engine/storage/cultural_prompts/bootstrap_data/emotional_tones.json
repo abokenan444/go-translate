@@ -1,0 +1,86 @@
+[
+  {
+    "key": "trust_safety",
+    "name": "Trust & Safety",
+    "description": "Emphasize safety, reliability, compliance and long-term trust.",
+    "parameters_json": {
+      "temperature": 0.4,
+      "style": [
+        "reassuring",
+        "calm",
+        "confident"
+      ],
+      "avoid": [
+        "jokes about risk",
+        "overpromising"
+      ]
+    }
+  },
+  {
+    "key": "inspirational",
+    "name": "Inspirational & Motivational",
+    "description": "Inspire the reader to take action, change or grow.",
+    "parameters_json": {
+      "temperature": 0.7,
+      "style": [
+        "uplifting",
+        "encouraging",
+        "vision-focused"
+      ],
+      "avoid": [
+        "guilt-tripping",
+        "fear-based pressure"
+      ]
+    }
+  },
+  {
+    "key": "no_nonsense",
+    "name": "No-nonsense Performance",
+    "description": "Straight-to-the-point, focused on value and efficiency.",
+    "parameters_json": {
+      "temperature": 0.5,
+      "style": [
+        "direct",
+        "pragmatic",
+        "concise"
+      ],
+      "avoid": [
+        "fluff",
+        "unnecessary hype"
+      ]
+    }
+  },
+  {
+    "key": "friendly_conversational",
+    "name": "Friendly & Conversational",
+    "description": "Warm, human, easy-going tone.",
+    "parameters_json": {
+      "temperature": 0.8,
+      "style": [
+        "friendly",
+        "approachable",
+        "light humour"
+      ],
+      "avoid": [
+        "sarcasm that might not translate"
+      ]
+    }
+  },
+  {
+    "key": "premium_elegant",
+    "name": "Premium & Elegant",
+    "description": "High-end tone suitable for luxury or premium brands.",
+    "parameters_json": {
+      "temperature": 0.6,
+      "style": [
+        "refined",
+        "carefully crafted",
+        "detailed"
+      ],
+      "avoid": [
+        "cheap-sounding expressions",
+        "slang"
+      ]
+    }
+  }
+]

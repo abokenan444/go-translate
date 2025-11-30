@@ -1,0 +1,143 @@
+<?php
+
+return [
+    // Navigation
+    'home' => 'Home',
+    'features' => 'Features',
+    'pricing' => 'Pricing',
+    'about' => 'About',
+    'contact' => 'Contact',
+    'login' => 'Login',
+    'register' => 'Register',
+    'logout' => 'Logout',
+    'dashboard' => 'Dashboard',
+    
+    // Hero Section
+    'hero_title' => 'Cultural AI Translation',
+    'hero_subtitle' => 'Get accurate translations that respect cultural context with advanced AI technology',
+    'get_started' => 'Get Started',
+    'try_demo' => 'Try Demo',
+    
+    // Translation Page
+    'translate' => 'Translate',
+    'source_language' => 'Source Language',
+    'target_language' => 'Target Language',
+    'select_language' => 'Select Language',
+    'tone' => 'Tone',
+    'select_tone' => 'Select Tone',
+    'context' => 'Context',
+    'context_placeholder' => 'Add additional context for translation (optional)',
+    'enter_text' => 'Enter text to translate',
+    'translation_result' => 'Translation Result',
+    'translate_now' => 'Translate Now',
+    'translating' => 'Translating...',
+    'copy' => 'Copy',
+    'copied' => 'Copied!',
+    'clear' => 'Clear',
+    
+    // Tones
+    'professional' => 'Professional',
+    'friendly' => 'Friendly',
+    'formal' => 'Formal',
+    'casual' => 'Casual',
+    'technical' => 'Technical',
+    'marketing' => 'Marketing',
+    'creative' => 'Creative',
+    'empathetic' => 'Empathetic',
+    'authoritative' => 'Authoritative',
+    
+    // Languages
+    'arabic' => 'Arabic',
+    'english' => 'English',
+    'french' => 'French',
+    'spanish' => 'Spanish',
+    'german' => 'German',
+    'italian' => 'Italian',
+    'portuguese' => 'Portuguese',
+    'russian' => 'Russian',
+    'chinese' => 'Chinese',
+    'japanese' => 'Japanese',
+    'korean' => 'Korean',
+    'turkish' => 'Turkish',
+    'dutch' => 'Dutch',
+    
+    // Features
+    'cultural_adaptation' => 'Cultural Adaptation',
+    'cultural_adaptation_desc' => 'Translations that respect cultural differences and context',
+    'multiple_tones' => 'Multiple Tones',
+    'multiple_tones_desc' => '9 different emotional tones for all use cases',
+    'industry_specific' => 'Industry Specific',
+    'industry_specific_desc' => '15 industries with specialized terminology',
+    'high_quality' => 'High Quality',
+    'high_quality_desc' => '85-95% accuracy with automatic quality scoring',
+    'fast_translation' => 'Fast Translation',
+    'fast_translation_desc' => 'Results in just 3-5 seconds',
+    'api_access' => 'API Access',
+    'api_access_desc' => 'Complete REST API for integration with your apps',
+    
+    // Pricing
+    'free_plan' => 'Free',
+    'pro_plan' => 'Pro',
+    'enterprise_plan' => 'Enterprise',
+    'per_month' => 'per month',
+    'translations_per_month' => 'translations/month',
+    'languages' => 'languages',
+    'tones' => 'tones',
+    'support' => 'Support',
+    'basic_support' => 'Basic Support',
+    'priority_support' => 'Priority Support',
+    'dedicated_support' => 'Dedicated Support',
+    'choose_plan' => 'Choose Plan',
+    
+    // Footer
+    'all_rights_reserved' => 'All rights reserved',
+    'privacy_policy' => 'Privacy Policy',
+    'terms_of_service' => 'Terms of Service',
+    'cookie_policy' => 'Cookie Policy',
+    
+    // Messages
+    'success' => 'Success',
+    'error' => 'Error',
+    'warning' => 'Warning',
+    'info' => 'Info',
+    'please_select_different_languages' => 'Please select different languages',
+    'please_enter_text' => 'Please enter text to translate',
+    'translation_successful' => 'Translation successful',
+    'translation_failed' => 'Translation failed',
+    
+    // Stats
+    'word_count' => 'Word Count',
+    'character_count' => 'Character Count',
+    'tokens_used' => 'Tokens Used',
+    'quality_score' => 'Quality Score',
+    'response_time' => 'Response Time',
+    'seconds' => 'seconds',
+    
+    // Account
+    'my_account' => 'My Account',
+    'profile' => 'Profile',
+    'settings' => 'Settings',
+    'api_keys' => 'API Keys',
+    'usage_statistics' => 'Usage Statistics',
+    'billing' => 'Billing',
+    'subscription' => 'Subscription',
+    
+    // Common
+    'save' => 'Save',
+    'cancel' => 'Cancel',
+    'delete' => 'Delete',
+    'edit' => 'Edit',
+    'view' => 'View',
+    'download' => 'Download',
+    'upload' => 'Upload',
+    'search' => 'Search',
+    'filter' => 'Filter',
+    'sort' => 'Sort',
+    'export' => 'Export',
+    'import' => 'Import',
+    'yes' => 'Yes',
+    'no' => 'No',
+    'loading' => 'Loading...',
+    'processing' => 'Processing...',
+    'please_wait' => 'Please wait...',
+];

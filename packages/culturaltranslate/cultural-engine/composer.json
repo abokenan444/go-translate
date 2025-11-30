@@ -1,0 +1,21 @@
+{
+  "name": "culturaltranslate/cultural-engine",
+  "description": "Cultural Intelligence Engine for CulturalTranslate platform",
+  "type": "library",
+  "license": "proprietary",
+  "autoload": {
+    "psr-4": {
+      "CulturalTranslate\\CulturalEngine\\": "src/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "CulturalTranslate\\CulturalEngine\\CulturalEngineServiceProvider"
+      ]
+    }
+  },
+  "require": {
+    "php": ">=8.1"
+  }
+}

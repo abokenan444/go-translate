@@ -1,0 +1,143 @@
+<?php
+
+return [
+    // Navigation
+    'home' => 'الرئيسية',
+    'features' => 'المميزات',
+    'pricing' => 'الأسعار',
+    'about' => 'من نحن',
+    'contact' => 'اتصل بنا',
+    'login' => 'تسجيل الدخول',
+    'register' => 'التسجيل',
+    'logout' => 'تسجيل الخروج',
+    'dashboard' => 'لوحة التحكم',
+    
+    // Hero Section
+    'hero_title' => 'ترجمة ثقافية بالذكاء الاصطناعي',
+    'hero_subtitle' => 'احصل على ترجمات دقيقة تراعي السياق الثقافي بفضل تقنية الذكاء الاصطناعي المتقدمة',
+    'get_started' => 'ابدأ الآن',
+    'try_demo' => 'جرب المنصة',
+    
+    // Translation Page
+    'translate' => 'ترجمة',
+    'source_language' => 'اللغة المصدر',
+    'target_language' => 'اللغة الهدف',
+    'select_language' => 'اختر اللغة',
+    'tone' => 'النبرة',
+    'select_tone' => 'اختر النبرة',
+    'context' => 'السياق',
+    'context_placeholder' => 'أضف سياقاً إضافياً للترجمة (اختياري)',
+    'enter_text' => 'أدخل النص للترجمة',
+    'translation_result' => 'نتيجة الترجمة',
+    'translate_now' => 'ترجمة الآن',
+    'translating' => 'جاري الترجمة...',
+    'copy' => 'نسخ',
+    'copied' => 'تم النسخ!',
+    'clear' => 'مسح',
+    
+    // Tones
+    'professional' => 'احترافي',
+    'friendly' => 'ودي',
+    'formal' => 'رسمي',
+    'casual' => 'عفوي',
+    'technical' => 'تقني',
+    'marketing' => 'تسويقي',
+    'creative' => 'إبداعي',
+    'empathetic' => 'متعاطف',
+    'authoritative' => 'موثوق',
+    
+    // Languages
+    'arabic' => 'العربية',
+    'english' => 'الإنجليزية',
+    'french' => 'الفرنسية',
+    'spanish' => 'الإسبانية',
+    'german' => 'الألمانية',
+    'italian' => 'الإيطالية',
+    'portuguese' => 'البرتغالية',
+    'russian' => 'الروسية',
+    'chinese' => 'الصينية',
+    'japanese' => 'اليابانية',
+    'korean' => 'الكورية',
+    'turkish' => 'التركية',
+    'dutch' => 'الهولندية',
+    
+    // Features
+    'cultural_adaptation' => 'تكييف ثقافي',
+    'cultural_adaptation_desc' => 'ترجمات تراعي الفروقات الثقافية والسياق',
+    'multiple_tones' => 'نبرات متعددة',
+    'multiple_tones_desc' => '9 نبرات عاطفية مختلفة لجميع الاستخدامات',
+    'industry_specific' => 'متخصص حسب الصناعة',
+    'industry_specific_desc' => '15 صناعة مع مصطلحات متخصصة',
+    'high_quality' => 'جودة عالية',
+    'high_quality_desc' => 'دقة 85-95% مع قياس تلقائي للجودة',
+    'fast_translation' => 'ترجمة سريعة',
+    'fast_translation_desc' => 'نتائج في 3-5 ثوان فقط',
+    'api_access' => 'وصول API',
+    'api_access_desc' => 'REST API كامل للتكامل مع تطبيقاتك',
+    
+    // Pricing
+    'free_plan' => 'مجاني',
+    'pro_plan' => 'احترافي',
+    'enterprise_plan' => 'مؤسسات',
+    'per_month' => 'شهرياً',
+    'translations_per_month' => 'ترجمة شهرياً',
+    'languages' => 'لغة',
+    'tones' => 'نبرة',
+    'support' => 'الدعم',
+    'basic_support' => 'دعم أساسي',
+    'priority_support' => 'دعم أولوية',
+    'dedicated_support' => 'دعم مخصص',
+    'choose_plan' => 'اختر الخطة',
+    
+    // Footer
+    'all_rights_reserved' => 'جميع الحقوق محفوظة',
+    'privacy_policy' => 'سياسة الخصوصية',
+    'terms_of_service' => 'شروط الخدمة',
+    'cookie_policy' => 'سياسة الكوكيز',
+    
+    // Messages
+    'success' => 'نجاح',
+    'error' => 'خطأ',
+    'warning' => 'تحذير',
+    'info' => 'معلومة',
+    'please_select_different_languages' => 'الرجاء اختيار لغات مختلفة',
+    'please_enter_text' => 'الرجاء إدخال نص للترجمة',
+    'translation_successful' => 'تمت الترجمة بنجاح',
+    'translation_failed' => 'فشلت الترجمة',
+    
+    // Stats
+    'word_count' => 'عدد الكلمات',
+    'character_count' => 'عدد الأحرف',
+    'tokens_used' => 'Tokens المستخدمة',
+    'quality_score' => 'درجة الجودة',
+    'response_time' => 'وقت الاستجابة',
+    'seconds' => 'ثانية',
+    
+    // Account
+    'my_account' => 'حسابي',
+    'profile' => 'الملف الشخصي',
+    'settings' => 'الإعدادات',
+    'api_keys' => 'مفاتيح API',
+    'usage_statistics' => 'إحصائيات الاستخدام',
+    'billing' => 'الفواتير',
+    'subscription' => 'الاشتراك',
+    
+    // Common
+    'save' => 'حفظ',
+    'cancel' => 'إلغاء',
+    'delete' => 'حذف',
+    'edit' => 'تعديل',
+    'view' => 'عرض',
+    'download' => 'تحميل',
+    'upload' => 'رفع',
+    'search' => 'بحث',
+    'filter' => 'تصفية',
+    'sort' => 'ترتيب',
+    'export' => 'تصدير',
+    'import' => 'استيراد',
+    'yes' => 'نعم',
+    'no' => 'لا',
+    'loading' => 'جاري التحميل...',
+    'processing' => 'جاري المعالجة...',
+    'please_wait' => 'الرجاء الانتظار...',
+];

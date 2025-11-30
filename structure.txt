@@ -1,0 +1,1880 @@
+.
+├── DEPRECATED_FILES.md
+├── README.laravel.md
+├── README.md
+├── app
+│   ├── Console
+│   │   └── Commands
+│   │       └── CheckSubscriptionsCommand.php
+│   ├── Filament
+│   │   ├── Admin
+│   │   │   ├── Pages
+│   │   │   └── Resources
+│   │   ├── Pages
+│   │   │   ├── AIDevChat.php
+│   │   │   ├── AIServerAgent.php
+│   │   │   ├── AiDevChat.php
+│   │   │   └── Dashboard.php
+│   │   ├── Resources
+│   │   │   └── Resources.disabled
+│   │   ├── SuperAdmin
+│   │   │   ├── Pages
+│   │   │   └── Resources
+│   │   └── Widgets
+│   │       └── StatsOverviewWidget.php
+│   ├── Http
+│   │   ├── Controllers
+│   │   │   ├── AI
+│   │   │   ├── AIAgentController.php
+│   │   │   ├── AIDeveloperController.php
+│   │   │   ├── Admin
+│   │   │   ├── Api
+│   │   │   ├── ComplaintController.php
+│   │   │   ├── Controller.php
+│   │   │   ├── LanguageController.php
+│   │   │   └── PricingController.php
+│   │   ├── Kernel.php
+│   │   └── Middleware
+│   │       ├── AIDeveloperAuth.php
+│   │       ├── AdminMiddleware.php
+│   │       ├── CheckSubscriptionTokens.php
+│   │       └── SetLocale.php
+│   ├── Integrations
+│   │   └── Slack
+│   │       └── SlackIntegration.php
+│   ├── Livewire
+│   │   └── AiDevChat.php
+│   ├── Models
+│   │   ├── ActivityLog.php
+│   │   ├── AiAgentMessage.php
+│   │   ├── AiModel.php
+│   │   ├── ApiEndpoint.php
+│   │   ├── ApiKey.php
+│   │   ├── ApiProvider.php
+│   │   ├── BackgroundJob.php
+│   │   ├── Company.php
+│   │   ├── Complaint.php
+│   │   ├── ContactForm.php
+│   │   ├── Culture.php
+│   │   ├── CultureLanguage.php
+│   │   ├── Feature.php
+│   │   ├── FeatureCategory.php
+│   │   ├── FeatureFlag.php
+│   │   ├── FooterLink.php
+│   │   ├── FooterSection.php
+│   │   ├── GatewaySetting.php
+│   │   ├── Integration.php
+│   │   ├── Invoice.php
+│   │   ├── KpiSnapshot.php
+│   │   ├── Language.php
+│   │   ├── Payment.php
+│   │   ├── PaymentGateway.php
+│   │   ├── Permission.php
+│   │   ├── Plan.php
+│   │   ├── PlanComparison.php
+│   │   ├── PlanComparisonValue.php
+│   │   ├── PlanModel.php
+│   │   ├── Role.php
+│   │   ├── SeoSetting.php
+│   │   ├── Service.php
+│   │   ├── ServiceFeature.php
+│   │   ├── Setting.php
+│   │   ├── SiteSetting.php
+│   │   ├── SmtpSetting.php
+│   │   ├── SocialLink.php
+│   │   ├── Subscription.php
+│   │   ├── SubscriptionPlan.php
+│   │   ├── SystemHealth.php
+│   │   ├── SystemSetting.php
+│   │   ├── ThemeSetting.php
+│   │   ├── TokenUsageLog.php
+│   │   ├── Translation.php
+│   │   ├── TranslationLog.php
+│   │   ├── TranslationType.php
+│   │   ├── UsageStat.php
+│   │   ├── UseCase.php
+│   │   ├── User.php
+│   │   ├── User.php.backup
+│   │   ├── UserSubscription.php
+│   │   └── WebsiteContent.php
+│   ├── Notifications
+│   │   ├── LowTokensNotification.php
+│   │   └── SubscriptionExpiryNotification.php
+│   ├── Providers
+│   │   ├── AppServiceProvider.php
+│   │   ├── AppServiceProvider.php.backup
+│   │   ├── Filament
+│   │   │   ├── AdminPanelProvider.php
+│   │   │   └── SuperAdminPanelProvider.php
+│   │   └── FilamentServiceProvider.php
+│   └── Services
+│       ├── AIAgentService.ph
+│       ├── AIAgentService.php
+│       ├── AIDeveloper
+│       │   └── AIDeveloperService.php
+│       ├── AIDeveloperService.php
+│       ├── AdvancedAIAgentService.php
+│       ├── GoogleCloudService.php
+│       └── OpenAIService.php
+├── artisan
+├── bootstrap
+│   ├── app.php
+│   ├── cache
+│   │   ├── packages.php
+│   │   └── services.php
+│   └── providers.php
+├── composer.json
+├── composer.lock
+├── config
+│   ├── ai_agent.php
+│   ├── app.php
+│   ├── auth.php
+│   ├── cache.php
+│   ├── database.php
+│   ├── filesystems.php
+│   ├── livewire.php
+│   ├── logging.php
+│   ├── mail.php
+│   ├── openai.php
+│   ├── queue.php
+│   ├── services.php
+│   └── session.php
+├── create_missing_pages.sh
+├── database
+│   ├── database.sqlite
+│   ├── factories
+│   │   └── UserFactory.php
+│   ├── migrations
+│   │   ├── 0001_01_01_000000_create_users_table.php
+│   │   ├── 0001_01_01_000001_create_cache_table.php
+│   │   ├── 0001_01_01_000002_create_jobs_table.php
+│   │   ├── 2024_01_20_000001_create_subscription_plans_table.php
+│   │   ├── 2024_01_20_000002_create_user_subscriptions_table.php
+│   │   ├── 2024_01_20_000003_create_token_usage_logs_table.php
+│   │   ├── 2024_01_20_000004_create_complaints_table.php
+│   │   ├── 2024_01_20_000005_create_smtp_settings_table.php
+│   │   ├── 2025_11_18_070000_add_core_tables.php
+│   │   ├── 2025_11_18_111429_create_admin_dashboard_tables.php
+│   │   ├── 2025_11_20_185132_create_ai_agent_messages_table.php
+│   │   ├── 2025_11_22_142635_create_roles_and_permissions_tables.php
+│   │   ├── 2025_11_22_142923_create_permissions_table.php
+│   │   └── 2025_11_22_142923_create_roles_table.php
+│   └── seeders
+│       ├── AdminUserSeeder.php
+│       ├── DatabaseSeeder.php
+│       └── SubscriptionPlansSeeder.php
+├── lang
+│   ├── ar
+│   │   └── messages.php
+│   ├── en
+│   │   └── messages.php
+│   ├── es
+│   │   └── messages.php
+│   └── fr
+│       └── messages.php
+├── migration
+├── models
+│   └── Invoice.php
+├── original_resources.tar.gz
+├── package.json
+├── phpunit.xml
+├── public
+│   ├── ai-developer
+│   ├── css
+│   │   ├── admin-custom.css
+│   │   ├── admin-dashboard.css
+│   │   ├── admin.css
+│   │   ├── custom-admin.css
+│   │   ├── filament
+│   │   │   ├── filament
+│   │   │   ├── forms
+│   │   │   └── support
+│   │   └── filament-custom.css
+│   ├── favicon.ico
+│   ├── index.php
+│   ├── js
+│   │   ├── api-client.js
+│   │   └── filament
+│   │       ├── filament
+│   │       ├── forms
+│   │       ├── notifications
+│   │       ├── support
+│   │       ├── tables
+│   │       └── widgets
+│   ├── robots.txt
+│   └── vendor
+│       └── livewire
+│           ├── livewire.esm.js
+│           ├── livewire.esm.js.map
+│           ├── livewire.js
+│           ├── livewire.min.js
+│           ├── livewire.min.js.map
+│           └── manifest.json
+├── resources
+│   ├── css
+│   │   └── app.css
+│   ├── js
+│   │   ├── app.js
+│   │   └── bootstrap.js
+│   ├── lang
+│   │   └── ar
+│   │       └── messages.php
+│   └── views
+│       ├── admin
+│       │   ├── ai-agent-chat.blade.php
+│       │   ├── dashboard.blade.php
+│       │   ├── layouts
+│       │   └── partials
+│       ├── ai-developer
+│       │   ├── index.blade.php
+│       │   └── login.blade.php
+│       ├── complaints.blade.php
+│       ├── components
+│       │   ├── footer.blade.php
+│       │   ├── language-switcher.blade.php
+│       │   └── navigation.blade.php
+│       ├── dashboard
+│       │   ├── app.blade.php
+│       │   ├── index.blade.php
+│       │   ├── layout.blade.php
+│       │   ├── tabs
+│       │   └── translate.blade.php
+│       ├── filament
+│       │   ├── admin
+│       │   └── pages
+│       ├── landing.blade.php
+│       ├── livewire
+│       │   └── ai-dev-chat.blade.php
+│       ├── pages
+│       │   ├── about.blade.php
+│       │   ├── api-docs.blade.php
+│       │   ├── blog.blade.php
+│       │   ├── careers.blade.php
+│       │   ├── contact.blade.php
+│       │   ├── features.blade.php
+│       │   ├── gdpr.blade.php
+│       │   ├── guides.blade.php
+│       │   ├── help-center.blade.php
+│       │   ├── integrations.blade.php
+│       │   ├── pricing.blade.php
+│       │   ├── privacy.blade.php
+│       │   ├── security.blade.php
+│       │   ├── status.blade.php
+│       │   ├── terms.blade.php
+│       │   └── use-cases.blade.php
+│       ├── pricing-new.blade.php
+│       └── welcome.blade.php
+├── routes
+│   ├── api.php
+│   ├── console.php
+│   ├── web.php
+│   └── web.php.backup_20251122_130959
+├── storage
+│   ├── ai-developer
+│   │   └── preview
+│   ├── app
+│   │   ├── private
+│   │   └── public
+│   ├── framework
+│   │   ├── cache
+│   │   │   └── data
+│   │   ├── sessions
+│   │   │   ├── 2JqZPWglTeevskwaS785GFjVWVuUU0ygpCbUe8qa
+│   │   │   ├── 2OKfTtQbqgmH2CDtInuWWZuaE3AUBiv81fDgNXk6
+│   │   │   ├── 4snOlaGHkIR1XLuCPNOydoirCGd3HvPLYacp3uew
+│   │   │   ├── 57gQ5uhHiwSrgcu7XmgggUc8Ngv9hbiKMRxfpPxI
+│   │   │   ├── 7fpSoteLos8fxqJBuRFj7OBOp0Kf4h8wYcJXVCKG
+│   │   │   ├── 7otX0EqfH5Wxg23Bjew2UMYJiCmo8cw1xA0rSlg6
+│   │   │   ├── 8qdQS7f8MbnkXeqtXdPf2wOWgPRsH6SPjX81YQUf
+│   │   │   ├── 9S3VvIwWEx5Rqeyh822Tr5qWnmlPcfzssSslPefG
+│   │   │   ├── AHzWmYS3IxbDnmn2XiOPFHmJsq3Rs0v35FRa0ubc
+│   │   │   ├── EP4IP9vrsNaIKCpK0S5mNANttCZhlEIdugHKM4w7
+│   │   │   ├── FVHE0FNOUNkXYsHZ54CHEmFt1djmmuLO6Z0cx1jC
+│   │   │   ├── FXbeh0OebOr70D4sADluTamXvB3f2faKkLcaztTd
+│   │   │   ├── G9aVLF3OfHmYxWs54I4OPxvQzBOVojHjTib3YjN0
+│   │   │   ├── GUSR79VWUysT1VN5kdnQzwk4fQDUzPfx2jNVHGxK
+│   │   │   ├── H3CuxU3n86cHrVoBijRPNM5twtnnIoyn3tvZfMaJ
+│   │   │   ├── Hl3fgdgOb3h1GJ59Kz5pljyN0NWE07SaHfKMQ5Fc
+│   │   │   ├── Js6kBN6SzP3TdTvNV6XqRaSIIyPVLfHTOsoBtomB
+│   │   │   ├── MeLGAfUTVHSjXw7yW1vbyXJnJri7yShdbrctWqwu
+│   │   │   ├── NfjjjBo2m5d6ERf31vBMg0bdaC9VeP8o4peYvnCM
+│   │   │   ├── NrvlrluFXGJhQQ4VrLm0ZrabhEbE2nsgSJaRNGuk
+│   │   │   ├── NxxPLxR0IpEZa4r0U5Q0ul0jOZaYIBcaqFMhVMTX
+│   │   │   ├── SQmcODnTErZjhY2KVkWVSaXubj15XgqmtBAAyOPz
+│   │   │   ├── SiaOgVa5gz63KcJf6qMgXx3E4takjjeilHz5Vsdu
+│   │   │   ├── Sn0Nu80wNKcA9RxsWleeKg8HpiKdfVxVdjMRCA5J
+│   │   │   ├── VXp7vDhzx4wfupZ5mZ15mwDnWSEM4QkjviOhRb6F
+│   │   │   ├── XbxSC7a3bYXx6aNh9507ttuFo07W5j03SF4TBkQo
+│   │   │   ├── b4aFowO7vDLqvAocvUZQCh6z02uKQVBscJHoAzEo
+│   │   │   ├── btgpobnQUGTHchAooa3lC9zbXi9YCTn9MgYDweBe
+│   │   │   ├── dBUSN0BcMjFfFLBC10SMhZaA55qhSz9qNQOomQ0Q
+│   │   │   ├── dNOnjzp0L15SLqJMxwL36uC15xCf5Dhozhi6H4Sq
+│   │   │   ├── gSpbjjnT9k9wkYUS4yB2FZohI5OAPbrfXpoNXm95
+│   │   │   ├── gogCV9mGXA2n36j1QsyJtBjVq5wzukG7VwG6I7Rg
+│   │   │   ├── h5kClQnEmn4axV91cYlTw8Zpa50ZIiiFdwCqZU04
+│   │   │   ├── j3JTlvCbxTQDIircMfto0D0nvJRAdt3b4SM319Pn
+│   │   │   ├── jfYt43OTwvcE4BQNsc2iUWHxuAL7lveopEX7Q8Yk
+│   │   │   ├── jwcZMAdbrgrYSFblBmoahPl11cUShtW0idsSUfTz
+│   │   │   ├── k1mrGgWdECu6gZuXrRaIPhVGhwVO0DE5PNyP5rt4
+│   │   │   ├── m0XSfCwZjEiWMRn7i0v6ozNKTJyq09khsr0uBbc3
+│   │   │   ├── pjVIr5rFNFkSqjeAIU0j6X0NA1jNOPim7ek3ZAfV
+│   │   │   ├── qsDErs0ov96xxSFbbJakOYT1dYgvulpI5LblrzPM
+│   │   │   ├── uharkkw398FCfoJm3CEdfFAMkTQfXzXJTWp17gEx
+│   │   │   └── yGUaR48Pd3hhRTRUi6CdhfYPLkIKNalfXayIf8J4
+│   │   ├── testing
+│   │   └── views
+│   │       ├── 02c292219fbc629358f7001aacfcb589.php
+│   │       ├── 037cad794b3c8be2f6c6d55e1e4ff7ec.php
+│   │       ├── 04186c38ddf8089e60cacd101e9dd7ed.php
+│   │       ├── 050fb32604530a1e2d1269d64a62cbe6.php
+│   │       ├── 0d583427ca39e88fbc7f7d2b1ca124a2.php
+│   │       ├── 12e640d2ae9857632c0951e02f9c188c.php
+│   │       ├── 14f36eaa62dbb445faa396e32d6b7ea3.php
+│   │       ├── 16511aa9bba2f63ff8e2a6e5f68b7d40.php
+│   │       ├── 18d8995f08577bd71bd7abfc536f8b53.php
+│   │       ├── 1c039d4b0c2b3440f5f76fd9b97ada13.php
+│   │       ├── 1d99a7e4df9cb78eeaf464df03e7012b.blade.php
+│   │       ├── 20218a2668384d1d8407344682e615ef.php
+│   │       ├── 23b1ec21664e2cb182e376d029d1688e.php
+│   │       ├── 24110a57bcb96172d9e30f61795507fd.php
+│   │       ├── 2522f36b4b49980b994644ce3e43b08c.php
+│   │       ├── 275952c23ec77c248e52046940514bd7.php
+│   │       ├── 27d9ba1e04171abd4fb68da71bffa2a6.php
+│   │       ├── 2d1c2dd448c470789275c8d2351ce3f9.php
+│   │       ├── 34df6d2f132146e7b78f7417546c9d54.php
+│   │       ├── 35dc8395a19d14e8ecc1c4a594c5f561.php
+│   │       ├── 382bca54014536e76ffc7c48f6bd5869.php
+│   │       ├── 3a45012c400c2482a33de0afee3695b6.php
+│   │       ├── 3bbe8d3a45d270966bb0801a6daaa449.php
+│   │       ├── 4027078625773967f6eb9a8e52218c08.php
+│   │       ├── 4129aba07ebe866e6823c2dff6625c16.php
+│   │       ├── 435a1e30c13487c3f94a5c8d0e25ee99.php
+│   │       ├── 47a844b782742de9ca4969713c32d089.php
+│   │       ├── 4923f7eca5f215d13546093b42e00cba.php
+│   │       ├── 4943bc92ebba41e8b0e508149542e0ad.blade.php
+│   │       ├── 4cefea77b3d877dc8ca2b18407eb0bed.php
+│   │       ├── 4e40b9ad6cdf2f0083f258dff316383d.php
+│   │       ├── 521544903cc35b64176f088dad7f9f47.php
+│   │       ├── 557f112bcfd40ff4ed71d8a0603209da.blade.php
+│   │       ├── 5dc0f4e479815be57cd2350c787fd3ed.php
+│   │       ├── 60c78d4db3c11e5b3e65a178b712da39.php
+│   │       ├── 61b31297fa83590ef211dbf6922669e5.php
+│   │       ├── 63385a33d2017dd4c9ee3089139d79f4.php
+│   │       ├── 63880fc435c645951a44416edcfff88b.php
+│   │       ├── 6653422b902eb880fe0d3e14105a9ed7.php
+│   │       ├── 6ecf5827e76446ce5980ceb7d3bdfdf8.php
+│   │       ├── 6f0769b4b60b7c8412aaa9ba5144eee9.php
+│   │       ├── 72cdee2b6ae99fca2bf69a5aad5828e9.php
+│   │       ├── 7c1975e855c4bf8da72640c5dc909440.php
+│   │       ├── 7d496589df9840d1b15e3a4ec6073a5b.php
+│   │       ├── 7dad3c48a2137400a99ea69678de0acc.php
+│   │       ├── 7f56d07509a20051cce9004a2fd4c299.php
+│   │       ├── 811dd9589092860b03fec535873b54ca.php
+│   │       ├── 8625329c2925bd94abcab9a84da67378.php
+│   │       ├── 87a96f68a5f051932c29dd80e0393bdb.php
+│   │       ├── 8879140dbf283ef50fe0b9af8df64cc4.php
+│   │       ├── 88c2c9079f5569897b8937a8a8de5b93.php
+│   │       ├── 89bb45e50a087e8b0c499d940cea39d4.php
+│   │       ├── 8bacc9455c7cadc80acf63a9ff420392.php
+│   │       ├── 8db2b624729a6269f84420057a325ef9.php
+│   │       ├── 9b0aa906eb507785d5e713f2ff316d37.blade.php
+│   │       ├── 9debeba0f2b76de65ae94ab0078fbdda.php
+│   │       ├── 9e8968919cd6f161d6aca53b78566aee.php
+│   │       ├── 9eb49ddd1dbba02bf3edae750b2ed410.php
+│   │       ├── a0e622371bbe6f924eef0bef3b6c55f7.php
+│   │       ├── a3526841b66c4145cae0655fb0615415.php
+│   │       ├── a62285766bf70ec1047a5282fce68674.php
+│   │       ├── a6292b37a0a84640cbdfb42fba80ed37.php
+│   │       ├── a62da5f928d9a00c0876701f7d1f1c03.php
+│   │       ├── a6f8e659727f2b1407059b5dcb66357a.php
+│   │       ├── a8c57c00158735b30be62c9dfef242a4.php
+│   │       ├── aa83f0e89aac8c8ef714698ef3fc4553.php
+│   │       ├── ad5a32c36756a8528ea9cf68ae72fd70.php
+│   │       ├── b22e83126e0e40dfe8123927eb518cc1.php
+│   │       ├── b2a2bb27cff314015d299ee5b904632e.php
+│   │       ├── b32acff7a63060d6b8ed59f16ab08533.php
+│   │       ├── b3fea7b79a291f72028b3ade68edbac3.blade.php
+│   │       ├── b47e57b1c0b6d36ca31b671fd9ded4f7.php
+│   │       ├── b906d3f611dffeb3bd7484f144f2d4a4.php
+│   │       ├── ba2d9be3636829dc6178cc67bdf4b858.php
+│   │       ├── bb764fd9f931765b5b2b65b976a2e231.php
+│   │       ├── bfc5d3613725dffeee2b37bc20227df6.php
+│   │       ├── c0b6f1577b3134fa6264240c2d7d71bb.php
+│   │       ├── c4941fd0562966d1273192f7f99b4918.php
+│   │       ├── c715e0478f1d7225c1269b511a8ffddb.php
+│   │       ├── c7249a75c30f68ac1a366d610426a617.php
+│   │       ├── ca95a1b4869118e296c8061ea809e8ee.php
+│   │       ├── cd6b36fed883ad9c6218d3c1d5e59d3d.php
+│   │       ├── ceb1373a21b2e3a2a1a3e26a64b6dcae.php
+│   │       ├── d1bec3318a1392037c21765610a1c5e7.php
+│   │       ├── d29ff9f2c56fe47ce9504cc7906b29d8.php
+│   │       ├── d45a4bfdb117014ddb50ce676f299734.php
+│   │       ├── d5bcc3be2926673ace24c6c88d7ed0b8.php
+│   │       ├── d632559370db57fd281ccc9d75809d88.php
+│   │       ├── d8bddf24f73897c7108d81672596355a.php
+│   │       ├── da6631e233bc16400f9c384155800a71.php
+│   │       ├── dbf306513853457226b939f138751c4f.php
+│   │       ├── dcefd163e26cea1be2536c6d857e67b2.php
+│   │       ├── dda569c8a86a8eeaddb132355dc122fc.php
+│   │       ├── df5d8c26b1fd4ecd22aeee145299adc3.blade.php
+│   │       ├── e08be9c9a68a1e229f1c772557242b3d.php
+│   │       ├── e1624b80887ec68945691c6bffad3886.php
+│   │       ├── e42b4d4a32bcbce4882502b81048e0dd.php
+│   │       ├── e5ab6de99c017a50bbc241fb4e769456.php
+│   │       ├── e72ab19aae7f5e9411f7a52bd9454818.php
+│   │       ├── ed987ec311f5f565708c087230251386.php
+│   │       ├── f30a2c379a22296567e790b6f097a847.php
+│   │       ├── f404da014e5aa932a97eeaf3331a2a8e.php
+│   │       ├── f7622683df3cc2f014ab37a1594ad372.php
+│   │       ├── f8a8100da8e9394d55dde04295f3dfe2.php
+│   │       └── f96fae7964ca13cae1911f9a87b3be97.php
+│   └── logs
+│       └── laravel.log
+├── structure.txt
+├── tests
+│   ├── Feature
+│   │   ├── AuthenticationTest.php
+│   │   ├── ExampleTest.php
+│   │   └── TranslationTest.php
+│   ├── TestCase.php
+│   └── Unit
+│       └── ExampleTest.php
+├── vendor
+│   ├── anourvalar
+│   │   └── eloquent-serialize
+│   │       ├── LICENSE
+│   │       ├── README.md
+│   │       ├── composer.json
+│   │       ├── phpunit9.xml
+│   │       └── src
+│   ├── autoload.php
+│   ├── bezhansalleh
+│   │   └── filament-shield
+│   │       ├── CHANGELOG.md
+│   │       ├── CODE_OF_CONDUCT.md
+│   │       ├── LICENSE.md
+│   │       ├── README.md
+│   │       ├── TODO
+│   │       ├── bootstrap
+│   │       ├── composer.json
+│   │       ├── config
+│   │       ├── package-lock.json
+│   │       ├── package.json
+│   │       ├── phpunit.xml.dist.bak
+│   │       ├── pint.json
+│   │       ├── resources
+│   │       ├── src
+│   │       └── stubs
+│   ├── bin
+│   │   ├── blade-icons-generate
+│   │   ├── carbon
+│   │   ├── patch-type-declarations
+│   │   ├── php-parse
+│   │   ├── phpunit
+│   │   ├── pint
+│   │   ├── psysh
+│   │   ├── sail
+│   │   ├── var-dump-server
+│   │   └── yaml-lint
+│   ├── blade-ui-kit
+│   │   ├── blade-heroicons
+│   │   │   ├── LICENSE.md
+│   │   │   ├── composer.json
+│   │   │   ├── config
+│   │   │   ├── package.json
+│   │   │   ├── resources
+│   │   │   └── src
+│   │   └── blade-icons
+│   │       ├── LICENSE.md
+│   │       ├── bin
+│   │       ├── composer.json
+│   │       ├── config
+│   │       ├── pint.json
+│   │       └── src
+│   ├── brick
+│   │   └── math
+│   │       ├── CHANGELOG.md
+│   │       ├── LICENSE
+│   │       ├── composer.json
+│   │       ├── phpstan.neon
+│   │       └── src
+│   ├── carbonphp
+│   │   └── carbon-doctrine-types
+│   │       ├── LICENSE
+│   │       ├── README.md
+│   │       ├── composer.json
+│   │       └── src
+│   ├── composer
+│   │   ├── ClassLoader.php
+│   │   ├── InstalledVersions.php
+│   │   ├── LICENSE
+│   │   ├── autoload_classmap.php
+│   │   ├── autoload_files.php
+│   │   ├── autoload_namespaces.php
+│   │   ├── autoload_psr4.php
+│   │   ├── autoload_real.php
+│   │   ├── autoload_static.php
+│   │   ├── installed.json
+│   │   ├── installed.php
+│   │   ├── pcre
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   ├── extension.neon
+│   │   │   └── src
+│   │   ├── platform_check.php
+│   │   └── semver
+│   │       ├── CHANGELOG.md
+│   │       ├── LICENSE
+│   │       ├── README.md
+│   │       ├── composer.json
+│   │       └── src
+│   ├── danharrin
+│   │   ├── date-format-converter
+│   │   │   ├── CODE_OF_CONDUCT.md
+│   │   │   ├── LICENSE.md
+│   │   │   ├── README.md
+│   │   │   ├── SECURITY.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   └── livewire-rate-limiting
+│   │       ├── CODE_OF_CONDUCT.md
+│   │       ├── LICENSE.md
+│   │       ├── README.md
+│   │       ├── SECURITY.md
+│   │       ├── composer.json
+│   │       └── src
+│   ├── dflydev
+│   │   └── dot-access-data
+│   │       ├── CHANGELOG.md
+│   │       ├── LICENSE
+│   │       ├── README.md
+│   │       ├── composer.json
+│   │       └── src
+│   ├── doctrine
+│   │   ├── dbal
+│   │   │   ├── CONTRIBUTING.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   ├── phpstan-baseline.neon
+│   │   │   └── src
+│   │   ├── deprecations
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   ├── inflector
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   ├── docs
+│   │   │   └── src
+│   │   └── lexer
+│   │       ├── LICENSE
+│   │       ├── README.md
+│   │       ├── UPGRADE.md
+│   │       ├── composer.json
+│   │       └── src
+│   ├── dragonmantank
+│   │   └── cron-expression
+│   │       ├── CHANGELOG.md
+│   │       ├── LICENSE
+│   │       ├── README.md
+│   │       ├── composer.json
+│   │       └── src
+│   ├── egulias
+│   │   └── email-validator
+│   │       ├── CONTRIBUTING.md
+│   │       ├── LICENSE
+│   │       ├── composer.json
+│   │       └── src
+│   ├── ezyang
+│   │   └── htmlpurifier
+│   │       ├── CREDITS
+│   │       ├── LICENSE
+│   │       ├── README.md
+│   │       ├── VERSION
+│   │       ├── composer.json
+│   │       └── library
+│   ├── fakerphp
+│   │   └── faker
+│   │       ├── CHANGELOG.md
+│   │       ├── LICENSE
+│   │       ├── README.md
+│   │       ├── composer.json
+│   │       ├── rector-migrate.php
+│   │       └── src
+│   ├── filament
+│   │   ├── actions
+│   │   │   ├── composer.json
+│   │   │   ├── database
+│   │   │   ├── docs
+│   │   │   ├── resources
+│   │   │   ├── routes
+│   │   │   ├── src
+│   │   │   └── stubs
+│   │   ├── filament
+│   │   │   ├── composer.json
+│   │   │   ├── dist
+│   │   │   ├── docs
+│   │   │   ├── resources
+│   │   │   ├── routes
+│   │   │   ├── src
+│   │   │   ├── stubs
+│   │   │   ├── tailwind.config.js
+│   │   │   └── tailwind.config.preset.js
+│   │   ├── forms
+│   │   │   ├── composer.json
+│   │   │   ├── dist
+│   │   │   ├── docs
+│   │   │   ├── resources
+│   │   │   ├── src
+│   │   │   └── stubs
+│   │   ├── infolists
+│   │   │   ├── composer.json
+│   │   │   ├── docs
+│   │   │   ├── resources
+│   │   │   ├── src
+│   │   │   └── stubs
+│   │   ├── notifications
+│   │   │   ├── composer.json
+│   │   │   ├── dist
+│   │   │   ├── docs
+│   │   │   ├── resources
+│   │   │   └── src
+│   │   ├── spatie-laravel-media-library-plugin
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   ├── spatie-laravel-settings-plugin
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   ├── resources
+│   │   │   ├── src
+│   │   │   └── stubs
+│   │   ├── support
+│   │   │   ├── composer.json
+│   │   │   ├── config
+│   │   │   ├── dist
+│   │   │   ├── docs
+│   │   │   ├── resources
+│   │   │   ├── src
+│   │   │   ├── stubs
+│   │   │   ├── tailwind.config.js
+│   │   │   └── tailwind.config.preset.js
+│   │   ├── tables
+│   │   │   ├── composer.json
+│   │   │   ├── dist
+│   │   │   ├── docs
+│   │   │   ├── resources
+│   │   │   ├── src
+│   │   │   └── stubs
+│   │   └── widgets
+│   │       ├── composer.json
+│   │       ├── dist
+│   │       ├── docs
+│   │       ├── resources
+│   │       ├── src
+│   │       └── stubs
+│   ├── filp
+│   │   └── whoops
+│   │       ├── CHANGELOG.md
+│   │       ├── LICENSE.md
+│   │       ├── SECURITY.md
+│   │       ├── composer.json
+│   │       └── src
+│   ├── fruitcake
+│   │   └── php-cors
+│   │       ├── LICENSE
+│   │       ├── README.md
+│   │       ├── composer.json
+│   │       └── src
+│   ├── graham-campbell
+│   │   └── result-type
+│   │       ├── LICENSE
+│   │       ├── composer.json
+│   │       └── src
+│   ├── guzzlehttp
+│   │   ├── guzzle
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── UPGRADING.md
+│   │   │   ├── composer.json
+│   │   │   ├── package-lock.json
+│   │   │   └── src
+│   │   ├── promises
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   ├── psr7
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   └── uri-template
+│   │       ├── CHANGELOG.md
+│   │       ├── LICENSE
+│   │       ├── README.md
+│   │       ├── composer.json
+│   │       └── src
+│   ├── hamcrest
+│   │   └── hamcrest-php
+│   │       ├── CHANGES.txt
+│   │       ├── CONTRIBUTING.md
+│   │       ├── LICENSE.txt
+│   │       ├── README.md
+│   │       ├── composer.json
+│   │       ├── generator
+│   │       └── hamcrest
+│   ├── kirschbaum-development
+│   │   └── eloquent-power-joins
+│   │       ├── AGENTS.md
+│   │       ├── CHANGELOG.md
+│   │       ├── CONTRIBUTING.md
+│   │       ├── LICENSE.md
+│   │       ├── README.md
+│   │       ├── composer.json
+│   │       ├── config
+│   │       └── src
+│   ├── laravel
+│   │   ├── framework
+│   │   │   ├── LICENSE.md
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   ├── config
+│   │   │   ├── config-stubs
+│   │   │   ├── pint.json
+│   │   │   └── src
+│   │   ├── pail
+│   │   │   ├── LICENSE.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   ├── pint
+│   │   │   ├── LICENSE.md
+│   │   │   ├── builds
+│   │   │   ├── composer.json
+│   │   │   └── overrides
+│   │   ├── prompts
+│   │   │   ├── LICENSE.md
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   ├── phpunit.xml
+│   │   │   └── src
+│   │   ├── sail
+│   │   │   ├── LICENSE.md
+│   │   │   ├── README.md
+│   │   │   ├── bin
+│   │   │   ├── composer.json
+│   │   │   ├── database
+│   │   │   ├── runtimes
+│   │   │   ├── src
+│   │   │   └── stubs
+│   │   ├── serializable-closure
+│   │   │   ├── LICENSE.md
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   └── tinker
+│   │       ├── LICENSE.md
+│   │       ├── README.md
+│   │       ├── composer.json
+│   │       ├── config
+│   │       └── src
+│   ├── league
+│   │   ├── commonmark
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   ├── config
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── LICENSE.md
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   ├── csv
+│   │   │   ├── LICENSE
+│   │   │   ├── autoload.php
+│   │   │   ├── composer.json
+│   │   │   ├── phpstan-build.neon
+│   │   │   └── src
+│   │   ├── flysystem
+│   │   │   ├── INFO.md
+│   │   │   ├── LICENSE
+│   │   │   ├── composer.json
+│   │   │   ├── readme.md
+│   │   │   └── src
+│   │   ├── flysystem-local
+│   │   │   ├── FallbackMimeTypeDetector.php
+│   │   │   ├── LICENSE
+│   │   │   ├── LocalFilesystemAdapter.php
+│   │   │   └── composer.json
+│   │   ├── mime-type-detection
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── LICENSE
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   ├── uri
+│   │   │   ├── BaseUri.php
+│   │   │   ├── Http.php
+│   │   │   ├── HttpFactory.php
+│   │   │   ├── LICENSE
+│   │   │   ├── Uri.php
+│   │   │   ├── UriInfo.php
+│   │   │   ├── UriResolver.php
+│   │   │   ├── UriTemplate
+│   │   │   ├── UriTemplate.php
+│   │   │   └── composer.json
+│   │   └── uri-interfaces
+│   │       ├── Contracts
+│   │       ├── Encoder.php
+│   │       ├── Exceptions
+│   │       ├── FeatureDetection.php
+│   │       ├── IPv4
+│   │       ├── IPv6
+│   │       ├── Idna
+│   │       ├── KeyValuePair
+│   │       ├── LICENSE
+│   │       ├── QueryString.php
+│   │       ├── UriString.php
+│   │       └── composer.json
+│   ├── livewire
+│   │   └── livewire
+│   │       ├── LICENSE.md
+│   │       ├── README.md
+│   │       ├── composer.json
+│   │       ├── config
+│   │       ├── dist
+│   │       └── src
+│   ├── maatwebsite
+│   │   └── excel
+│   │       ├── CHANGELOG.md
+│   │       ├── CODE_OF_CONDUCT.md
+│   │       ├── CONTRIBUTING.md
+│   │       ├── LICENSE
+│   │       ├── README.md
+│   │       ├── SECURITY.md
+│   │       ├── composer.json
+│   │       ├── config
+│   │       └── src
+│   ├── maennchen
+│   │   └── zipstream-php
+│   │       ├── LICENSE
+│   │       ├── README.md
+│   │       ├── composer.json
+│   │       ├── guides
+│   │       ├── phpdoc.dist.xml
+│   │       ├── phpunit.xml.dist
+│   │       ├── psalm.xml
+│   │       ├── src
+│   │       └── test
+│   ├── markbaker
+│   │   ├── complex
+│   │   │   ├── README.md
+│   │   │   ├── classes
+│   │   │   ├── composer.json
+│   │   │   ├── examples
+│   │   │   └── license.md
+│   │   └── matrix
+│   │       ├── README.md
+│   │       ├── buildPhar.php
+│   │       ├── classes
+│   │       ├── composer.json
+│   │       ├── examples
+│   │       ├── infection.json.dist
+│   │       ├── license.md
+│   │       └── phpstan.neon
+│   ├── masterminds
+│   │   └── html5
+│   │       ├── CREDITS
+│   │       ├── LICENSE.txt
+│   │       ├── README.md
+│   │       ├── RELEASE.md
+│   │       ├── UPGRADING.md
+│   │       ├── bin
+│   │       ├── composer.json
+│   │       └── src
+│   ├── mockery
+│   │   └── mockery
+│   │       ├── CHANGELOG.md
+│   │       ├── CONTRIBUTING.md
+│   │       ├── COPYRIGHT.md
+│   │       ├── LICENSE
+│   │       ├── README.md
+│   │       ├── SECURITY.md
+│   │       ├── composer.json
+│   │       ├── composer.lock
+│   │       ├── docs
+│   │       └── library
+│   ├── monolog
+│   │   └── monolog
+│   │       ├── CHANGELOG.md
+│   │       ├── LICENSE
+│   │       ├── README.md
+│   │       ├── composer.json
+│   │       └── src
+│   ├── myclabs
+│   │   └── deep-copy
+│   │       ├── LICENSE
+│   │       ├── README.md
+│   │       ├── composer.json
+│   │       └── src
+│   ├── nesbot
+│   │   └── carbon
+│   │       ├── LICENSE
+│   │       ├── bin
+│   │       ├── composer.json
+│   │       ├── extension.neon
+│   │       ├── lazy
+│   │       ├── readme.md
+│   │       ├── sponsors.php
+│   │       └── src
+│   ├── nette
+│   │   ├── schema
+│   │   │   ├── composer.json
+│   │   │   ├── license.md
+│   │   │   ├── readme.md
+│   │   │   └── src
+│   │   └── utils
+│   │       ├── composer.json
+│   │       ├── license.md
+│   │       ├── readme.md
+│   │       └── src
+│   ├── nikic
+│   │   └── php-parser
+│   │       ├── LICENSE
+│   │       ├── README.md
+│   │       ├── bin
+│   │       ├── composer.json
+│   │       └── lib
+│   ├── nunomaduro
+│   │   ├── collision
+│   │   │   ├── LICENSE.md
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   ├── phpstan-baseline.neon
+│   │   │   └── src
+│   │   └── termwind
+│   │       ├── LICENSE.md
+│   │       ├── composer.json
+│   │       ├── playground.php
+│   │       └── src
+│   ├── openai-php
+│   │   ├── client
+│   │   │   ├── LICENSE.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   └── laravel
+│   │       ├── LICENSE.md
+│   │       ├── composer.json
+│   │       ├── config
+│   │       ├── resources
+│   │       └── src
+│   ├── openspout
+│   │   └── openspout
+│   │       ├── LICENSE
+│   │       ├── LICENSE-for-cc42c1d
+│   │       ├── README.md
+│   │       ├── UPGRADE.md
+│   │       ├── composer.json
+│   │       ├── renovate.json
+│   │       └── src
+│   ├── phar-io
+│   │   ├── manifest
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   ├── composer.lock
+│   │   │   ├── manifest.xsd
+│   │   │   ├── src
+│   │   │   └── tools
+│   │   └── version
+│   │       ├── CHANGELOG.md
+│   │       ├── LICENSE
+│   │       ├── README.md
+│   │       ├── composer.json
+│   │       └── src
+│   ├── php-http
+│   │   ├── discovery
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   └── multipart-stream-builder
+│   │       ├── CHANGELOG.md
+│   │       ├── LICENSE
+│   │       ├── README.md
+│   │       ├── composer.json
+│   │       └── src
+│   ├── phpdocumentor
+│   │   ├── reflection-common
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   └── type-resolver
+│   │       ├── LICENSE
+│   │       ├── README.md
+│   │       ├── composer.json
+│   │       ├── docs
+│   │       ├── phpdoc.dist.xml
+│   │       └── src
+│   ├── phpoffice
+│   │   └── phpspreadsheet
+│   │       ├── CHANGELOG.md
+│   │       ├── CONTRIBUTING.md
+│   │       ├── LICENSE
+│   │       ├── README.md
+│   │       ├── composer.json
+│   │       └── src
+│   ├── phpoption
+│   │   └── phpoption
+│   │       ├── LICENSE
+│   │       ├── composer.json
+│   │       └── src
+│   ├── phpstan
+│   │   └── phpdoc-parser
+│   │       ├── LICENSE
+│   │       ├── README.md
+│   │       ├── UPGRADING.md
+│   │       ├── composer.json
+│   │       └── src
+│   ├── phpunit
+│   │   ├── php-code-coverage
+│   │   │   ├── ChangeLog-11.0.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── SECURITY.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   ├── php-file-iterator
+│   │   │   ├── ChangeLog.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── SECURITY.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   ├── php-invoker
+│   │   │   ├── ChangeLog.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── SECURITY.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   ├── php-text-template
+│   │   │   ├── ChangeLog.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── SECURITY.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   ├── php-timer
+│   │   │   ├── ChangeLog.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── SECURITY.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   └── phpunit
+│   │       ├── ChangeLog-11.5.md
+│   │       ├── DEPRECATIONS.md
+│   │       ├── LICENSE
+│   │       ├── README.md
+│   │       ├── SECURITY.md
+│   │       ├── composer.json
+│   │       ├── composer.lock
+│   │       ├── phpunit
+│   │       ├── phpunit.xsd
+│   │       ├── schema
+│   │       └── src
+│   ├── psr
+│   │   ├── cache
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── LICENSE.txt
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   ├── clock
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   ├── container
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   ├── event-dispatcher
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   ├── http-client
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   ├── http-factory
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   ├── http-message
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   ├── docs
+│   │   │   └── src
+│   │   ├── log
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   └── simple-cache
+│   │       ├── LICENSE.md
+│   │       ├── README.md
+│   │       ├── composer.json
+│   │       └── src
+│   ├── psy
+│   │   └── psysh
+│   │       ├── LICENSE
+│   │       ├── README.md
+│   │       ├── bin
+│   │       ├── composer.json
+│   │       ├── src
+│   │       └── test-logger-demo.php
+│   ├── pxlrbt
+│   │   └── filament-excel
+│   │       ├── LICENSE.md
+│   │       ├── composer.json
+│   │       ├── lang
+│   │       ├── readme.md
+│   │       ├── resources
+│   │       ├── routes
+│   │       └── src
+│   ├── ralouphie
+│   │   └── getallheaders
+│   │       ├── LICENSE
+│   │       ├── README.md
+│   │       ├── composer.json
+│   │       └── src
+│   ├── ramsey
+│   │   ├── collection
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── SECURITY.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   └── uuid
+│   │       ├── LICENSE
+│   │       ├── README.md
+│   │       ├── composer.json
+│   │       └── src
+│   ├── ryangjchandler
+│   │   └── blade-capture-directive
+│   │       ├── CHANGELOG.md
+│   │       ├── LICENSE.md
+│   │       ├── README.md
+│   │       ├── composer.json
+│   │       └── src
+│   ├── sebastian
+│   │   ├── cli-parser
+│   │   │   ├── ChangeLog.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── SECURITY.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   ├── code-unit
+│   │   │   ├── ChangeLog.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── SECURITY.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   ├── code-unit-reverse-lookup
+│   │   │   ├── ChangeLog.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── SECURITY.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   ├── comparator
+│   │   │   ├── ChangeLog.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── SECURITY.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   ├── complexity
+│   │   │   ├── ChangeLog.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── SECURITY.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   ├── diff
+│   │   │   ├── ChangeLog.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── SECURITY.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   ├── environment
+│   │   │   ├── ChangeLog.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── SECURITY.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   ├── exporter
+│   │   │   ├── ChangeLog.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── SECURITY.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   ├── global-state
+│   │   │   ├── ChangeLog.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── SECURITY.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   ├── lines-of-code
+│   │   │   ├── ChangeLog.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── SECURITY.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   ├── object-enumerator
+│   │   │   ├── ChangeLog.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── SECURITY.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   ├── object-reflector
+│   │   │   ├── ChangeLog.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── SECURITY.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   ├── recursion-context
+│   │   │   ├── ChangeLog.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── SECURITY.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   ├── type
+│   │   │   ├── ChangeLog.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── SECURITY.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   └── version
+│   │       ├── ChangeLog.md
+│   │       ├── LICENSE
+│   │       ├── README.md
+│   │       ├── SECURITY.md
+│   │       ├── composer.json
+│   │       └── src
+│   ├── spatie
+│   │   ├── color
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── LICENSE.md
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   ├── image
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── LICENSE.md
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   ├── phpstan-baseline.neon
+│   │   │   ├── phpstan.neon.dist
+│   │   │   └── src
+│   │   ├── image-optimizer
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   ├── src
+│   │   │   └── svgo.config.js
+│   │   ├── invade
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── LICENSE.md
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   ├── phpstan-baseline.neon
+│   │   │   ├── phpstan.neon.dist
+│   │   │   └── src
+│   │   ├── laravel-medialibrary
+│   │   │   ├── LICENSE.md
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   ├── config
+│   │   │   ├── database
+│   │   │   ├── resources
+│   │   │   └── src
+│   │   ├── laravel-package-tools
+│   │   │   ├── LICENSE.md
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   └── src
+│   │   ├── laravel-permission
+│   │   │   ├── LICENSE.md
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   ├── config
+│   │   │   ├── database
+│   │   │   ├── ide.json
+│   │   │   ├── pint.json
+│   │   │   └── src
+│   │   ├── laravel-settings
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── LICENSE.md
+│   │   │   ├── README.md
+│   │   │   ├── UPGRADING.md
+│   │   │   ├── composer.json
+│   │   │   ├── config
+│   │   │   ├── database
+│   │   │   └── src
+│   │   └── temporary-directory
+│   │       ├── LICENSE.md
+│   │       ├── README.md
+│   │       ├── composer.json
+│   │       └── src
+│   ├── staabm
+│   │   └── side-effects-detector
+│   │       ├── LICENSE
+│   │       ├── README.md
+│   │       ├── composer.json
+│   │       └── lib
+│   ├── symfony
+│   │   ├── clock
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── Clock.php
+│   │   │   ├── ClockAwareTrait.php
+│   │   │   ├── ClockInterface.php
+│   │   │   ├── DatePoint.php
+│   │   │   ├── LICENSE
+│   │   │   ├── MockClock.php
+│   │   │   ├── MonotonicClock.php
+│   │   │   ├── NativeClock.php
+│   │   │   ├── README.md
+│   │   │   ├── Resources
+│   │   │   ├── Test
+│   │   │   └── composer.json
+│   │   ├── console
+│   │   │   ├── Application.php
+│   │   │   ├── Attribute
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── CI
+│   │   │   ├── Color.php
+│   │   │   ├── Command
+│   │   │   ├── CommandLoader
+│   │   │   ├── Completion
+│   │   │   ├── ConsoleEvents.php
+│   │   │   ├── Cursor.php
+│   │   │   ├── DataCollector
+│   │   │   ├── Debug
+│   │   │   ├── DependencyInjection
+│   │   │   ├── Descriptor
+│   │   │   ├── Event
+│   │   │   ├── EventListener
+│   │   │   ├── Exception
+│   │   │   ├── Formatter
+│   │   │   ├── Helper
+│   │   │   ├── Input
+│   │   │   ├── LICENSE
+│   │   │   ├── Logger
+│   │   │   ├── Messenger
+│   │   │   ├── Output
+│   │   │   ├── Question
+│   │   │   ├── README.md
+│   │   │   ├── Resources
+│   │   │   ├── SignalRegistry
+│   │   │   ├── SingleCommandApplication.php
+│   │   │   ├── Style
+│   │   │   ├── Terminal.php
+│   │   │   ├── Tester
+│   │   │   └── composer.json
+│   │   ├── css-selector
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── CssSelectorConverter.php
+│   │   │   ├── Exception
+│   │   │   ├── LICENSE
+│   │   │   ├── Node
+│   │   │   ├── Parser
+│   │   │   ├── README.md
+│   │   │   ├── XPath
+│   │   │   └── composer.json
+│   │   ├── deprecation-contracts
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── composer.json
+│   │   │   └── function.php
+│   │   ├── error-handler
+│   │   │   ├── BufferingLogger.php
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── Command
+│   │   │   ├── Debug.php
+│   │   │   ├── DebugClassLoader.php
+│   │   │   ├── Error
+│   │   │   ├── ErrorEnhancer
+│   │   │   ├── ErrorHandler.php
+│   │   │   ├── ErrorRenderer
+│   │   │   ├── Exception
+│   │   │   ├── Internal
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── Resources
+│   │   │   ├── ThrowableUtils.php
+│   │   │   └── composer.json
+│   │   ├── event-dispatcher
+│   │   │   ├── Attribute
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── Debug
+│   │   │   ├── DependencyInjection
+│   │   │   ├── EventDispatcher.php
+│   │   │   ├── EventDispatcherInterface.php
+│   │   │   ├── EventSubscriberInterface.php
+│   │   │   ├── GenericEvent.php
+│   │   │   ├── ImmutableEventDispatcher.php
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   └── composer.json
+│   │   ├── event-dispatcher-contracts
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── Event.php
+│   │   │   ├── EventDispatcherInterface.php
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   └── composer.json
+│   │   ├── finder
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── Comparator
+│   │   │   ├── Exception
+│   │   │   ├── Finder.php
+│   │   │   ├── Gitignore.php
+│   │   │   ├── Glob.php
+│   │   │   ├── Iterator
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── SplFileInfo.php
+│   │   │   └── composer.json
+│   │   ├── html-sanitizer
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── HtmlSanitizer.php
+│   │   │   ├── HtmlSanitizerAction.php
+│   │   │   ├── HtmlSanitizerConfig.php
+│   │   │   ├── HtmlSanitizerInterface.php
+│   │   │   ├── LICENSE
+│   │   │   ├── Parser
+│   │   │   ├── README.md
+│   │   │   ├── Reference
+│   │   │   ├── TextSanitizer
+│   │   │   ├── Visitor
+│   │   │   └── composer.json
+│   │   ├── http-foundation
+│   │   │   ├── AcceptHeader.php
+│   │   │   ├── AcceptHeaderItem.php
+│   │   │   ├── BinaryFileResponse.php
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── ChainRequestMatcher.php
+│   │   │   ├── Cookie.php
+│   │   │   ├── EventStreamResponse.php
+│   │   │   ├── Exception
+│   │   │   ├── File
+│   │   │   ├── FileBag.php
+│   │   │   ├── HeaderBag.php
+│   │   │   ├── HeaderUtils.php
+│   │   │   ├── InputBag.php
+│   │   │   ├── IpUtils.php
+│   │   │   ├── JsonResponse.php
+│   │   │   ├── LICENSE
+│   │   │   ├── ParameterBag.php
+│   │   │   ├── README.md
+│   │   │   ├── RateLimiter
+│   │   │   ├── RedirectResponse.php
+│   │   │   ├── Request.php
+│   │   │   ├── RequestMatcher
+│   │   │   ├── RequestMatcherInterface.php
+│   │   │   ├── RequestStack.php
+│   │   │   ├── Response.php
+│   │   │   ├── ResponseHeaderBag.php
+│   │   │   ├── ServerBag.php
+│   │   │   ├── ServerEvent.php
+│   │   │   ├── Session
+│   │   │   ├── StreamedJsonResponse.php
+│   │   │   ├── StreamedResponse.php
+│   │   │   ├── Test
+│   │   │   ├── UriSigner.php
+│   │   │   ├── UrlHelper.php
+│   │   │   └── composer.json
+│   │   ├── http-kernel
+│   │   │   ├── Attribute
+│   │   │   ├── Bundle
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── CacheClearer
+│   │   │   ├── CacheWarmer
+│   │   │   ├── Config
+│   │   │   ├── Controller
+│   │   │   ├── ControllerMetadata
+│   │   │   ├── DataCollector
+│   │   │   ├── Debug
+│   │   │   ├── DependencyInjection
+│   │   │   ├── Event
+│   │   │   ├── EventListener
+│   │   │   ├── Exception
+│   │   │   ├── Fragment
+│   │   │   ├── HttpCache
+│   │   │   ├── HttpClientKernel.php
+│   │   │   ├── HttpKernel.php
+│   │   │   ├── HttpKernelBrowser.php
+│   │   │   ├── HttpKernelInterface.php
+│   │   │   ├── Kernel.php
+│   │   │   ├── KernelEvents.php
+│   │   │   ├── KernelInterface.php
+│   │   │   ├── LICENSE
+│   │   │   ├── Log
+│   │   │   ├── Profiler
+│   │   │   ├── README.md
+│   │   │   ├── RebootableInterface.php
+│   │   │   ├── Resources
+│   │   │   ├── TerminableInterface.php
+│   │   │   └── composer.json
+│   │   ├── mailer
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── Command
+│   │   │   ├── DataCollector
+│   │   │   ├── DelayedEnvelope.php
+│   │   │   ├── Envelope.php
+│   │   │   ├── Event
+│   │   │   ├── EventListener
+│   │   │   ├── Exception
+│   │   │   ├── Header
+│   │   │   ├── LICENSE
+│   │   │   ├── Mailer.php
+│   │   │   ├── MailerInterface.php
+│   │   │   ├── Messenger
+│   │   │   ├── README.md
+│   │   │   ├── SentMessage.php
+│   │   │   ├── Test
+│   │   │   ├── Transport
+│   │   │   ├── Transport.php
+│   │   │   └── composer.json
+│   │   ├── mime
+│   │   │   ├── Address.php
+│   │   │   ├── BodyRendererInterface.php
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── CharacterStream.php
+│   │   │   ├── Crypto
+│   │   │   ├── DependencyInjection
+│   │   │   ├── DraftEmail.php
+│   │   │   ├── Email.php
+│   │   │   ├── Encoder
+│   │   │   ├── Exception
+│   │   │   ├── FileBinaryMimeTypeGuesser.php
+│   │   │   ├── FileinfoMimeTypeGuesser.php
+│   │   │   ├── Header
+│   │   │   ├── HtmlToTextConverter
+│   │   │   ├── LICENSE
+│   │   │   ├── Message.php
+│   │   │   ├── MessageConverter.php
+│   │   │   ├── MimeTypeGuesserInterface.php
+│   │   │   ├── MimeTypes.php
+│   │   │   ├── MimeTypesInterface.php
+│   │   │   ├── Part
+│   │   │   ├── README.md
+│   │   │   ├── RawMessage.php
+│   │   │   ├── Resources
+│   │   │   ├── Test
+│   │   │   └── composer.json
+│   │   ├── polyfill-ctype
+│   │   │   ├── Ctype.php
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── bootstrap.php
+│   │   │   ├── bootstrap80.php
+│   │   │   └── composer.json
+│   │   ├── polyfill-intl-grapheme
+│   │   │   ├── Grapheme.php
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── bootstrap.php
+│   │   │   ├── bootstrap80.php
+│   │   │   └── composer.json
+│   │   ├── polyfill-intl-idn
+│   │   │   ├── Idn.php
+│   │   │   ├── Info.php
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── Resources
+│   │   │   ├── bootstrap.php
+│   │   │   ├── bootstrap80.php
+│   │   │   └── composer.json
+│   │   ├── polyfill-intl-normalizer
+│   │   │   ├── LICENSE
+│   │   │   ├── Normalizer.php
+│   │   │   ├── README.md
+│   │   │   ├── Resources
+│   │   │   ├── bootstrap.php
+│   │   │   ├── bootstrap80.php
+│   │   │   └── composer.json
+│   │   ├── polyfill-mbstring
+│   │   │   ├── LICENSE
+│   │   │   ├── Mbstring.php
+│   │   │   ├── README.md
+│   │   │   ├── Resources
+│   │   │   ├── bootstrap.php
+│   │   │   ├── bootstrap80.php
+│   │   │   └── composer.json
+│   │   ├── polyfill-php80
+│   │   │   ├── LICENSE
+│   │   │   ├── Php80.php
+│   │   │   ├── PhpToken.php
+│   │   │   ├── README.md
+│   │   │   ├── Resources
+│   │   │   ├── bootstrap.php
+│   │   │   └── composer.json
+│   │   ├── polyfill-php83
+│   │   │   ├── LICENSE
+│   │   │   ├── Php83.php
+│   │   │   ├── README.md
+│   │   │   ├── Resources
+│   │   │   ├── bootstrap.php
+│   │   │   ├── bootstrap81.php
+│   │   │   └── composer.json
+│   │   ├── polyfill-php84
+│   │   │   ├── LICENSE
+│   │   │   ├── Php84.php
+│   │   │   ├── README.md
+│   │   │   ├── Resources
+│   │   │   ├── bootstrap.php
+│   │   │   ├── bootstrap82.php
+│   │   │   └── composer.json
+│   │   ├── polyfill-php85
+│   │   │   ├── LICENSE
+│   │   │   ├── Php85.php
+│   │   │   ├── README.md
+│   │   │   ├── Resources
+│   │   │   ├── bootstrap.php
+│   │   │   └── composer.json
+│   │   ├── polyfill-uuid
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── Uuid.php
+│   │   │   ├── bootstrap.php
+│   │   │   ├── bootstrap80.php
+│   │   │   └── composer.json
+│   │   ├── process
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── Exception
+│   │   │   ├── ExecutableFinder.php
+│   │   │   ├── InputStream.php
+│   │   │   ├── LICENSE
+│   │   │   ├── Messenger
+│   │   │   ├── PhpExecutableFinder.php
+│   │   │   ├── PhpProcess.php
+│   │   │   ├── PhpSubprocess.php
+│   │   │   ├── Pipes
+│   │   │   ├── Process.php
+│   │   │   ├── ProcessUtils.php
+│   │   │   ├── README.md
+│   │   │   └── composer.json
+│   │   ├── routing
+│   │   │   ├── Alias.php
+│   │   │   ├── Annotation
+│   │   │   ├── Attribute
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── CompiledRoute.php
+│   │   │   ├── DependencyInjection
+│   │   │   ├── Exception
+│   │   │   ├── Generator
+│   │   │   ├── LICENSE
+│   │   │   ├── Loader
+│   │   │   ├── Matcher
+│   │   │   ├── README.md
+│   │   │   ├── RequestContext.php
+│   │   │   ├── RequestContextAwareInterface.php
+│   │   │   ├── Requirement
+│   │   │   ├── Route.php
+│   │   │   ├── RouteCollection.php
+│   │   │   ├── RouteCompiler.php
+│   │   │   ├── RouteCompilerInterface.php
+│   │   │   ├── Router.php
+│   │   │   ├── RouterInterface.php
+│   │   │   └── composer.json
+│   │   ├── service-contracts
+│   │   │   ├── Attribute
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── ResetInterface.php
+│   │   │   ├── ServiceCollectionInterface.php
+│   │   │   ├── ServiceLocatorTrait.php
+│   │   │   ├── ServiceMethodsSubscriberTrait.php
+│   │   │   ├── ServiceProviderInterface.php
+│   │   │   ├── ServiceSubscriberInterface.php
+│   │   │   ├── ServiceSubscriberTrait.php
+│   │   │   ├── Test
+│   │   │   └── composer.json
+│   │   ├── string
+│   │   │   ├── AbstractString.php
+│   │   │   ├── AbstractUnicodeString.php
+│   │   │   ├── ByteString.php
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── CodePointString.php
+│   │   │   ├── Exception
+│   │   │   ├── Inflector
+│   │   │   ├── LICENSE
+│   │   │   ├── LazyString.php
+│   │   │   ├── README.md
+│   │   │   ├── Resources
+│   │   │   ├── Slugger
+│   │   │   ├── TruncateMode.php
+│   │   │   ├── UnicodeString.php
+│   │   │   └── composer.json
+│   │   ├── translation
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── Catalogue
+│   │   │   ├── CatalogueMetadataAwareInterface.php
+│   │   │   ├── Command
+│   │   │   ├── DataCollector
+│   │   │   ├── DataCollectorTranslator.php
+│   │   │   ├── DependencyInjection
+│   │   │   ├── Dumper
+│   │   │   ├── Exception
+│   │   │   ├── Extractor
+│   │   │   ├── Formatter
+│   │   │   ├── IdentityTranslator.php
+│   │   │   ├── LICENSE
+│   │   │   ├── Loader
+│   │   │   ├── LocaleSwitcher.php
+│   │   │   ├── LoggingTranslator.php
+│   │   │   ├── MessageCatalogue.php
+│   │   │   ├── MessageCatalogueInterface.php
+│   │   │   ├── MetadataAwareInterface.php
+│   │   │   ├── Provider
+│   │   │   ├── PseudoLocalizationTranslator.php
+│   │   │   ├── README.md
+│   │   │   ├── Reader
+│   │   │   ├── Resources
+│   │   │   ├── Test
+│   │   │   ├── TranslatableMessage.php
+│   │   │   ├── Translator.php
+│   │   │   ├── TranslatorBag.php
+│   │   │   ├── TranslatorBagInterface.php
+│   │   │   ├── Util
+│   │   │   ├── Writer
+│   │   │   └── composer.json
+│   │   ├── translation-contracts
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── LICENSE
+│   │   │   ├── LocaleAwareInterface.php
+│   │   │   ├── README.md
+│   │   │   ├── Test
+│   │   │   ├── TranslatableInterface.php
+│   │   │   ├── TranslatorInterface.php
+│   │   │   ├── TranslatorTrait.php
+│   │   │   └── composer.json
+│   │   ├── uid
+│   │   │   ├── AbstractUid.php
+│   │   │   ├── BinaryUtil.php
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── Command
+│   │   │   ├── Exception
+│   │   │   ├── Factory
+│   │   │   ├── HashableInterface.php
+│   │   │   ├── LICENSE
+│   │   │   ├── MaxUlid.php
+│   │   │   ├── MaxUuid.php
+│   │   │   ├── NilUlid.php
+│   │   │   ├── NilUuid.php
+│   │   │   ├── README.md
+│   │   │   ├── TimeBasedUidInterface.php
+│   │   │   ├── Ulid.php
+│   │   │   ├── Uuid.php
+│   │   │   ├── UuidV1.php
+│   │   │   ├── UuidV3.php
+│   │   │   ├── UuidV4.php
+│   │   │   ├── UuidV5.php
+│   │   │   ├── UuidV6.php
+│   │   │   ├── UuidV7.php
+│   │   │   ├── UuidV8.php
+│   │   │   └── composer.json
+│   │   ├── var-dumper
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── Caster
+│   │   │   ├── Cloner
+│   │   │   ├── Command
+│   │   │   ├── Dumper
+│   │   │   ├── Exception
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── Resources
+│   │   │   ├── Server
+│   │   │   ├── Test
+│   │   │   ├── VarDumper.php
+│   │   │   └── composer.json
+│   │   └── yaml
+│   │       ├── CHANGELOG.md
+│   │       ├── Command
+│   │       ├── Dumper.php
+│   │       ├── Escaper.php
+│   │       ├── Exception
+│   │       ├── Inline.php
+│   │       ├── LICENSE
+│   │       ├── Parser.php
+│   │       ├── README.md
+│   │       ├── Resources
+│   │       ├── Tag
+│   │       ├── Unescaper.php
+│   │       ├── Yaml.php
+│   │       └── composer.json
+│   ├── theseer
+│   │   └── tokenizer
+│   │       ├── CHANGELOG.md
+│   │       ├── LICENSE
+│   │       ├── README.md
+│   │       ├── composer.json
+│   │       ├── composer.lock
+│   │       └── src
+│   ├── tijsverkoyen
+│   │   └── css-to-inline-styles
+│   │       ├── LICENSE.md
+│   │       ├── composer.json
+│   │       └── src
+│   ├── vlucas
+│   │   └── phpdotenv
+│   │       ├── LICENSE
+│   │       ├── composer.json
+│   │       └── src
+│   └── voku
+│       └── portable-ascii
+│           ├── CHANGELOG.md
+│           ├── LICENSE.txt
+│           ├── README.md
+│           ├── composer.json
+│           └── src
+└── vite.config.js
+
+676 directories, 1202 files

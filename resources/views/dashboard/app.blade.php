@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="{{ app()->getLocale() }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="api-token" content="{{ session('api_token') }}">
+    <title>Dashboard - CulturalTranslate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="/js/api-client.js?v={{ time() }}"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        [x-cloak] { display: none !important; }
+        
+        @keyframes slideIn {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateY(0); opacity: 1; }
+            to { transform: translateY(-100%); opacity: 0; }
+        }
+        .toast-enter { animation: slideIn 0.3s ease-out; }
+        .toast-exit { animation: slideOut 0.3s ease-in; }
+        
+        /* Smooth tab transitions */
+        [x-show] {
+            transition: opacity 0.3s ease-in-out;
+        }
+        
+        /* Better button styling */
+        button {
+            transition: all 0.2s ease;
+        }
+        
+        button:disabled {
+            cursor: not-allowed;
+        }
+        
+        /* Input focus states */
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+        }
+        
+        /* Sidebar hover effects */
+        nav a {
+            transition: all 0.2s ease;
+        }
+        
+        nav a:hover {
+            transform: translateX(4px);
+        }
+        
+        /* Loading spinner */
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .fa-spin {
+            animation: spin 1s linear infinite;
+        }
+
+        /* Chart container safeguards */
+        .chart-container { box-sizing: border-box; }
+        .chart-container canvas { max-height: 420px; height: 100% !important; width: 100% !important; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+    
+    <div x-data="dashboardApp()" x-init="init()" class="flex h-screen">
+        
+        @if(session('success'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(function() {
+                    var msg = "{{ addslashes(session('success')) }}";
+                    window.dispatchEvent(new CustomEvent('show-toast', { detail: { type: 'success', message: msg } }));
+                }, 500);
+            });
+        </script>
+        @endif
+        
+        @if(session('error'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(function() {
+                    var msgErr = "{{ addslashes(session('error')) }}";
+                    window.dispatchEvent(new CustomEvent('show-toast', { detail: { type: 'error', message: msgErr } }));
+                }, 500);
+            });
+        </script>
+        @endif
+        
+        <!-- Sidebar -->
+        <aside :class="sidebarOpen ? 'w-64' : 'w-20'" class="bg-white border-r border-gray-200 transition-all duration-300">
+            <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+                <h1 x-show="sidebarOpen" class="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">CulturalTranslate</h1>
+                <button @click="sidebarOpen = !sidebarOpen" class="text-gray-600 hover:text-gray-900">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            
+            <nav class="p-4 space-y-2">
+                <a @click="currentTab = 'overview'" :class="currentTab === 'overview' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-700 hover:bg-gray-50'" class="flex items-center space-x-3 px-4 py-3 rounded-lg cursor-pointer">
+                    <i class="fas fa-home w-5"></i>
+                    <span x-show="sidebarOpen">{{ __('dashboard.overview') }}</span>
+                </a>
+                
+                <a @click="currentTab = 'translate'" :class="currentTab === 'translate' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-700 hover:bg-gray-50'" class="flex items-center space-x-3 px-4 py-3 rounded-lg cursor-pointer">
+                    <i class="fas fa-language w-5"></i>
+                    <span x-show="sidebarOpen">{{ __('dashboard.translate') }}</span>
+                </a>
+                
+                <a @click="currentTab = 'history'" :class="currentTab === 'history' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-700 hover:bg-gray-50'" class="flex items-center space-x-3 px-4 py-3 rounded-lg cursor-pointer">
+                    <i class="fas fa-history w-5"></i>
+                    <span x-show="sidebarOpen">{{ __('dashboard.history') }}</span>
+                </a>
+                
+                <a @click="currentTab = 'projects'" :class="currentTab === 'projects' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-700 hover:bg-gray-50'" class="flex items-center space-x-3 px-4 py-3 rounded-lg cursor-pointer">
+                    <i class="fas fa-folder w-5"></i>
+                    <span x-show="sidebarOpen">{{ __('dashboard.projects') }}</span>
+                </a>
+                
+                <a @click="currentTab = 'subscription'" :class="currentTab === 'subscription' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-700 hover:bg-gray-50'" class="flex items-center space-x-3 px-4 py-3 rounded-lg cursor-pointer">
+                    <i class="fas fa-credit-card w-5"></i>
+                    <span x-show="sidebarOpen">{{ __('dashboard.subscription') }}</span>
+                </a>
+                
+                <a @click="currentTab = 'plugins'" :class="currentTab === 'plugins' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-700 hover:bg-gray-50'" class="flex items-center space-x-3 px-4 py-3 rounded-lg cursor-pointer">
+                    <i class="fas fa-puzzle-piece w-5"></i>
+                    <span x-show="sidebarOpen">Plugins</span>
+                </a>
+                
+                <a @click="currentTab = 'integrations'" :class="currentTab === 'integrations' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-700 hover:bg-gray-50'" class="flex items-center space-x-3 px-4 py-3 rounded-lg cursor-pointer">
+                    <i class="fas fa-plug w-5"></i>
+                    <span x-show="sidebarOpen">Integrations</span>
+                </a>
+                
+                <a @click="currentTab = 'settings'" :class="currentTab === 'settings' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-700 hover:bg-gray-50'" class="flex items-center space-x-3 px-4 py-3 rounded-lg cursor-pointer">
+                    <i class="fas fa-cog w-5"></i>
+                    <span x-show="sidebarOpen">{{ __('dashboard.settings') }}</span>
+                </a>
+                
+                <a @click="logout()" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 cursor-pointer">
+                    <i class="fas fa-sign-out-alt w-5"></i>
+                    <span x-show="sidebarOpen">Logout</span>
+                </a>
+                <a href="{{ route('stripe.pricing') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-indigo-600 hover:bg-indigo-50 cursor-pointer">
+                    <i class="fas fa-tags w-5"></i>
+                    <span x-show="sidebarOpen">Pricing & Plans</span>
+                </a>
+            </nav>
+        </aside>
+        
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            
+            <!-- Header -->
+            <header class="bg-white border-b border-gray-200 px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-bold text-gray-900" x-text="getTabTitle()"></h2>
+                    <div class="flex items-center space-x-4">
+                        <button class="relative text-gray-600 hover:text-gray-900">
+                            <i class="fas fa-bell text-xl"></i>
+                        <x-language-switcher />
+                            <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+                        </button>
+                        <div class="flex items-center space-x-3">
+                            <img :src="user.avatar" class="w-10 h-10 rounded-full">
+                            <div>
+                                <div class="text-sm font-medium text-gray-900" x-text="user.name"></div>
+                                <div class="text-xs text-gray-500" x-text="user.plan"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Content -->
+            <main class="flex-1 overflow-y-auto p-6">
+                
+                <!-- Overview Tab -->
+                <div x-show="currentTab === 'overview'" x-cloak class="space-y-6">
+                    @include('dashboard.tabs.overview')
+                </div>
+                
+                <!-- Translate Tab -->
+                <div x-show="currentTab === 'translate'" x-cloak>
+                    @include('dashboard.tabs.translate')
+                </div>
+                
+                <!-- History Tab -->
+                <div x-show="currentTab === 'history'" x-cloak>
+                    @include('dashboard.tabs.history')
+                </div>
+                
+                <!-- Projects Tab -->
+                <div x-show="currentTab === 'projects'" x-cloak>
+                    @include('dashboard.tabs.projects')
+                </div>
+                
+                <!-- Subscription Tab -->
+                <div x-show="currentTab === 'subscription'" x-cloak>
+                    @include('dashboard.tabs.subscription')
+                </div>
+                
+                <!-- Plugins Tab -->
+                <div x-show="currentTab === 'plugins'" x-cloak>
+                    @include('dashboard.tabs.plugins')
+                </div>
+                
+                <!-- Integrations Tab -->
+                <div x-show="currentTab === 'integrations'" x-cloak>
+                    @include('dashboard.tabs.integrations')
+                    <div class="mt-8 bg-white border border-gray-200 rounded-lg p-6" x-data="integrationsPanel()" x-init="loadStatus()">
+                        <h3 class="text-xl font-semibold mb-4 flex items-center"><i class="fas fa-plug text-indigo-600 mr-2"></i> Video Integrations</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Zoom Card -->
+                            <div class="p-5 rounded-lg border bg-gray-50">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h4 class="text-lg font-medium">Zoom</h4>
+                                    <span class="text-xs px-2 py-1 rounded-full" :class="zoom.connected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'" x-text="zoom.connected ? 'Connected' : 'Disconnected'"></span>
+                                </div>
+                                <p class="text-sm text-gray-600 mb-4">Use Zoom live meetings with real-time cultural & translation layers.</p>
+                                <div class="space-x-2">
+                                    <button @click="connect('zoom')" x-show="!zoom.connected" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"><i class="fas fa-link mr-1"></i> Connect</button>
+                                    <button @click="disconnect('zoom')" x-show="zoom.connected" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"><i class="fas fa-unlink mr-1"></i> Disconnect</button>
+                                    <button @click="refresh('zoom')" x-show="zoom.connected" class="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-800"><i class="fas fa-sync-alt mr-1"></i> Refresh Token</button>
+                                </div>
+                                <div class="mt-3 text-xs text-gray-500" x-show="zoom.expires_at">Expires: <span x-text="zoom.expires_at"></span></div>
+                            </div>
+                            <!-- Teams Card -->
+                            <div class="p-5 rounded-lg border bg-gray-50">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h4 class="text-lg font-medium">Microsoft Teams</h4>
+                                    <span class="text-xs px-2 py-1 rounded-full" :class="teams.connected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'" x-text="teams.connected ? 'Connected' : 'Disconnected'"></span>
+                                </div>
+                                <p class="text-sm text-gray-600 mb-4">Integrate Teams conferencing with ASR/TTS and cultural intelligence overlays.</p>
+                                <div class="space-x-2">
+                                    <button @click="connect('teams')" x-show="!teams.connected" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"><i class="fas fa-link mr-1"></i> Connect</button>
+                                    <button @click="disconnect('teams')" x-show="teams.connected" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"><i class="fas fa-unlink mr-1"></i> Disconnect</button>
+                                    <button @click="refresh('teams')" x-show="teams.connected" class="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-800"><i class="fas fa-sync-alt mr-1"></i> Refresh Token</button>
+                                </div>
+                                <div class="mt-3 text-xs text-gray-500" x-show="teams.expires_at">Expires: <span x-text="teams.expires_at"></span></div>
+                            </div>
+                        </div>
+                        <div class="mt-6 text-xs text-gray-500">Security: OAuth tokens stored encrypted; refresh scheduled hourly; scope limited to meetings only.</div>
+                    </div>
+                </div>
+                
+                <!-- Settings Tab -->
+                <div x-show="currentTab === 'settings'" x-cloak>
+                    @include('dashboard.tabs.settings')
+                </div>
+                
+            </main>
+            
+        </div>
+        
+        <!-- Loading Overlay -->
+        <div x-show="loading" x-cloak class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-spinner fa-spin text-indigo-600 text-2xl"></i>
+                    <span class="text-gray-900">{{ __('messages.common.loading') }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Toast Notifications -->
+        <div x-show="toast.show" x-cloak @click="toast.show = false" 
+             class="fixed bottom-4 right-4 px-6 py-4 rounded-lg shadow-lg cursor-pointer transition-all"
+             :class="{
+                 'bg-green-500 text-white': toast.type === 'success',
+                 'bg-red-500 text-white': toast.type === 'error',
+                 'bg-yellow-500 text-white': toast.type === 'warning',
+                 'bg-blue-500 text-white': toast.type === 'info'
+             }">
+            <div class="flex items-center space-x-3">
+                <i class="fas" :class="{
+                    'fa-check-circle': toast.type === 'success',
+                    'fa-exclamation-circle': toast.type === 'error',
+                    'fa-exclamation-triangle': toast.type === 'warning',
+                    'fa-info-circle': toast.type === 'info'
+                }"></i>
+                <span x-text="toast.message"></span>
+            </div>
+        </div>
+        
+    </div>
+    
+    <script>
+        function dashboardApp() {
+            return {
+                sidebarOpen: true,
+                currentTab: 'overview',
+                loading: false,
+                user: {
+                    name: 'Loading...',
+                    email: '',
+                    avatar: 'https://ui-avatars.com/api/?name=User&background=6366f1&color=fff',
+                    plan: 'Loading...'
+                },
+                stats: {
+                    translations: 0,
+                    charactersUsed: 0,
+                    charactersLimit: 100000,
+                    projects: 0,
+                    teamMembers: 0
+                },
+                translations: [],
+                projects: [],
+                subscription: null,
+                toast: {
+                    show: false,
+                    type: 'info',
+                    message: ''
+                },
+                
+                async init() {
+                    // Listen for toast events from session messages
+                    window.addEventListener('show-toast', (event) => {
+                        this.showToast(event.detail.type, event.detail.message);
+                    });
+                    
+                    await this.loadUser();
+                    await this.loadStats();
+                },
+                
+                async loadUser() {
+                    try {
+                        const response = await window.apiClient.getProfile();
+                        this.user = {
+                            name: response.data.name,
+                            email: response.data.email,
+                            avatar: response.data.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(response.data.name)}&background=6366f1&color=fff`,
+                            plan: response.data.subscription?.plan?.name || 'Free'
+                        };
+                    } catch (error) {
+                        console.error('Failed to load user:', error);
+                        this.showToast('error', 'Failed to load user data');
+                    }
+                },
+                
+                async loadStats() {
+                    try {
+                        const response = await window.apiClient.getDashboard();
+                        this.stats = response.data;
+                    } catch (error) {
+                        console.error('Failed to load stats:', error);
+                    }
+                },
+                
+                async loadTranslations() {
+                    try {
+                        this.loading = true;
+                        const response = await window.apiClient.getTranslations();
+                        this.translations = response.data;
+                    } catch (error) {
+                        this.showToast('error', 'Failed to load translations');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                async logout() {
+                    try {
+                        // Use Laravel's logout route
+                        const response = await fetch('/logout', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            }
+                        });
+                        
+                        // Clear any local storage
+                        localStorage.clear();
+                        
+                        // Redirect to login page
+                        window.location.href = '/login';
+                    } catch (error) {
+                        console.error('Logout error:', error);
+                        // Even if there's an error, redirect to login
+                        window.location.href = '/login';
+                    }
+                },
+                
+                getTabTitle() {
+                    const titles = {
+                        overview: '{{ __("dashboard.overview") }}',
+                        translate: '{{ __("dashboard.translate") }}',
+                        history: '{{ __("dashboard.history") }}',
+                        projects: '{{ __("dashboard.projects") }}',
+                        subscription: '{{ __("dashboard.subscription") }}',
+                        settings: '{{ __("dashboard.settings") }}'
+                    };
+                    return titles[this.currentTab] || 'Dashboard';
+                },
+                
+                showToast(type, message) {
+                    const container = document.getElementById('toast-container');
+                    const toast = document.createElement('div');
+                    
+                    const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+                    const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+                    
+                    toast.className = `${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3 min-w-[300px] toast-enter`;
+                    toast.innerHTML = `
+                        <i class="fas ${icon} text-xl"></i>
+                        <span class="flex-1">${message}</span>
+                        <button onclick="this.parentElement.remove()" class="text-white hover:text-gray-200">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                    
+                    container.appendChild(toast);
+                    
+                    // Auto remove after 5 seconds
+                    setTimeout(() => {
+                        toast.classList.remove('toast-enter');
+                        toast.classList.add('toast-exit');
+                        setTimeout(() => toast.remove(), 300);
+                    }, 5000);
+                }
+            }
+        }
+        function integrationsPanel() {
+            return {
+                zoom: { connected: false, expires_at: null },
+                teams: { connected: false, expires_at: null },
+                async loadStatus() {
+                    // Placeholder status fetch if an API is later added
+                },
+                async connect(provider) {
+                    try {
+                        const resp = await fetch(`/integrations/connect/${provider}`, { method: 'POST', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }});
+                        const data = await resp.json();
+                        if (data.authorize_url) {
+                            window.open(data.authorize_url, '_blank');
+                        }
+                    } catch (e) { console.error(e); }
+                },
+                async disconnect(provider) {
+                    try {
+                        const resp = await fetch(`/integrations/disconnect/${provider}`, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }});
+                        if (provider==='zoom') { this.zoom.connected=false; } else { this.teams.connected=false; }
+                    } catch (e) { console.error(e); }
+                },
+                async refresh(provider) {
+                    // Placeholder (actual refresh via scheduled command)
+                    alert('Refresh will run via cron if token near expiry.');
+                }
+            }
+        }
+    </script>
+</body>
+</html>

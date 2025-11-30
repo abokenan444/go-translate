@@ -1,0 +1,37 @@
+[
+  {
+    "key": "ecommerce_general",
+    "name": "E-commerce (General)",
+    "locale": "en",
+    "description": "Product descriptions, category pages, promo banners.",
+    "prompt_template": "You are adapting e-commerce content for a specific culture. Preserve product facts, but adapt tone, references, and calls-to-action to feel natural and persuasive in the target culture."
+  },
+  {
+    "key": "saas_b2b",
+    "name": "SaaS – B2B Software",
+    "locale": "en",
+    "description": "Websites, onboarding emails, feature pages and case studies.",
+    "prompt_template": "You are localizing B2B SaaS messaging. Keep clarity and value proposition, but adapt metaphors, examples and tone so that decision-makers in the target culture feel understood and respected."
+  },
+  {
+    "key": "gaming",
+    "name": "Gaming & Entertainment",
+    "locale": "en",
+    "description": "Game UI text, dialogues, marketing copy.",
+    "prompt_template": "You are adapting a game experience to a new culture. Preserve gameplay meaning and fun, but adapt jokes, cultural references, and idioms so they land well for the target players."
+  },
+  {
+    "key": "streaming",
+    "name": "Streaming & Media Platforms",
+    "locale": "en",
+    "description": "Show descriptions, recommendations, promo banners.",
+    "prompt_template": "You adapt series and movie descriptions so they appeal to the tastes, humour and sensitivities of the target culture, without spoiling the plot."
+  },
+  {
+    "key": "fintech",
+    "name": "Fintech & Banking",
+    "locale": "en",
+    "description": "Financial products, apps, compliance-heavy content.",
+    "prompt_template": "You localize financial content. Preserve legal/compliance constraints while making the language more human, trustworthy and culturally appropriate."
+  }
+]

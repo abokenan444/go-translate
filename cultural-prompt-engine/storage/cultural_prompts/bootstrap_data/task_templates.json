@@ -1,0 +1,67 @@
+[
+  {
+    "key": "marketing_headline",
+    "name": "Marketing Headline",
+    "category": "marketing",
+    "description": "Turn a raw marketing headline into a culturally adapted one for the target market.",
+    "prompt_template": "Rewrite the marketing headline so that it speaks naturally to the target culture, respecting local sensitivities and communication style. Keep the core promise, but adapt wording, rhythm and references.",
+    "input_schema_json": {
+      "fields": [
+        "product_name",
+        "main_benefit"
+      ]
+    }
+  },
+  {
+    "key": "product_description",
+    "name": "Product Description",
+    "category": "ecommerce",
+    "description": "Culturally adapt a full product description.",
+    "prompt_template": "Adapt the product description so that it sounds like it was originally written in the target culture. Keep factual information, but adjust tone, structure and examples.",
+    "input_schema_json": {
+      "fields": [
+        "product_name",
+        "features",
+        "audience"
+      ]
+    }
+  },
+  {
+    "key": "ad_copy_short",
+    "name": "Short Ad Copy",
+    "category": "ads",
+    "description": "Culturally adapt short advertising copy (for social ads, banners, etc.).",
+    "prompt_template": "Rewrite the ad copy to resonate with the target culture. You may change metaphors, humour or references, but keep the original intent and call-to-action.",
+    "input_schema_json": {
+      "fields": [
+        "platform",
+        "goal"
+      ]
+    }
+  },
+  {
+    "key": "email_campaign_intro",
+    "name": "Email Campaign Intro",
+    "category": "email",
+    "description": "Adapt the opening of a marketing email to the target culture.",
+    "prompt_template": "Adapt the email introduction so that the reader in the target culture feels understood, respected and interested. Adjust level of formality, greetings and cultural signals.",
+    "input_schema_json": {
+      "fields": [
+        "audience_segment"
+      ]
+    }
+  },
+  {
+    "key": "tone_of_voice_guide",
+    "name": "Tone-of-Voice Rewriting Guide",
+    "category": "brand",
+    "description": "Explain how to rewrite all future copy for this brand in the target culture.",
+    "prompt_template": "Based on the brand's style and the target culture, provide a concise tone-of-voice guide: how to write, what to avoid, recommended phrases and examples of good vs bad copy.",
+    "input_schema_json": {
+      "fields": [
+        "brand_values",
+        "donts"
+      ]
+    }
+  }
+]

@@ -1,0 +1,59 @@
+// Add this at the top after namespace
+use App\Models\TrainingData;
+use Illuminate\Support\Facades\Auth;
+
+// Add this method after translateCultural method
+    /**
+     * Save translation data for training
+     */
+    protected function saveTrainingData($translationResult, $text, $sourceLang, $targetLang, $context, $tone)
+    {
+        try {
+            // Only save if translation was successful
+                return;
+            }
+
+            // Check for sensitive data patterns (basic check)
+            $containsSensitive = $this->containsSensitiveData($text);
+
+            TrainingData::create([
+                'source_text' => $text,
+                'source_language' => $sourceLang,
+                'target_language' => $targetLang,
+                'translated_text' => $translationResult['translated_text'],
+                'tone' => $tone,
+                'context' => $context,
+                'model_used' => $this->model,
+                'word_count' => str_word_count($text ?? ''),
+                'tokens_used' => $translationResult['total_tokens'] ?? 0,
+                'user_id' => Auth::id(),
+                'contains_sensitive_data' => $containsSensitive,
+                'data_quality' => 'pending',
+            ]);
+        } catch (\Exception $e) {
+            // Silently fail - don't affect the translation process
+            Log::warning('Failed to save training data: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Check if text contains sensitive data
+     */
+    protected function containsSensitiveData($text)
+    {
+        // Basic patterns for sensitive data
+        $patterns = [
+            '/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/', // Credit card
+            '/\b\d{3}-\d{2}-\d{4}\b/', // SSN
+            '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/', // Email (optional)
+            '/\b\d{10,}\b/', // Phone numbers
+        ];
+
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $text)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
