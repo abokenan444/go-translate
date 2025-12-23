@@ -10,31 +10,29 @@ class SecurityHeadersMiddleware
     public function handle(Request $request, Closure $next)
     {
         $response = $next($request);
-        
-        // Security Headers
         $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
         $response->headers->set('X-Content-Type-Options', 'nosniff');
-        $response->headers->set('X-XSS-Protection', '1; mode=block');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
-        $response->headers->set('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+        $response->headers->set('Permissions-Policy', 'geolocation=(), microphone=()');
         
-        // HSTS (HTTP Strict Transport Security)
-        if ($request->secure()) {
-            $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-        }
-        
-        // Content Security Policy
+        // More permissive CSP to allow external CDNs and scripts
         $csp = implode('; ', [
-            "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' cdn.tailwindcss.com unpkg.com cdn.jsdelivr.net cdnjs.cloudflare.com",
-            "style-src 'self' 'unsafe-inline' fonts.googleapis.com cdnjs.cloudflare.com cdn.tailwindcss.com",
+            "default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob: ws: wss:",
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:",
+            "style-src 'self' 'unsafe-inline' https: data:",
             "img-src 'self' data: https: blob:",
-            "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com",
-            "connect-src 'self'",
-            "frame-ancestors 'self'",
+            "font-src 'self' data: https:",
+            "connect-src 'self' https: ws: wss: data: blob:",
+            "media-src 'self' https: data: blob:",
+            "object-src 'none'",
+            "frame-src 'self' https:",
+            "worker-src 'self' blob:",
+            "form-action 'self'",
+            "base-uri 'self'",
+            "manifest-src 'self'"
         ]);
-        $response->headers->set('Content-Security-Policy', $csp);
         
+        $response->headers->set('Content-Security-Policy', $csp);
         return $response;
     }
 }
