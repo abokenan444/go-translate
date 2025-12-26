@@ -1,0 +1,97 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Server
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          
+      - name: Add known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H 145.14.158.101 >> ~/.ssh/known_hosts
+          
+      - name: Deploy to Server
+        run: |
+          ssh root@145.14.158.101 << 'ENDSSH'
+            cd /var/www/cultural-translate-platform
+            
+            # Backup current state
+            echo "Creating backup..."
+            php artisan backup:run --only-db
+            
+            # Pull latest changes
+            echo "Pulling latest changes..."
+            git pull origin main
+            
+            # Install dependencies
+            echo "Installing dependencies..."
+            composer install --no-dev --optimize-autoloader --no-interaction
+            
+            # Run migrations
+            echo "Running migrations..."
+            php artisan migrate --force
+            
+            # Clear and rebuild caches
+            echo "Rebuilding caches..."
+            php artisan cache:clear
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            
+            # Restart services
+            echo "Restarting services..."
+            sudo systemctl restart php8.3-fpm
+            sudo systemctl restart nginx
+            
+            echo "Deployment completed successfully!"
+          ENDSSH
+          
+      - name: Notify deployment status
+        if: always()
+        run: |
+          if [ ${{ job.status }} == 'success' ]; then
+            echo "✅ Deployment successful!"
+          else
+            echo "❌ Deployment failed!"
+          fi
+
+  verify:
+    name: Verify Deployment
+    needs: deploy
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check website status
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://culturaltranslate.com)
+          if [ $response -eq 200 ]; then
+            echo "✅ Website is accessible"
+          else
+            echo "❌ Website returned status: $response"
+            exit 1
+          fi
+          
+      - name: Check admin panel status
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://admin.culturaltranslate.com)
+          if [ $response -eq 200 ]; then
+            echo "✅ Admin panel is accessible"
+          else
+            echo "❌ Admin panel returned status: $response"
+            exit 1
+          fi
