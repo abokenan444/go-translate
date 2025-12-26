@@ -24,7 +24,7 @@ class MTEController extends Controller
     public function translateText(Request $request)
     {
         $data = $request->validate([
-            'text' => 'required|string',
+            'text' => 'required|string|max:10000',
             'target_language' => 'required|string',
             'source_language' => 'nullable|string',
             'target_culture' => 'nullable|string',
@@ -56,7 +56,7 @@ class MTEController extends Controller
     public function translateImage(Request $request)
     {
         $data = $request->validate([
-            'image' => 'required|file|mimes:jpg,jpeg,png,webp',
+            'image' => 'required|file|mimes:jpg,jpeg,png,webp|max:10240',
             'target_language' => 'required_unless:extract_only,true,1|string',
             'source_language' => 'nullable|string',
             'target_culture' => 'nullable|string',
@@ -86,7 +86,7 @@ class MTEController extends Controller
     public function translatePDF(Request $request)
     {
         $data = $request->validate([
-            'pdf' => 'required|file|mimes:pdf',
+            'pdf' => 'required|file|mimes:pdf|max:20480',
             'target_language' => 'required_unless:extract_only,true,1|string',
             'source_language' => 'nullable|string',
             'target_culture' => 'nullable|string',
@@ -116,7 +116,7 @@ class MTEController extends Controller
     public function enqueuePDF(Request $request)
     {
         $data = $request->validate([
-            'pdf' => 'required|file|mimes:pdf',
+            'pdf' => 'required|file|mimes:pdf|max:20480',
             'target_language' => 'required_unless:extract_only,true,1|string',
             'source_language' => 'nullable|string',
             'target_culture' => 'nullable|string',
@@ -159,7 +159,7 @@ class MTEController extends Controller
     public function transcribeAudio(Request $request)
     {
         $data = $request->validate([
-            'audio' => 'required|file|mimes:wav,mp3,m4a,ogg,flac',
+            'audio' => 'required|file|mimes:wav,mp3,m4a,ogg,flac|max:15360',
             'source_language' => 'nullable|string',
         ]);
         
@@ -186,7 +186,7 @@ class MTEController extends Controller
     public function synthesizeSpeech(Request $request)
     {
         $data = $request->validate([
-            'text' => 'required|string',
+            'text' => 'required|string|max:5000',
             'language' => 'nullable|string',
             'voice' => 'nullable|string',
         ]);
@@ -210,5 +210,21 @@ class MTEController extends Controller
         }
         
         return response()->json(['success' => true, 'data' => $result]);
+    }
+
+    /**
+     * Alias for enqueuePDF - Async PDF translation
+     */
+    public function translatePDFAsync(Request $request)
+    {
+        return $this->enqueuePDF($request);
+    }
+
+    /**
+     * Alias for pdfStatus - Check PDF translation status
+     */
+    public function checkPDFStatus(string $jobId)
+    {
+        return $this->pdfStatus($jobId);
     }
 }

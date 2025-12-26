@@ -36,6 +36,7 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\SetLocale::class,
+            \App\Http\Middleware\LogActivity::class,
         ],
         'api' => [
             \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
@@ -43,15 +44,22 @@ class Kernel extends HttpKernel
         ],
     ];
     /**
-     * The application's route middleware.
+     * The application's middleware aliases.
      *
      * @var array<string, class-string|string>
      */
-    protected $routeMiddleware = [
+    protected $middlewareAliases = [
+        'partner.api' => AppHttpMiddlewarePartnerApiAuthentication::class,
+        'partner.type' => AppHttpMiddlewarePartnerTypeMiddleware::class,
         'ai-owner' => \App\Http\Middleware\EnsureAiDeveloperOwner::class,
         'auth' => \App\Http\Middleware\Authenticate::class,
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
         'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
         'super-admin' => \App\Http\Middleware\EnsureSuperAdmin::class,
+        'government' => \App\Http\Middleware\GovernmentSubdomainMiddleware::class,
+        'account.type' => \App\Http\Middleware\CheckAccountType::class,
+        'ensure.verified.university' => \App\Http\Middleware\EnsureVerifiedUniversity::class,
+        'authority.only' => \App\Http\Middleware\EnsureAuthorityAccess::class,
+
     ];
 }

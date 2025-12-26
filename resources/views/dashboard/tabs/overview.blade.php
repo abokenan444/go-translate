@@ -10,9 +10,16 @@
                 </div>
             </div>
             <div class="text-3xl font-bold text-gray-900 mb-1" x-text="displayStat('translations')"></div>
-            <div class="text-sm" :class="stats.translationsGrowth >= 0 ? 'text-green-600' : 'text-red-600'">
-                <i class="fas" :class="stats.translationsGrowth >= 0 ? 'fa-arrow-up' : 'fa-arrow-down'"></i>
-                <span x-text="Math.abs(stats.translationsGrowth) + '%'"></span> this month
+            <div class="text-sm" :class="(stats.translationsGrowth && !isNaN(stats.translationsGrowth) && stats.translationsGrowth >= 0) ? 'text-green-600' : 'text-gray-500'">
+                <template x-if="stats.translationsGrowth && !isNaN(stats.translationsGrowth)">
+                    <span>
+                        <i class="fas" :class="stats.translationsGrowth >= 0 ? 'fa-arrow-up' : 'fa-arrow-down'"></i>
+                        <span x-text="Math.abs(stats.translationsGrowth) + '%'"></span> this month
+                    </span>
+                </template>
+                <template x-if="!stats.translationsGrowth || isNaN(stats.translationsGrowth)">
+                    <span>0% this month</span>
+                </template>
             </div>
         </div>
         
@@ -41,7 +48,7 @@
             </div>
             <div class="text-3xl font-bold text-gray-900 mb-1" x-text="displayStat('projects')"></div>
             <div class="text-sm text-gray-500">
-                <span x-text="stats.activeProjects || '0'"></span> {{ __('dashboard.stats.active') }}
+                <span x-text="stats.activeProjects || '0'"></span> {{ \Illuminate\Support\Facades\Lang::has('dashboard.stats.active') ? __('dashboard.stats.active') : 'active' }}
             </div>
         </div>
         
@@ -126,16 +133,16 @@
 function overviewTab() {
     return {
         stats: {
-            translations: 0,
-            translationsGrowth: 0,
-            charactersUsed: 0,
-            charactersLimit: 100000,
-            projects: 0,
-            activeProjects: 0,
-            teamMembers: 0,
-            teamLimit: 10
+            translations: {{ $stats['total_translations'] ?? 0 }},
+            translationsGrowth: {{ $stats['translation_growth'] ?? 0 }},
+            charactersUsed: {{ $stats['characters_this_month'] ?? 0 }},
+            charactersLimit: {{ $characterLimit ?? 100000 }},
+            projects: {{ $stats['active_projects'] ?? 0 }},
+            activeProjects: {{ $stats['active_projects'] ?? 0 }},
+            teamMembers: {{ $stats['team_members'] ?? 1 }},
+            teamLimit: {{ $teamLimit ?? 10 }}
         },
-        recentActivity: [],
+        recentActivity: @json($recentTranslations ?? []),
         usageChart: null,
         languagesChart: null,
         
@@ -148,46 +155,23 @@ function overviewTab() {
         },
         
         async loadStats() {
-            try {
-                const response = await window.apiClient.getDashboard();
-                this.stats = {
-                    translations: response.data.total_translations || 0,
-                    translationsGrowth: response.data.translations_growth || 0,
-                    charactersUsed: response.data.characters_used || 0,
-                    charactersLimit: response.data.characters_limit || 100000,
-                    projects: response.data.total_projects || 0,
-                    activeProjects: response.data.active_projects || 0,
-                    teamMembers: response.data.team_members || 1,
-                    teamLimit: response.data.team_limit || 10
-                };
-            } catch (error) {
-                console.error('Failed to load stats:', error);
-                // Use demo data if API fails
-                this.stats = {
-                    translations: 1234,
-                    translationsGrowth: 12,
-                    charactersUsed: 45200,
-                    charactersLimit: 100000,
-                    projects: 8,
-                    activeProjects: 3,
-                    teamMembers: 5,
-                    teamLimit: 10
-                };
-            }
+            // Stats are now loaded from server-side (Controller)
+            // No need to fetch from API
+            console.log('Stats loaded from server:', this.stats);
         },
 
         displayStat(key) {
             const val = this.stats[key];
-            if (val === 0 || val === null || typeof val === 'undefined') {
+            if (val === 0 || val === null || typeof val === 'undefined' || isNaN(val)) {
                 switch (key) {
                     case 'translations':
-                        return 'No translations';
+                        return '0';
                     case 'charactersUsed':
                         return '0';
                     case 'projects':
-                        return 'No projects';
-                    case 'teamMembers':
                         return '0';
+                    case 'teamMembers':
+                        return '1';
                     default:
                         return '0';
                 }
@@ -197,42 +181,8 @@ function overviewTab() {
         },
         
         async loadRecentActivity() {
-            try {
-                const response = await window.apiClient.getTranslations(1, 5);
-                this.recentActivity = response.data.data || [];
-            } catch (error) {
-                console.error('Failed to load recent activity:', error);
-                // Use demo data if API fails
-                this.recentActivity = [
-                    {
-                        id: 1,
-                        title: 'Marketing Campaign Text',
-                        source_language: 'English',
-                        target_language: 'Arabic',
-                        character_count: 1234,
-                        status: 'completed',
-                        created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
-                    },
-                    {
-                        id: 2,
-                        title: 'Product Description',
-                        source_language: 'Spanish',
-                        target_language: 'French',
-                        character_count: 856,
-                        status: 'completed',
-                        created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString()
-                    },
-                    {
-                        id: 3,
-                        title: 'Website Content',
-                        source_language: 'English',
-                        target_language: 'German',
-                        character_count: 2145,
-                        status: 'completed',
-                        created_at: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString()
-                    }
-                ];
-            }
+            // Recent activity is now loaded from server-side (Controller)
+            console.log('Recent activity loaded from server:', this.recentActivity);
         },
         
         async loadCharts() {
@@ -252,10 +202,10 @@ function overviewTab() {
             this.usageChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    labels: {!! json_encode($usageData['labels'] ?? ['Week 1', 'Week 2', 'Week 3', 'Week 4']) !!},
                     datasets: [{
-                        label: 'Characters Used',
-                        data: [8500, 12300, 15600, 18200],
+                        label: 'Characters',
+                        data: {!! json_encode($usageData['data'] ?? [0, 0, 0, 0]) !!},200],
                         borderColor: '#8b5cf6',
                         backgroundColor: 'rgba(139, 92, 246, 0.1)',
                         tension: 0.4,
@@ -295,16 +245,10 @@ function overviewTab() {
             this.languagesChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Arabic', 'English', 'Spanish', 'French', 'Others'],
+                    labels: {!! json_encode($languageDistribution['labels'] ?? ['No data']) !!},
                     datasets: [{
-                        data: [35, 25, 15, 12, 13],
-                        backgroundColor: [
-                            '#3b82f6',
-                            '#8b5cf6',
-                            '#10b981',
-                            '#f59e0b',
-                            '#6b7280'
-                        ]
+                        data: {!! json_encode($languageDistribution['data'] ?? [0]) !!},
+                        backgroundColor: {!! json_encode($languageDistribution['colors'] ?? ['#6b7280']) !!}
                     }]
                 },
                 options: {

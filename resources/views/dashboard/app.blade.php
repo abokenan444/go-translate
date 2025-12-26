@@ -12,6 +12,78 @@
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="/js/api-client.js?v={{ time() }}"></script>
     <style>
+
+/* Enhanced Dashboard Styling */
+.stats-grid {
+    gap: 1.5rem !important;
+}
+
+.stat-card {
+    transition: all 0.3s ease !important;
+    border-left: 4px solid transparent !important;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+}
+
+.stat-card.translations {
+    border-left-color: #6366f1 !important;
+}
+
+.stat-card.characters {
+    border-left-color: #10b981 !important;
+}
+
+.stat-card.projects {
+    border-left-color: #f59e0b !important;
+}
+
+.stat-card.team {
+    border-left-color: #8b5cf6 !important;
+}
+
+/* Partner Dashboard Enhancements */
+.partner-stat-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+}
+
+.api-credentials {
+    background: #f8fafc !important;
+    border: 2px dashed #cbd5e1 !important;
+    border-radius: 12px !important;
+    padding: 1.5rem !important;
+}
+
+/* Better button styling */
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    border: none !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn-primary:hover {
+    transform: scale(1.05) !important;
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4) !important;
+}
+
+/* Chart containers */
+.chart-container {
+    background: white !important;
+    border-radius: 12px !important;
+    padding: 1.5rem !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
+}
+
+    /* Hide visible error text */
+    body::before {
+        content: "" !important;
+    }
+    body > script:first-of-type {
+        display: none !important;
+    }
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
         * { font-family: 'Inter', sans-serif; }
         .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
@@ -76,7 +148,7 @@
     <!-- Toast Notification Container -->
     <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
     
-    <div x-data="dashboardApp()" x-init="init()" class="flex h-screen">
+    <div x-data="dashboardApp()" x-init="init()" class="flex h-screen overflow-hidden">
         
         @if(session('success'))
         <script>
@@ -100,8 +172,14 @@
         </script>
         @endif
         
+        <!-- Mobile Menu Overlay -->
+        <div x-show="mobileMenuOpen" @click="mobileMenuOpen = false" class="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"></div>
+        
         <!-- Sidebar -->
-        <aside :class="sidebarOpen ? 'w-64' : 'w-20'" class="bg-white border-r border-gray-200 transition-all duration-300">
+        <aside :class="[
+            sidebarOpen ? 'w-64' : 'w-20',
+            mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+        ]" class="bg-white border-r border-gray-200 transition-all duration-300 fixed md:relative h-full z-50">
             <div class="p-4 border-b border-gray-200 flex items-center justify-between">
                 <h1 x-show="sidebarOpen" class="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">CulturalTranslate</h1>
                 <button @click="sidebarOpen = !sidebarOpen" class="text-gray-600 hover:text-gray-900">
@@ -146,9 +224,21 @@
                 </a>
                 
                 <a @click="currentTab = 'settings'" :class="currentTab === 'settings' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-700 hover:bg-gray-50'" class="flex items-center space-x-3 px-4 py-3 rounded-lg cursor-pointer">
+                
+                <a @click="currentTab = 'official-documents'" :class="currentTab === 'official-documents' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-700 hover:bg-gray-50'" class="flex items-center space-x-3 px-4 py-3 rounded-lg cursor-pointer">
+                    <i class="fas fa-certificate w-5"></i>
+                    <span x-show="sidebarOpen">Official Documents</span>
+                </a>
                     <i class="fas fa-cog w-5"></i>
                     <span x-show="sidebarOpen">{{ __('dashboard.settings') }}</span>
                 </a>
+                
+                {{-- Temporarily hidden - Legal Documents
+                <a @click="currentTab = 'legal-documents'" :class="currentTab === 'legal-documents' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-700 hover:bg-gray-50'" class="flex items-center space-x-3 px-4 py-3 rounded-lg cursor-pointer">
+                    <i class="fas fa-file-contract w-5"></i>
+                    <span x-show="sidebarOpen">Legal Documents</span>
+                </a>
+                --}}
                 
                 <a @click="logout()" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 cursor-pointer">
                     <i class="fas fa-sign-out-alt w-5"></i>
@@ -165,13 +255,18 @@
         <div class="flex-1 flex flex-col overflow-hidden">
             
             <!-- Header -->
-            <header class="bg-white border-b border-gray-200 px-6 py-4">
+            <header class="bg-white border-b border-gray-200 px-4 md:px-6 py-4">
                 <div class="flex items-center justify-between">
-                    <h2 class="text-2xl font-bold text-gray-900" x-text="getTabTitle()"></h2>
-                    <div class="flex items-center space-x-4">
-                        <button class="relative text-gray-600 hover:text-gray-900">
-                            <i class="fas fa-bell text-xl"></i>
+                    <!-- Mobile Menu Button -->
+                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden text-gray-600 hover:text-gray-900 mr-2">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    
+                    <h2 class="text-xl md:text-2xl font-bold text-gray-900" x-text="getTabTitle()"></h2>
+                    <div class="flex items-center space-x-2 md:space-x-4">
                         <x-language-switcher />
+                        <button class="relative text-gray-600 hover:text-gray-900">
+                            <i class="fas fa-bell text-lg md:text-xl"></i>
                             <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
                         </button>
                         <div class="flex items-center space-x-3">
@@ -257,11 +352,696 @@
                     </div>
                 </div>
                 
+                                <!-- Legal Documents Tab - Temporarily Hidden -->
+{{-- <div x-show="currentTab === 'legal-documents'" class="space-y-6">
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-2">Legal Document Translation</h2>
+        <p class="text-gray-600 mb-6">Upload your legal document for certified translation with official stamp and tracking barcode.</p>
+        
+        <div id="legalDocsApp">
+            <!-- Language Selection -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Source Language</label>
+                    <select id="sourceLanguage" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="">Loading languages...</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Target Language</label>
+                    <select id="targetLanguage" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="">Loading languages...</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Document Type</label>
+                    <select id="documentType" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="contract">Contract</option>
+                        <option value="certificate">Certificate</option>
+                        <option value="agreement">Agreement</option>
+                        <option value="license">License</option>
+                        <option value="diploma">Diploma</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Upload Area -->
+            <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center mb-6" id="dropZone">
+                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <p class="mt-2 text-sm text-gray-600">Drag and drop files here or click to browse</p>
+                <input type="file" id="legalDocsFileInput" accept=".pdf,.doc,.docx" class="hidden">
+                <button onclick="document.getElementById('legalDocsFileInput').click()" class="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    Select Files
+                </button>
+            </div>
+
+            <!-- Selected Files -->
+            <div id="selectedFiles" class="hidden mb-6">
+                <h3 class="text-lg font-semibold mb-3">Selected Files (<span id="fileCount">0</span>)</h3>
+                <div id="fileList" class="space-y-2"></div>
+                <button onclick="uploadFiles()" class="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    Upload Files
+                </button>
+            </div>
+
+            <!-- Processing Status -->
+            <div id="processingStatus" class="hidden mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div class="flex items-center">
+                    <svg class="animate-spin h-5 w-5 text-blue-600 mr-3" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span class="text-blue-800 font-medium" id="statusText">Processing...</span>
+                </div>
+            </div>
+
+            <!-- Cost Estimation -->
+            <div id="costEstimation" class="hidden mb-6 p-6 bg-gray-50 border border-gray-200 rounded-lg">
+                <h3 class="text-lg font-semibold mb-4">Cost Estimation</h3>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <p class="text-sm text-gray-600">Estimated Pages</p>
+                        <p class="text-2xl font-bold text-gray-900" id="estimatedPages">-</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Estimated Words</p>
+                        <p class="text-2xl font-bold text-gray-900" id="estimatedWords">-</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Price per Page</p>
+                        <p class="text-2xl font-bold text-gray-900">$5.00</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Total Cost</p>
+                        <p class="text-2xl font-bold text-green-600" id="totalCost">-</p>
+                    </div>
+                </div>
+                <button onclick="proceedToPayment()" class="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold">
+                    Proceed to Payment
+                </button>
+            </div>
+
+            <!-- Payment Success -->
+            <div id="paymentSuccess" class="hidden mb-6 p-6 bg-green-50 border border-green-200 rounded-lg">
+                <div class="flex items-center mb-4">
+                    <svg class="h-6 w-6 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <h3 class="text-lg font-semibold text-green-800">Payment Successful!</h3>
+                </div>
+                <p class="text-green-700 mb-4">Your document is being translated. This may take a few minutes.</p>
+                <div class="bg-white p-4 rounded border border-green-300 mb-4">
+                    <p class="text-sm text-gray-600 mb-2">Tracking Number</p>
+                    <p class="text-lg font-mono font-bold text-gray-900" id="trackingNumber">-</p>
+                </div>
+                <button onclick="downloadDocument()" id="downloadBtn" class="w-full px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
+                    <span id="downloadBtnText">Translating... Please wait</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Legal Documents functionality with Backend integration
+let selectedFile = null;
+let uploadedFilePath = null;
+let estimatedCost = 0;
+let paymentIntentId = null;
+let trackingNumberGlobal = null;
+
+function initLegalDocs() {
+    // File input handler
+    const fileInput = document.getElementById('legalDocsFileInput');
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            const files = e.target.files;
+            if (files.length > 0) {
+                handleFiles(files);
+            }
+        });
+
+        // Drag and drop
+        const dropZone = document.getElementById('dropZone');
+        if (dropZone) {
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('border-blue-500', 'bg-blue-50');
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('border-blue-500', 'bg-blue-50');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('border-blue-500', 'bg-blue-50');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    document.getElementById('legalDocsFileInput').files = files;
+                    handleFiles(files);
+                }
+            });
+        }
+    }
+}
+
+function handleFiles(files) {
+    const fileList = document.getElementById('fileList');
+    fileList.innerHTML = '';
+    
+    Array.from(files).forEach((file, index) => {
+        const fileItem = document.createElement('div');
+        fileItem.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg';
+        fileItem.innerHTML = `
+            <div class="flex items-center">
+                <svg class="w-8 h-8 text-red-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+                </svg>
+                <div>
+                    <p class="font-medium text-gray-900">${file.name}</p>
+                    <p class="text-sm text-gray-500">${(file.size / 1024).toFixed(2)} KB</p>
+                </div>
+            </div>
+            <button onclick="removeFile()" class="text-red-600 hover:text-red-800">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        `;
+        fileList.appendChild(fileItem);
+    });
+    
+    document.getElementById('fileCount').textContent = files.length;
+    document.getElementById('selectedFiles').classList.remove('hidden');
+    selectedFile = files[0];
+}
+
+function removeFile() {
+    document.getElementById('legalDocsFileInput').value = '';
+    document.getElementById('selectedFiles').classList.add('hidden');
+    selectedFile = null;
+}
+
+async function uploadFiles() {
+    if (!selectedFile) {
+        alert('Please select a file first');
+        return;
+    }
+    
+    // Show processing
+    document.getElementById('processingStatus').classList.remove('hidden');
+    document.getElementById('statusText').textContent = 'Uploading and analyzing document...';
+    
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+    formData.append('source_language', document.getElementById('sourceLanguage').value);
+    formData.append('target_language', document.getElementById('targetLanguage').value);
+    formData.append('document_type', document.getElementById('documentType').value);
+    
+    try {
+        const response = await fetch('/legal-documents/upload', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            uploadedFilePath = data.file_path;
+            estimatedCost = data.total_cost;
+            
+            document.getElementById('estimatedPages').textContent = data.estimated_pages;
+            document.getElementById('estimatedWords').textContent = data.estimated_words.toLocaleString();
+            document.getElementById('totalCost').textContent = '$' + data.total_cost.toFixed(2);
+            
+            document.getElementById('processingStatus').classList.add('hidden');
+            document.getElementById('costEstimation').classList.remove('hidden');
+        } else {
+            throw new Error(data.error || 'Upload failed');
+        }
+    } catch (error) {
+        console.error('Upload error:', error);
+        document.getElementById('processingStatus').classList.add('hidden');
+        alert('Upload failed: ' + error.message);
+    }
+}
+
+async function proceedToPayment() {
+    if (!uploadedFilePath) {
+        alert('No file uploaded');
+        return;
+    }
+    
+    // Hide cost estimation
+    document.getElementById('costEstimation').classList.add('hidden');
+    
+    // Show processing
+    document.getElementById('processingStatus').classList.remove('hidden');
+    document.getElementById('statusText').textContent = 'Creating payment intent...';
+    
+    try {
+        const response = await fetch('/legal-documents/payment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({
+                file_path: uploadedFilePath
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            paymentIntentId = data.client_secret.split('_secret_')[0];
+            
+            // For simulation, skip Stripe and go directly to translation
+            document.getElementById('statusText').textContent = 'Processing payment (simulation)...';
+            
+            setTimeout(() => {
+                startTranslation();
+            }, 1000);
+        } else {
+            throw new Error(data.error || 'Payment creation failed');
+        }
+    } catch (error) {
+        console.error('Payment error:', error);
+        document.getElementById('processingStatus').classList.add('hidden');
+        alert('Payment failed: ' + error.message);
+    }
+}
+
+async function startTranslation() {
+    document.getElementById('statusText').textContent = 'Translating document...';
+    
+    try {
+        const response = await fetch('/legal-documents/translate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({
+                file_path: uploadedFilePath,
+                payment_intent_id: paymentIntentId
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            trackingNumberGlobal = data.tracking_number;
+            document.getElementById('trackingNumber').textContent = data.tracking_number;
+            
+            document.getElementById('processingStatus').classList.add('hidden');
+            document.getElementById('paymentSuccess').classList.remove('hidden');
+            document.getElementById('downloadBtn').disabled = false;
+            document.getElementById('downloadBtnText').textContent = 'Download Translated Document';
+        } else {
+            throw new Error(data.error || 'Translation failed');
+        }
+    } catch (error) {
+        console.error('Translation error:', error);
+        document.getElementById('processingStatus').classList.add('hidden');
+        alert('Translation failed: ' + error.message);
+    }
+}
+
+function downloadDocument() {
+    if (!trackingNumberGlobal) {
+        alert('No document ready for download');
+        return;
+    }
+    
+    window.location.href = `/legal-documents/download/${trackingNumberGlobal}`;
+}
+
+// Initialize when tab is shown
+setTimeout(initLegalDocs, 500);
+
+</script>
+
+                </div>
+--}}
+
                 <!-- Settings Tab -->
                 <div x-show="currentTab === 'settings'" x-cloak>
                     @include('dashboard.tabs.settings')
                 </div>
+
+                <!-- Official Documents Tab -->
+                <div x-show="currentTab === 'official-documents'" x-cloak>
+                    @include('dashboard.tabs.official-documents-new')
+                </div>
                 
+@if(auth()->user()->account_type === 'affiliate')
+<div class="mt-8 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-6 border border-purple-200">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">
+        <i class="fas fa-chart-line text-purple-600"></i> Affiliate Marketing Dashboard
+    </h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <!-- Total Earnings -->
+        <div class="bg-white rounded-lg p-4 shadow-sm">
+            <div class="text-sm text-gray-600 mb-1">Total Earnings</div>
+            <div class="text-2xl font-bold text-green-600">$0.00</div>
+            <div class="text-xs text-gray-500 mt-1">+0% this month</div>
+        </div>
+        
+        <!-- Referrals -->
+        <div class="bg-white rounded-lg p-4 shadow-sm">
+            <div class="text-sm text-gray-600 mb-1">Total Referrals</div>
+            <div class="text-2xl font-bold text-blue-600">0</div>
+            <div class="text-xs text-gray-500 mt-1">0 active</div>
+        </div>
+        
+        <!-- Clicks -->
+        <div class="bg-white rounded-lg p-4 shadow-sm">
+            <div class="text-sm text-gray-600 mb-1">Total Clicks</div>
+            <div class="text-2xl font-bold text-purple-600">0</div>
+            <div class="text-xs text-gray-500 mt-1">0% conversion</div>
+        </div>
+        
+        <!-- Pending Payout -->
+        <div class="bg-white rounded-lg p-4 shadow-sm">
+            <div class="text-sm text-gray-600 mb-1">Pending Payout</div>
+            <div class="text-2xl font-bold text-orange-600">$0.00</div>
+            <div class="text-xs text-gray-500 mt-1">Min: $50</div>
+        </div>
+    </div>
+    
+    <!-- Affiliate Links -->
+    <div class="bg-white rounded-lg p-6 shadow-sm mb-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Your Affiliate Links</h3>
+        
+        <div class="space-y-3">
+            <div>
+                <label class="text-sm text-gray-600">Main Referral Link</label>
+                <div class="flex gap-2 mt-1">
+                    <input type="text" 
+                           value="https://culturaltranslate.com/ref/{{ auth()->user()->id }}" 
+                           class="flex-1 px-4 py-2 border rounded-lg bg-gray-50" 
+                           readonly>
+                    <button onclick="copyToClipboard(this)" 
+                            class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                        Copy
+                    </button>
+                </div>
+            </div>
+            
+            <div>
+                <label class="text-sm text-gray-600">Trial Link</label>
+                <div class="flex gap-2 mt-1">
+                    <input type="text" 
+                           value="https://culturaltranslate.com/start-trial?ref={{ auth()->user()->id }}" 
+                           class="flex-1 px-4 py-2 border rounded-lg bg-gray-50" 
+                           readonly>
+                    <button onclick="copyToClipboard(this)" 
+                            class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                        Copy
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <a href="/affiliate/analytics" class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition text-center">
+            <i class="fas fa-chart-bar text-3xl text-blue-600 mb-2"></i>
+            <div class="font-semibold">View Analytics</div>
+        </a>
+        
+        <a href="/affiliate/payouts" class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition text-center">
+            <i class="fas fa-money-bill-wave text-3xl text-green-600 mb-2"></i>
+            <div class="font-semibold">Request Payout</div>
+        </a>
+        
+        <a href="/affiliate/materials" class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition text-center">
+            <i class="fas fa-images text-3xl text-purple-600 mb-2"></i>
+            <div class="font-semibold">Marketing Materials</div>
+        </a>
+    </div>
+</div>
+
+<script>
+function copyToClipboard(button) {
+    const input = button.previousElementSibling;
+    input.select();
+    document.execCommand('copy');
+    
+    const originalText = button.textContent;
+    button.textContent = 'Copied!';
+    button.classList.add('bg-green-600');
+    button.classList.remove('bg-purple-600');
+    
+    setTimeout(() => {
+        button.textContent = originalText;
+        button.classList.remove('bg-green-600');
+        button.classList.add('bg-purple-600');
+    }, 2000);
+}
+</script>
+@endif
+
+{{-- Partner Section - Only shown for partner accounts --}}
+@if(auth()->user()->account_type === 'partner')
+<div class="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">
+        <i class="fas fa-handshake text-blue-600"></i> Partner Dashboard
+    </h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <!-- API Calls -->
+        <div class="bg-white rounded-lg p-4 shadow-sm">
+            <div class="text-sm text-gray-600 mb-1">API Calls</div>
+            <div class="text-2xl font-bold text-blue-600">0</div>
+            <div class="text-xs text-gray-500 mt-1">0 this month</div>
+        </div>
+        
+        <!-- Active Integrations -->
+        <div class="bg-white rounded-lg p-4 shadow-sm">
+            <div class="text-sm text-gray-600 mb-1">Integrations</div>
+            <div class="text-2xl font-bold text-green-600">0</div>
+            <div class="text-xs text-gray-500 mt-1">0 active</div>
+        </div>
+        
+        <!-- Revenue Share -->
+        <div class="bg-white rounded-lg p-4 shadow-sm">
+            <div class="text-sm text-gray-600 mb-1">Revenue Share</div>
+            <div class="text-2xl font-bold text-purple-600">$0.00</div>
+            <div class="text-xs text-gray-500 mt-1">This month</div>
+        </div>
+        
+        <!-- Partner Level -->
+        <div class="bg-white rounded-lg p-4 shadow-sm">
+            <div class="text-sm text-gray-600 mb-1">Partner Level</div>
+            <div class="text-2xl font-bold text-orange-600">Bronze</div>
+            <div class="text-xs text-gray-500 mt-1">0/100 to Silver</div>
+        </div>
+    </div>
+    
+    <!-- API Keys -->
+    <div class="bg-white rounded-lg p-6 shadow-sm mb-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">API Credentials</h3>
+        
+        <div class="space-y-3">
+            <div>
+                <label class="text-sm text-gray-600">API Key</label>
+                <div class="flex gap-2 mt-1">
+                    <input type="password" 
+                           value="pk_live_xxxxxxxxxxxxxxxx" 
+                           class="flex-1 px-4 py-2 border rounded-lg bg-gray-50" 
+                           readonly>
+                    <button onclick="toggleVisibility(this)" 
+                            class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+                        Show
+                    </button>
+                    <button onclick="copyToClipboard(this)" 
+                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        Copy
+                    </button>
+                </div>
+            </div>
+            
+            <div>
+                <label class="text-sm text-gray-600">Webhook URL</label>
+                <div class="flex gap-2 mt-1">
+                    <input type="text" 
+                           value="https://culturaltranslate.com/api/webhooks/{{ auth()->user()->id }}" 
+                           class="flex-1 px-4 py-2 border rounded-lg bg-gray-50" 
+                           readonly>
+                    <button onclick="copyToClipboard(this)" 
+                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        Copy
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <a href="/api-documentation" class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition text-center">
+            <i class="fas fa-book text-3xl text-blue-600 mb-2"></i>
+            <div class="font-semibold">API Docs</div>
+        </a>
+        
+        <a href="/partner/analytics" class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition text-center">
+            <i class="fas fa-chart-line text-3xl text-green-600 mb-2"></i>
+            <div class="font-semibold">Analytics</div>
+        </a>
+        
+        <a href="/partner/billing" class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition text-center">
+            <i class="fas fa-credit-card text-3xl text-purple-600 mb-2"></i>
+            <div class="font-semibold">Billing</div>
+        </a>
+        
+        <a href="/partner/support" class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition text-center">
+            <i class="fas fa-headset text-3xl text-orange-600 mb-2"></i>
+            <div class="font-semibold">Support</div>
+        </a>
+    </div>
+</div>
+@endif
+
+{{-- Government Section - Only shown for government accounts --}}
+@if(auth()->user()->account_type === 'government')
+<div class="mt-8 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-6 border border-green-200">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">
+        <i class="fas fa-landmark text-green-600"></i> Government Portal
+    </h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <!-- Official Documents -->
+        <div class="bg-white rounded-lg p-4 shadow-sm">
+            <div class="text-sm text-gray-600 mb-1">Official Documents</div>
+            <div class="text-2xl font-bold text-green-600">0</div>
+            <div class="text-xs text-gray-500 mt-1">0 pending</div>
+        </div>
+        
+        <!-- Certified Translations -->
+        <div class="bg-white rounded-lg p-4 shadow-sm">
+            <div class="text-sm text-gray-600 mb-1">Certified</div>
+            <div class="text-2xl font-bold text-blue-600">0</div>
+            <div class="text-xs text-gray-500 mt-1">0 this month</div>
+        </div>
+        
+        <!-- Seals Used -->
+        <div class="bg-white rounded-lg p-4 shadow-sm">
+            <div class="text-sm text-gray-600 mb-1">Seals Used</div>
+            <div class="text-2xl font-bold text-purple-600">0</div>
+            <div class="text-xs text-gray-500 mt-1">0 remaining</div>
+        </div>
+        
+        <!-- Priority Support -->
+        <div class="bg-white rounded-lg p-4 shadow-sm">
+            <div class="text-sm text-gray-600 mb-1">Support Level</div>
+            <div class="text-2xl font-bold text-orange-600">Priority</div>
+            <div class="text-xs text-gray-500 mt-1">24/7 available</div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <a href="/official-documents/upload" class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition text-center">
+            <i class="fas fa-upload text-3xl text-green-600 mb-2"></i>
+            <div class="font-semibold">Upload Document</div>
+        </a>
+        
+        <a href="/official-documents" class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition text-center">
+            <i class="fas fa-file-alt text-3xl text-blue-600 mb-2"></i>
+            <div class="font-semibold">My Documents</div>
+        </a>
+        
+        <a href="/certificate-verification" class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition text-center">
+            <i class="fas fa-certificate text-3xl text-purple-600 mb-2"></i>
+            <div class="font-semibold">Verify Certificate</div>
+        </a>
+        
+        <a href="/government/support" class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition text-center">
+            <i class="fas fa-phone text-3xl text-orange-600 mb-2"></i>
+            <div class="font-semibold">Priority Support</div>
+        </a>
+    </div>
+</div>
+@endif
+
+{{-- Translator Section - Only shown for translator accounts --}}
+@if(auth()->user()->account_type === 'translator')
+<div class="mt-8 bg-gradient-to-r from-amber-50 to-yellow-50 rounded-lg p-6 border border-amber-200">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">
+        <i class="fas fa-language text-amber-600"></i> Translator Dashboard
+    </h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <!-- Active Jobs -->
+        <div class="bg-white rounded-lg p-4 shadow-sm">
+            <div class="text-sm text-gray-600 mb-1">Active Jobs</div>
+            <div class="text-2xl font-bold text-amber-600">0</div>
+            <div class="text-xs text-gray-500 mt-1">0 pending</div>
+        </div>
+        
+        <!-- Completed Jobs -->
+        <div class="bg-white rounded-lg p-4 shadow-sm">
+            <div class="text-sm text-gray-600 mb-1">Completed</div>
+            <div class="text-2xl font-bold text-green-600">0</div>
+            <div class="text-xs text-gray-500 mt-1">0 this month</div>
+        </div>
+        
+        <!-- Earnings -->
+        <div class="bg-white rounded-lg p-4 shadow-sm">
+            <div class="text-sm text-gray-600 mb-1">Earnings</div>
+            <div class="text-2xl font-bold text-purple-600">$0.00</div>
+            <div class="text-xs text-gray-500 mt-1">$0 pending</div>
+        </div>
+        
+        <!-- Rating -->
+        <div class="bg-white rounded-lg p-4 shadow-sm">
+            <div class="text-sm text-gray-600 mb-1">Rating</div>
+            <div class="text-2xl font-bold text-blue-600">5.0</div>
+            <div class="text-xs text-gray-500 mt-1">⭐⭐⭐⭐⭐</div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <a href="/translator/jobs" class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition text-center">
+            <i class="fas fa-briefcase text-3xl text-amber-600 mb-2"></i>
+            <div class="font-semibold">Browse Jobs</div>
+        </a>
+        
+        <a href="/translator/my-jobs" class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition text-center">
+            <i class="fas fa-tasks text-3xl text-green-600 mb-2"></i>
+            <div class="font-semibold">My Jobs</div>
+        </a>
+        
+        <a href="/translator/earnings" class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition text-center">
+            <i class="fas fa-dollar-sign text-3xl text-purple-600 mb-2"></i>
+            <div class="font-semibold">Earnings</div>
+        </a>
+        
+        <a href="/translator/profile" class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition text-center">
+            <i class="fas fa-user-circle text-3xl text-blue-600 mb-2"></i>
+            <div class="font-semibold">My Profile</div>
+        </a>
+    </div>
+</div>
+@endif
+    </script>
+</body>
+</html>
             </main>
             
         </div>
@@ -302,6 +1082,7 @@
         function dashboardApp() {
             return {
                 sidebarOpen: true,
+                mobileMenuOpen: false,
                 currentTab: 'overview',
                 loading: false,
                 user: {
@@ -463,5 +1244,91 @@
             }
         }
     </script>
-</body>
-</html>
+
+    <script>
+    // Load languages and industries dynamically
+    // تحميل اللغات والقطاعات عند ظهور العناصر
+    let loadAttempts = 0;
+    const loadInterval = setInterval(function() {
+        const sourceSelect = document.getElementById('sourceLanguage');
+        const targetSelect = document.getElementById('targetLanguage');
+        const industrySelect = document.getElementById('documentType');
+        
+        if (sourceSelect && targetSelect && industrySelect) {
+            clearInterval(loadInterval);
+            loadLanguages();
+            loadIndustries();
+        } else if (loadAttempts++ > 50) { // محاولة لمدة 5 ثواني
+            clearInterval(loadInterval);
+        }
+    }, 100);
+
+    async function loadLanguages() {
+        try {
+            console.log('Loading languages...');
+            const response = await fetch('/api/languages');
+            const result = await response.json();
+            console.log('Languages loaded:', result);
+            
+            if (result.success) {
+                const sourceSelect = document.getElementById('sourceLanguage');
+                const targetSelect = document.getElementById('targetLanguage');
+                
+                // Clear loading options
+                sourceSelect.innerHTML = '';
+                targetSelect.innerHTML = '';
+                
+                // Group languages by region
+                const regions = Object.keys(result.data).sort();
+                
+                regions.forEach(region => {
+                    const optgroup = document.createElement('optgroup');
+                    optgroup.label = region;
+                    
+                    result.data[region].forEach(lang => {
+                        const option = document.createElement('option');
+                        option.value = lang.code;
+                        option.textContent = `${lang.name} (${lang.locale})`;
+                        optgroup.appendChild(option);
+                    });
+                    
+                    sourceSelect.appendChild(optgroup.cloneNode(true));
+                    targetSelect.appendChild(optgroup);
+                });
+                
+                // Set default values
+                sourceSelect.value = 'en';
+                targetSelect.value = 'ar';
+            }
+        } catch (error) {
+            console.error('Error loading languages:', error);
+        }
+    }
+
+    async function loadIndustries() {
+        try {
+            console.log('Loading industries...');
+            const response = await fetch('/api/industries');
+            const result = await response.json();
+            console.log('Industries loaded:', result);
+            
+            if (result.success) {
+                const industrySelect = document.getElementById('documentType');
+                
+                if (industrySelect) {
+                    // Clear existing options except the first one
+                    const firstOption = industrySelect.options[0];
+                    industrySelect.innerHTML = '';
+                    if (firstOption) {
+                        industrySelect.appendChild(firstOption);
+                    }
+                    
+                    // Add industry options
+                    result.data.forEach(industry => {
+                        const option = document.createElement('option');
+                        option.value = industry.key;
+                        option.textContent = industry.name;
+                        option.title = industry.description;
+                        industrySelect.appendChild(option);
+
+{{-- Affiliate Marketing Section - Only shown for affiliate accounts --}}

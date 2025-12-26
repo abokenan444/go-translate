@@ -4,6 +4,7 @@ namespace App\Filament\Admin\Resources;
 
 use App\Filament\Admin\Resources\CompanyResource\Pages;
 use App\Models\Company;
+use App\Models\Plan;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -13,66 +14,69 @@ use Filament\Tables\Table;
 class CompanyResource extends Resource
 {
     protected static ?string $model = Company::class;
-    protected static ?string $navigationIcon = 'heroicon-o-building-office-2';
-    protected static ?string $navigationLabel = 'الشركات';
-    protected static ?string $modelLabel = 'شركة';
-    protected static ?string $pluralModelLabel = 'الشركات';
-    protected static ?string $navigationGroup = 'إدارة الشركات';
-    protected static ?int $navigationSort = 1;
+
+    protected static ?string $navigationIcon = 'heroicon-o-building-office';
+    
+    protected static ?string $navigationGroup = 'User Management';
+    
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('معلومات الشركة')
-                    ->schema([
-                        Forms\Components\TextInput::make('name')
-                            ->label('اسم الشركة')
-                            ->required()
-                            ->maxLength(255),
-                        
-                        Forms\Components\TextInput::make('domain')
-                            ->label('النطاق')
-                            ->maxLength(255)
-                            ->placeholder('example.com'),
-                        
-                        Forms\Components\Select::make('plan_id')
-                            ->label('الباقة')
-                            ->relationship('plan', 'name')
-                            ->searchable()
-                            ->preload(),
-                        
-                        Forms\Components\Select::make('status')
-                            ->label('الحالة')
-                            ->options([
-                                'active' => 'نشط',
-                                'inactive' => 'غير نشط',
-                                'suspended' => 'معلق',
-                            ])
-                            ->default('active')
-                            ->required(),
-                        
-                        Forms\Components\TextInput::make('member_count')
-                            ->label('عدد الأعضاء')
-                            ->numeric()
-                            ->default(0)
-                            ->minValue(0),
-                        
-                        Forms\Components\TextInput::make('translation_memory_size')
-                            ->label('حجم ذاكرة الترجمة')
-                            ->numeric()
-                            ->default(0)
-                            ->minValue(0)
-                            ->helperText('بالبايت'),
-                        
-                        Forms\Components\Toggle::make('sso_enabled')
-                            ->label('تسجيل الدخول الموحد')
-                            ->default(false),
-                        
-                        Forms\Components\Toggle::make('custom_domain_enabled')
-                            ->label('نطاق مخصص')
-                            ->default(false),
-                    ])->columns(2),
+                Forms\Components\TextInput::make('name')
+                    ->label('Company Name')
+                    ->required()
+                    ->maxLength(255),
+                Forms\Components\TextInput::make('email')
+                    ->label('Email')
+                    ->email()
+                    ->maxLength(255),
+                Forms\Components\TextInput::make('phone')
+                    ->label('Phone')
+                    ->tel()
+                    ->maxLength(255),
+                Forms\Components\Textarea::make('address')
+                    ->label('Address')
+                    ->rows(2),
+                Forms\Components\TextInput::make('website')
+                    ->label('Website')
+                    ->url()
+                    ->maxLength(255),
+                Forms\Components\TextInput::make('tax_number')
+                    ->label('Tax Number')
+                    ->maxLength(255),
+                Forms\Components\Select::make('plan_id')
+                    ->label('Subscription Plan')
+                    ->relationship('plan', 'name')
+                    ->searchable()
+                    ->preload(),
+                Forms\Components\DatePicker::make('subscription_start_date')
+                    ->label('Subscription Start Date'),
+                Forms\Components\DatePicker::make('subscription_end_date')
+                    ->label('Subscription End Date'),
+                Forms\Components\Select::make('subscription_status')
+                    ->label('Subscription Status')
+                    ->options([
+                        'active' => 'Active',
+                        'inactive' => 'Inactive',
+                        'trial' => 'Trial',
+                        'expired' => 'Expired',
+                        'cancelled' => 'Cancelled',
+                    ])
+                    ->default('inactive'),
+                Forms\Components\TextInput::make('character_usage')
+                    ->label('Character Usage')
+                    ->numeric()
+                    ->default(0),
+                Forms\Components\TextInput::make('api_calls_usage')
+                    ->label('API Calls Usage')
+                    ->numeric()
+                    ->default(0),
+                Forms\Components\Toggle::make('is_active')
+                    ->label('Active')
+                    ->default(true),
             ]);
     }
 
@@ -80,80 +84,66 @@ class CompanyResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('id')
-                    ->label('ID')
-                    ->sortable(),
-                
                 Tables\Columns\TextColumn::make('name')
-                    ->label('اسم الشركة')
+                    ->label('Company')
                     ->searchable()
                     ->sortable(),
-                
-                Tables\Columns\TextColumn::make('domain')
-                    ->label('النطاق')
-                    ->searchable()
-                    ->copyable(),
-                
+                Tables\Columns\TextColumn::make('email')
+                    ->label('Email')
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('plan.name')
-                    ->label('الباقة')
-                    ->badge()
-                    ->color('success')
-                    ->default('لا يوجد'),
-                
-                Tables\Columns\TextColumn::make('status')
-                    ->label('الحالة')
+                    ->label('Plan')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('subscription_status')
+                    ->label('Status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'active' => 'success',
+                        'trial' => 'info',
                         'inactive' => 'gray',
-                        'suspended' => 'danger',
-                    })
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'active' => 'نشط',
-                        'inactive' => 'غير نشط',
-                        'suspended' => 'معلق',
+                        'expired' => 'warning',
+                        'cancelled' => 'danger',
+                        default => 'gray',
                     }),
-                
-                Tables\Columns\TextColumn::make('member_count')
-                    ->label('عدد الأعضاء')
-                    ->badge()
-                    ->color('info'),
-                
-                Tables\Columns\TextColumn::make('translation_memory_size')
-                    ->label('ذاكرة الترجمة')
-                    ->formatStateUsing(fn ($state) => $state ? number_format($state / 1024 / 1024, 2) . ' MB' : '0 MB')
-                    ->toggleable(isToggledHiddenByDefault: true),
-                
-                Tables\Columns\IconColumn::make('sso_enabled')
-                    ->label('SSO')
-                    ->boolean()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                
-                Tables\Columns\IconColumn::make('custom_domain_enabled')
-                    ->label('نطاق مخصص')
-                    ->boolean()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                
+                Tables\Columns\TextColumn::make('subscription_end_date')
+                    ->label('Expires')
+                    ->date()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('character_usage')
+                    ->label('Characters')
+                    ->formatStateUsing(fn ($state) => number_format($state)),
+                Tables\Columns\TextColumn::make('users_count')
+                    ->label('Users')
+                    ->counts('users'),
+                Tables\Columns\IconColumn::make('is_active')
+                    ->label('Active')
+                    ->boolean(),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('تاريخ الإنشاء')
+                    ->label('Created')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('status')
-                    ->label('الحالة')
+                Tables\Filters\SelectFilter::make('plan_id')
+                    ->label('Plan')
+                    ->relationship('plan', 'name')
+                    ->searchable()
+                    ->preload(),
+                Tables\Filters\SelectFilter::make('subscription_status')
+                    ->label('Status')
                     ->options([
-                        'active' => 'نشط',
-                        'inactive' => 'غير نشط',
-                        'suspended' => 'معلق',
+                        'active' => 'Active',
+                        'inactive' => 'Inactive',
+                        'trial' => 'Trial',
+                        'expired' => 'Expired',
+                        'cancelled' => 'Cancelled',
                     ]),
-                
-                Tables\Filters\TernaryFilter::make('sso_enabled')
-                    ->label('تسجيل الدخول الموحد'),
+                Tables\Filters\TernaryFilter::make('is_active')
+                    ->label('Active')
+                    ->boolean(),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
@@ -165,20 +155,12 @@ class CompanyResource extends Resource
             ->defaultSort('created_at', 'desc');
     }
 
-    public static function getRelations(): array
-    {
-        return [
-            \App\Filament\Admin\Resources\CompanyResource\RelationManagers\SettingsRelationManager::class,
-        ];
-    }
-
     public static function getPages(): array
     {
         return [
             'index' => Pages\ListCompanies::route('/'),
             'create' => Pages\CreateCompany::route('/create'),
             'edit' => Pages\EditCompany::route('/{record}/edit'),
-            'view' => Pages\ViewCompany::route('/{record}'),
         ];
     }
 }

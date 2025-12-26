@@ -166,10 +166,32 @@
 
             <!-- Content -->
             <div class="content-wrapper rounded-2xl p-8 prose prose-invert">
-                @if(is_array($content->sections))
-                    @foreach($content->sections as $section)
+                @php
+                    $sections = is_string($content->sections) ? json_decode($content->sections, true) : $content->sections;
+                @endphp
+                
+                @if(is_array($sections))
+                    @foreach($sections as $section)
                         @if(isset($section['type']))
-                            @if($section['type'] === 'heading')
+                            @if($section['type'] === 'hero')
+                                <div class="mb-8">
+                                    @if(isset($section['title']))
+                                        <h1 class="text-5xl font-bold mb-4">{{ $section['title'] }}</h1>
+                                    @endif
+                                    @if(isset($section['subtitle']))
+                                        <p class="text-xl text-gray-400">{{ $section['subtitle'] }}</p>
+                                    @endif
+                                </div>
+                            @elseif($section['type'] === 'content')
+                                <div class="mb-8">
+                                    @if(isset($section['title']))
+                                        <h2 class="text-3xl font-bold mb-4">{{ $section['title'] }}</h2>
+                                    @endif
+                                    @if(isset($section['content']))
+                                        <p class="text-lg leading-relaxed">{{ $section['content'] }}</p>
+                                    @endif
+                                </div>
+                            @elseif($section['type'] === 'heading')
                                 <h2>{{ $section['content'] ?? '' }}</h2>
                             @elseif($section['type'] === 'paragraph')
                                 {!! \Illuminate\Support\Str::markdown($section['content'] ?? '') !!}
@@ -184,10 +206,14 @@
                             @elseif($section['type'] === 'code')
                                 <pre><code>{{ $section['content'] ?? '' }}</code></pre>
                             @else
-                                {!! \Illuminate\Support\Str::markdown($section['content'] ?? '') !!}
+                                @if(isset($section['content']))
+                                    {!! \Illuminate\Support\Str::markdown($section['content'] ?? '') !!}
+                                @endif
                             @endif
                         @else
-                            {!! \Illuminate\Support\Str::markdown($section['content'] ?? '') !!}
+                            @if(isset($section['content']))
+                                {!! \Illuminate\Support\Str::markdown($section['content'] ?? '') !!}
+                            @endif
                         @endif
                     @endforeach
                 @else

@@ -266,15 +266,28 @@ function historyTab() {
             this.loading = true;
             try {
                 const response = await window.apiClient.getTranslations(this.currentPage, this.perPage);
-                this.translations = response.data.data || [];
-                this.totalTranslations = response.data.total || 0;
-                this.totalPages = Math.ceil(this.totalTranslations / this.perPage);
+                // API returns { success: true, data: [...] } - data is the array directly
+                const translationsArray = Array.isArray(response.data) ? response.data : (response.data?.data || []);
+                this.translations = translationsArray.map(t => ({
+                    id: t.id,
+                    title: t.title || `Translation #${t.id}`,
+                    source_text: t.source_text || t.source || '',
+                    translated_text: t.translated_text || t.translation || '',
+                    source_language: t.source_language || t.source_lang || 'auto',
+                    target_language: t.target_language || t.target_lang || 'en',
+                    character_count: t.character_count || (t.source_text ? t.source_text.length : 0),
+                    ai_model: t.ai_model || 'gpt-4',
+                    status: t.status || 'completed',
+                    created_at: t.created_at
+                }));
+                this.totalTranslations = response.total || this.translations.length;
+                this.totalPages = Math.ceil(this.totalTranslations / this.perPage) || 1;
             } catch (error) {
                 console.error('Failed to load translations:', error);
-                // Demo data
-                this.translations = this.generateDemoTranslations();
-                this.totalTranslations = 50;
-                this.totalPages = 5;
+                // Show empty state instead of demo data
+                this.translations = [];
+                this.totalTranslations = 0;
+                this.totalPages = 1;
             } finally {
                 this.loading = false;
             }

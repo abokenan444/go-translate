@@ -21,6 +21,11 @@ class CulturalProfileResource extends Resource
     protected static ?string $navigationGroup = 'Translation Engine';
     
     protected static ?int $navigationSort = 2;
+    
+    public static function canViewAny(): bool
+    {
+        return true;
+    }
 
     public static function form(Form $form): Form
     {
@@ -28,23 +33,30 @@ class CulturalProfileResource extends Resource
             ->schema([
                 Forms\Components\Section::make('Basic Information')
                     ->schema([
-                        Forms\Components\TextInput::make('culture_code')
+                        Forms\Components\TextInput::make('code')
                             ->label('Culture Code')
                             ->required()
+                            ->unique(ignoreRecord: true)
                             ->maxLength(10)
                             ->placeholder('e.g., ar-SA, en-US'),
                         
-                        Forms\Components\TextInput::make('culture_name')
+                        Forms\Components\TextInput::make('name')
                             ->label('Culture Name')
                             ->required()
-                            ->maxLength(100)
+                            ->maxLength(255)
                             ->placeholder('e.g., Saudi Arabian Arabic'),
                         
-                        Forms\Components\TextInput::make('native_name')
-                            ->label('Native Name')
+                        Forms\Components\TextInput::make('locale')
+                            ->label('Locale')
                             ->required()
+                            ->default('en')
+                            ->maxLength(10)
+                            ->placeholder('e.g., en, ar'),
+                        
+                        Forms\Components\TextInput::make('region')
+                            ->label('Region')
                             ->maxLength(100)
-                            ->placeholder('e.g., العربية السعودية'),
+                            ->placeholder('e.g., Middle East, North America'),
                         
                         Forms\Components\Textarea::make('description')
                             ->label('Description')
@@ -53,119 +65,23 @@ class CulturalProfileResource extends Resource
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Cultural Characteristics')
+                Forms\Components\Section::make('Cultural Values (JSON)')
                     ->schema([
-                        Forms\Components\Textarea::make('characteristics')
-                            ->label('Characteristics')
-                            ->rows(3)
-                            ->placeholder('Key cultural characteristics'),
-                        
-                        Forms\Components\Textarea::make('preferred_tones')
-                            ->label('Preferred Tones')
-                            ->rows(2)
-                            ->placeholder('Preferred communication tones'),
-                        
-                        Forms\Components\Textarea::make('taboos')
-                            ->label('Taboos')
-                            ->rows(2)
-                            ->placeholder('Cultural taboos to avoid'),
-                        
-                        Forms\Components\Textarea::make('special_styles')
-                            ->label('Special Styles')
-                            ->rows(2)
-                            ->placeholder('Special writing styles'),
-                    ])
-                    ->columns(2),
-
-                Forms\Components\Section::make('Communication Style')
-                    ->schema([
-                        Forms\Components\Select::make('formality_level')
-                            ->label('Formality Level')
-                            ->options([
-                                'very_formal' => 'Very Formal',
-                                'formal' => 'Formal',
-                                'neutral' => 'Neutral',
-                                'casual' => 'Casual',
-                                'very_casual' => 'Very Casual',
-                            ])
-                            ->default('neutral'),
-                        
-                        Forms\Components\Select::make('directness')
-                            ->label('Directness')
-                            ->options([
-                                'very_direct' => 'Very Direct',
-                                'direct' => 'Direct',
-                                'moderate' => 'Moderate',
-                                'indirect' => 'Indirect',
-                                'very_indirect' => 'Very Indirect',
-                            ])
-                            ->default('moderate'),
-                        
-                        Forms\Components\Toggle::make('uses_honorifics')
-                            ->label('Uses Honorifics')
-                            ->default(false),
-                        
-                        Forms\Components\TextInput::make('emotional_expressiveness')
-                            ->label('Emotional Expressiveness (1-10)')
-                            ->numeric()
-                            ->minValue(1)
-                            ->maxValue(10)
-                            ->default(5),
-                    ])
-                    ->columns(2),
-
-                Forms\Components\Section::make('Localization')
-                    ->schema([
-                        Forms\Components\Select::make('text_direction')
-                            ->label('Text Direction')
-                            ->options([
-                                'ltr' => 'Left to Right',
-                                'rtl' => 'Right to Left',
-                            ])
-                            ->default('ltr'),
-                        
-                        Forms\Components\TextInput::make('date_formats')
-                            ->label('Date Formats')
-                            ->placeholder('e.g., DD/MM/YYYY'),
-                        
-                        Forms\Components\TextInput::make('number_formats')
-                            ->label('Number Formats')
-                            ->placeholder('e.g., 1,234.56'),
-                        
-                        Forms\Components\TextInput::make('currency_symbol')
-                            ->label('Currency Symbol')
-                            ->placeholder('e.g., $, €, ر.س'),
-                    ])
-                    ->columns(2),
-
-                Forms\Components\Section::make('Translation Guidelines')
-                    ->schema([
-                        Forms\Components\Textarea::make('system_prompt')
-                            ->label('System Prompt')
-                            ->rows(4)
-                            ->columnSpanFull()
-                            ->placeholder('AI system prompt for this culture'),
-                        
-                        Forms\Components\Textarea::make('translation_guidelines')
-                            ->label('Translation Guidelines')
-                            ->rows(4)
-                            ->columnSpanFull()
-                            ->placeholder('Specific guidelines for translators'),
+                        Forms\Components\Textarea::make('values_json')
+                            ->label('Cultural Values')
+                            ->rows(5)
+                            ->placeholder('{"formality": "high", "directness": "indirect"}')
+                            ->columnSpanFull(),
                     ]),
 
-                Forms\Components\Section::make('Settings')
+                Forms\Components\Section::make('Examples (JSON)')
                     ->schema([
-                        Forms\Components\Toggle::make('is_active')
-                            ->label('Active')
-                            ->default(true),
-                        
-                        Forms\Components\TextInput::make('priority')
-                            ->label('Priority')
-                            ->numeric()
-                            ->default(0)
-                            ->helperText('Higher priority profiles appear first'),
-                    ])
-                    ->columns(2),
+                        Forms\Components\Textarea::make('examples_json')
+                            ->label('Translation Examples')
+                            ->rows(5)
+                            ->placeholder('{"greetings": ["مرحبا", "أهلا"], "farewells": ["وداعا"]}')
+                            ->columnSpanFull(),
+                    ]),
             ]);
     }
 
@@ -173,39 +89,27 @@ class CulturalProfileResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('culture_code')
+                Tables\Columns\TextColumn::make('code')
                     ->label('Code')
                     ->searchable()
                     ->sortable()
                     ->copyable(),
                     
-                Tables\Columns\TextColumn::make('culture_name')
-                    ->label('Culture')
+                Tables\Columns\TextColumn::make('name')
+                    ->label('Culture Name')
                     ->searchable()
                     ->sortable()
                     ->wrap(),
                     
-                Tables\Columns\TextColumn::make('native_name')
-                    ->label('Native Name')
-                    ->searchable(),
+                Tables\Columns\TextColumn::make('locale')
+                    ->label('Locale')
+                    ->searchable()
+                    ->sortable(),
                     
-                Tables\Columns\TextColumn::make('formality_level')
-                    ->label('Formality')
-                    ->sortable()
+                Tables\Columns\TextColumn::make('region')
+                    ->label('Region')
+                    ->searchable()
                     ->toggleable(),
-                    
-                Tables\Columns\TextColumn::make('text_direction')
-                    ->label('Direction')
-                    ->sortable(),
-                    
-                Tables\Columns\IconColumn::make('is_active')
-                    ->label('Active')
-                    ->boolean()
-                    ->sortable(),
-                    
-                Tables\Columns\TextColumn::make('priority')
-                    ->label('Priority')
-                    ->sortable(),
                     
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Created')
@@ -214,17 +118,14 @@ class CulturalProfileResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\TernaryFilter::make('is_active')
-                    ->label('Active')
-                    ->placeholder('All profiles')
-                    ->trueLabel('Active only')
-                    ->falseLabel('Inactive only'),
-                
-                Tables\Filters\SelectFilter::make('text_direction')
-                    ->label('Text Direction')
+                Tables\Filters\SelectFilter::make('locale')
+                    ->label('Locale')
                     ->options([
-                        'ltr' => 'Left to Right',
-                        'rtl' => 'Right to Left',
+                        'ar' => 'Arabic',
+                        'en' => 'English',
+                        'es' => 'Spanish',
+                        'fr' => 'French',
+                        'de' => 'German',
                     ]),
             ])
             ->actions([
@@ -236,7 +137,7 @@ class CulturalProfileResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
-            ->defaultSort('priority', 'desc');
+            ->defaultSort('code', 'asc');
     }
 
     public static function getRelations(): array

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\RealTimeParticipant;
 use App\Models\RealTimeSession;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class RealTimeParticipantController extends Controller
@@ -19,12 +20,14 @@ class RealTimeParticipantController extends Controller
             'display_name' => 'required|string|max:255',
             'role' => 'sometimes|in:moderator,speaker,listener',
             'external_id' => 'sometimes|string',
+            'send_language' => 'sometimes|nullable|string|max:10',
+            'receive_language' => 'sometimes|nullable|string|max:10',
         ]);
 
         $session = RealTimeSession::where('public_id', $publicId)->firstOrFail();
 
         // Check if user already joined
-        $userId = auth()->id();
+        $userId = Auth::id();
         $externalId = $validated['external_id'] ?? ($userId ? null : Str::uuid());
 
         $participant = RealTimeParticipant::updateOrCreate(
@@ -35,6 +38,8 @@ class RealTimeParticipantController extends Controller
             ],
             [
                 'display_name' => $validated['display_name'],
+                'send_language' => $validated['send_language'] ?? $session->source_language,
+                'receive_language' => $validated['receive_language'] ?? $session->target_language,
                 'role' => $validated['role'] ?? 'speaker',
                 'status' => 'connected',
                 'joined_at' => now(),
@@ -56,8 +61,8 @@ class RealTimeParticipantController extends Controller
         
         $participant = RealTimeParticipant::where('session_id', $session->id)
             ->where(function ($query) use ($request) {
-                if (auth()->check()) {
-                    $query->where('user_id', auth()->id());
+                if (Auth::check()) {
+                    $query->where('user_id', Auth::id());
                 } else {
                     $query->where('external_id', $request->input('external_id'));
                 }
@@ -100,6 +105,8 @@ class RealTimeParticipantController extends Controller
             'is_video_enabled' => 'sometimes|boolean',
             'role' => 'sometimes|in:moderator,speaker,listener',
             'status' => 'sometimes|in:connected,disconnected,muted',
+            'send_language' => 'sometimes|nullable|string|max:10',
+            'receive_language' => 'sometimes|nullable|string|max:10',
         ]);
 
         $session = RealTimeSession::where('public_id', $publicId)->firstOrFail();
@@ -110,7 +117,7 @@ class RealTimeParticipantController extends Controller
 
         // Check permissions (only moderators can change others' status)
         $currentParticipant = RealTimeParticipant::where('session_id', $session->id)
-            ->where('user_id', auth()->id())
+            ->where('user_id', Auth::id())
             ->first();
 
         if ($currentParticipant && !$currentParticipant->isModerator() && $participant->id !== $currentParticipant->id) {
@@ -119,6 +126,32 @@ class RealTimeParticipantController extends Controller
                 'message' => 'Only moderators can update other participants',
             ], 403);
         }
+
+        $participant->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'participant' => $participant,
+        ]);
+    }
+
+    /**
+     * Update the currently authenticated participant (convenience for web UI)
+     */
+    public function updateMe(Request $request, string $publicId)
+    {
+        $validated = $request->validate([
+            'is_muted' => 'sometimes|boolean',
+            'is_video_enabled' => 'sometimes|boolean',
+            'send_language' => 'sometimes|nullable|string|max:10',
+            'receive_language' => 'sometimes|nullable|string|max:10',
+        ]);
+
+        $session = RealTimeSession::where('public_id', $publicId)->firstOrFail();
+
+        $participant = RealTimeParticipant::where('session_id', $session->id)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
 
         $participant->update($validated);
 
@@ -144,8 +177,8 @@ class RealTimeParticipantController extends Controller
         
         $participant = RealTimeParticipant::where('session_id', $session->id)
             ->where(function ($query) use ($request) {
-                if (auth()->check()) {
-                    $query->where('user_id', auth()->id());
+                if (Auth::check()) {
+                    $query->where('user_id', Auth::id());
                 } else {
                     $query->where('external_id', $request->input('external_id'));
                 }

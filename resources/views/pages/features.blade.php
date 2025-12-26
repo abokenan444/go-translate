@@ -1,29 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unique Features - CulturalTranslate</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        * { font-family: 'Inter', sans-serif; }
-        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-    </style>
-</head>
-<body class="bg-gray-50">
-    
-    <!-- Nav -->
-    <nav class="bg-white shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div class="flex justify-between items-center">
-                <a href="/" class="text-2xl font-bold text-indigo-600">CulturalTranslate</a>
-                <a href="/" class="text-gray-600 hover:text-gray-900">← Back to Home</a>
-            </div>
-        </div>
-    </nav>
-    
+@extends('layouts.app')
+@section('title', 'AI Translation Features - Voice, Cultural Context & API | CulturalTranslate')
+
+@section('content')
     <!-- Hero -->
     <section class="py-20 gradient-bg text-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -158,36 +136,42 @@
                     <div class="bg-white p-6 rounded-xl shadow-sm text-center">
                         <div class="text-3xl mb-3">💡</div>
                         <h4 class="font-bold mb-2">Smart Suggestions</h4>
-                        <p class="text-sm text-gray-600">Multiple translation alternatives with reasoning</p>
+                        <p class="text-sm text-gray-600">Provides culturally appropriate alternatives</p>
                     </div>
                     
                     <div class="bg-white p-6 rounded-xl shadow-sm text-center">
                         <div class="text-3xl mb-3">😊</div>
-                        <h4 class="font-bold mb-2">Sentiment Detection</h4>
-                        <p class="text-sm text-gray-600">Analyzes emotions and preserves them</p>
+                        <h4 class="font-bold mb-2">Sentiment Analysis</h4>
+                        <p class="text-sm text-gray-600">Maintains the original sentiment of the text</p>
                     </div>
                     
                     <div class="bg-white p-6 rounded-xl shadow-sm text-center">
-                        <div class="text-3xl mb-3">📚</div>
-                        <h4 class="font-bold mb-2">Industry Terms</h4>
-                        <p class="text-sm text-gray-600">Specialized terminology for 6+ industries</p>
+                        <div class="text-3xl mb-3">🌍</div>
+                        <h4 class="font-bold mb-2">Cultural Nuances</h4>
+                        <p class="text-sm text-gray-600">Adapts idioms, slang, and humor</p>
                     </div>
                 </div>
             </div>
             
-            <!-- Visual Translation -->
+            <!-- File Formats -->
             <div class="mb-20">
                 <div class="text-center mb-12">
                     <div class="inline-block p-4 bg-red-100 rounded-2xl mb-4">
-                        <i class="fas fa-image text-4xl text-red-600"></i>
+                        <i class="fas fa-file-alt text-4xl text-red-600"></i>
                     </div>
-                    <h2 class="text-4xl font-bold text-gray-900 mb-4">Visual Translation</h2>
+                    <h2 class="text-4xl font-bold text-gray-900 mb-4">Broad File Format Support</h2>
                     <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-                        Translate text in images, videos, and documents while preserving layout
+                        Translate various file types while preserving the original layout
                     </p>
                 </div>
                 
-                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="grid md:grid-cols-5 gap-6 text-center">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <i class="fas fa-file-audio text-3xl text-orange-600 mb-4"></i>
+                        <h4 class="font-bold mb-2">Audio Files</h4>
+                        <p class="text-sm text-gray-600">MP3, WAV, M4A, OGG, FLAC</p>
+                    </div>
+                    
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                         <i class="fas fa-image text-3xl text-indigo-600 mb-4"></i>
                         <h4 class="font-bold mb-2">Image Translation</h4>
@@ -274,13 +258,4 @@
             </a>
         </div>
     </section>
-    
-    <!-- Footer -->
-    <footer class="bg-gray-900 text-gray-300 py-8 border-t border-gray-800">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <p>&copy; 2025 CulturalTranslate. All rights reserved.</p>
-        </div>
-    </footer>
-    
-</body>
-</html>
+@endsection

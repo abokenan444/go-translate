@@ -3,8 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Contact Us - CulturalTranslate</title>
+    <meta name="description" content="Get in touch with CulturalTranslate. We're here to help with any questions about our AI-powered translation platform.">
     <script src="https://cdn.tailwindcss.com"></script>
+    @if(config('services.recaptcha.site_key'))
+    <script src="https://www.google.com/recaptcha/api.js?render={{ config('services.recaptcha.site_key') }}"></script>
+    @endif
 </head>
 <body class="bg-gray-50">
     <!-- Header -->
@@ -16,9 +21,6 @@
                     <a href="/" class="text-gray-700 hover:text-indigo-600">Home</a>
                     <a href="/features" class="text-gray-700 hover:text-indigo-600">Features</a>
                     <a href="/pricing" class="text-gray-700 hover:text-indigo-600">Pricing</a>
-                    <a href="/use-cases" class="text-gray-700 hover:text-indigo-600">Use Cases</a>
-                    <a href="/api-docs" class="text-gray-700 hover:text-indigo-600">API Docs</a>
-                    <a href="/about" class="text-gray-700 hover:text-indigo-600">About</a>
                     <a href="/contact" class="text-indigo-600 font-semibold">Contact</a>
                 </div>
             </div>
@@ -40,25 +42,45 @@
                 <!-- Contact Form -->
                 <div class="bg-white rounded-lg shadow-lg p-8">
                     <h2 class="text-3xl font-bold text-gray-900 mb-6">Send us a Message</h2>
+                    
+                    @if(session('success'))
+                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
+                            {{ session('success') }}
+                        </div>
+                    @endif
+                    
+                    @if($errors->any())
+                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+                            <ul class="list-disc list-inside">
+                                @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+                    
                     <form action="{{ route('contact.submit') }}" method="POST" class="space-y-6">
+                <- Backup created automatically with full Honeypot field -->
+                <input type="text" name="website_url" style="position:absolute;left:-9999px;" tabindex="-1" autocomplete="off">
+                <input type="hidden" name="form_start_time" id="contactFormStartTime" value="">
                         @csrf
                         <div>
                             <label class="block text-gray-700 font-semibold mb-2">Name</label>
-                            <input type="text" name="name" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent">
+                            <input type="text" name="name" value="{{ old('name') }}" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent">
                         </div>
                         <div>
                             <label class="block text-gray-700 font-semibold mb-2">Email</label>
-                            <input type="email" name="email" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent">
+                            <input type="email" name="email" value="{{ old('email') }}" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent">
                         </div>
                         <div>
                             <label class="block text-gray-700 font-semibold mb-2">Subject</label>
-                            <input type="text" name="subject" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent">
+                            <input type="text" name="subject" value="{{ old('subject') }}" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent">
                         </div>
                         <div>
                             <label class="block text-gray-700 font-semibold mb-2">Message</label>
-                            <textarea name="message" rows="5" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"></textarea>
+                            <textarea name="message" rows="5" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent">{{ old('message') }}</textarea>
                         </div>
-                        <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition">
+                        <button type="submit" id="contactSubmitBtn" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition">
                             Send Message
                         </button>
                     </form>
@@ -69,56 +91,49 @@
                     <div class="bg-white rounded-lg shadow-lg p-8 mb-6">
                         <h2 class="text-3xl font-bold text-gray-900 mb-6">Contact Information</h2>
                         <div class="space-y-6">
-                            @php
-                                $contactSettings = \App\Models\ContactSetting::where('group', 'general')->orderBy('order')->get();
-                            @endphp
-                            
-                            @forelse($contactSettings as $setting)
-                                <div class="flex items-start">
-                                    @if($setting->type == 'email')
-                                        <div class="text-indigo-600 text-2xl ml-4">📧</div>
-                                    @elseif($setting->type == 'phone')
-                                        <div class="text-indigo-600 text-2xl ml-4">📞</div>
-                                    @elseif($setting->type == 'url')
-                                        <div class="text-indigo-600 text-2xl ml-4">🌐</div>
-                                    @else
-                                        <div class="text-indigo-600 text-2xl ml-4">📍</div>
-                                    @endif
-                                    <div>
-                                        <h3 class="font-semibold text-gray-900 mb-1">{{ $setting->label }}</h3>
-                                        @if($setting->type == 'email')
-                                            <a href="mailto:{{ $setting->value }}" class="text-indigo-600 hover:underline">{{ $setting->value }}</a>
-                                        @elseif($setting->type == 'phone')
-                                            <a href="tel:{{ $setting->value }}" class="text-indigo-600 hover:underline">{{ $setting->value }}</a>
-                                        @elseif($setting->type == 'url')
-                                            <a href="{{ $setting->value }}" target="_blank" class="text-indigo-600 hover:underline">{{ $setting->value }}</a>
-                                        @else
-                                            <p class="text-gray-700">{{ $setting->value }}</p>
-                                        @endif
-                                    </div>
+                            <div class="flex items-start">
+                                <div class="text-indigo-600 text-2xl ml-4">📧</div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-900 mb-1">Email</h3>
+                                    <a href="mailto:support@culturaltranslate.com" class="text-indigo-600 hover:underline">support@culturaltranslate.com</a>
                                 </div>
-                            @empty
-                            @endforelse
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="text-indigo-600 text-2xl ml-4">⏰</div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-900 mb-1">Response Time</h3>
+                                    <p class="text-gray-700">We typically respond within 24 hours</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="text-indigo-600 text-2xl ml-4">🌍</div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-900 mb-1">Office Hours</h3>
+                                    <p class="text-gray-700">Monday - Friday: 9:00 AM - 6:00 PM (CET)</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    @php
-                        $businessHours = \App\Models\ContactSetting::where('group', 'business_hours')->orderBy('order')->get();
-                    @endphp
-                    
-                    @if($businessHours->count() > 0)
                     <div class="bg-white rounded-lg shadow-lg p-8">
                         <h3 class="text-2xl font-bold text-gray-900 mb-4">Business Hours</h3>
                         <div class="space-y-3">
-                            @foreach($businessHours as $hour)
-                                <div class="flex justify-between">
-                                    <span class="text-gray-700 font-semibold">{{ $hour->label }}</span>
-                                    <span class="text-gray-600">{{ $hour->value }}</span>
-                                </div>
-                            @endforeach
+                            <div class="flex justify-between">
+                                <span class="text-gray-700 font-semibold">Monday - Friday</span>
+                                <span class="text-gray-600">9:00 AM - 6:00 PM</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-700 font-semibold">Saturday</span>
+                                <span class="text-gray-600">10:00 AM - 4:00 PM</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-700 font-semibold">Sunday</span>
+                                <span class="text-gray-600">Closed</span>
+                            </div>
                         </div>
                     </div>
-                    @endif
                 </div>
             </div>
         </div>
@@ -127,8 +142,42 @@
     <!-- Footer -->
     <footer class="bg-gray-900 text-white py-12">
         <div class="container mx-auto px-6 text-center">
-            <p>&copy; 2024 CulturalTranslate. All rights reserved.</p>
+            <p>&copy; 2025 CulturalTranslate. All rights reserved.</p>
+            <p class="text-sm mt-2">NL KvK 83656480</p>
         </div>
     </footer>
+
+    @if(config('services.recaptcha.site_key'))
+    <script>
+    document.querySelector('form[action="{{ route('contact.submit') }}"]').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const submitButton = document.getElementById('contactSubmitBtn');
+        const originalButtonText = submitButton.innerHTML;
+        submitButton.disabled = true;
+        submitButton.innerHTML = 'Sending...';
+        
+        try {
+            // Get reCAPTCHA token
+            const token = await grecaptcha.execute('{{ config('services.recaptcha.site_key') }}', {action: 'contact_form'});
+            
+            // Add token to form
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'recaptcha_token';
+            input.value = token;
+            this.appendChild(input);
+            
+            // Submit form
+            this.submit();
+        } catch (error) {
+            console.error('reCAPTCHA error:', error);
+            submitButton.disabled = false;
+            submitButton.innerHTML = originalButtonText;
+            alert('Security verification failed. Please try again.');
+        }
+    });
+    </script>
+    @endif
 </body>
 </html>

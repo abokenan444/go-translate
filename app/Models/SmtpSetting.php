@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Config;
 
 class SmtpSetting extends Model
 {
@@ -57,12 +58,31 @@ class SmtpSetting extends Model
     public function testConnection()
     {
         try {
-            $transport = new \Swift_SmtpTransport($this->host, $this->port, $this->encryption);
-            $transport->setUsername($this->username);
-            $transport->setPassword($this->password);
-
-            $mailer = new \Swift_Mailer($transport);
-            $mailer->getTransport()->start();
+            $originalConfig = Config::get('mail');
+            
+            // Log the actual password being used
+            \Log::info('SMTP Test Password Length: ' . strlen($this->password));
+            \Log::info('SMTP Test Password First 5 chars: ' . substr($this->password, 0, 5));
+            
+            Config::set('mail.mailers.test_smtp', [
+                'transport' => 'smtp',
+                'host' => $this->host,
+                'port' => $this->port,
+                'encryption' => $this->encryption,
+                'username' => $this->username,
+                'password' => $this->password,
+                'timeout' => 10,
+            ]);
+            
+            Config::set('mail.default', 'test_smtp');
+            
+            $mailer = app('mail.manager')->mailer('test_smtp');
+            $transport = $mailer->getSymfonyTransport();
+            
+            $transport->start();
+            $transport->stop();
+            
+            Config::set('mail', $originalConfig);
 
             $this->update([
                 'test_passed' => true,
@@ -72,6 +92,10 @@ class SmtpSetting extends Model
 
             return true;
         } catch (\Exception $e) {
+            if (isset($originalConfig)) {
+                Config::set('mail', $originalConfig);
+            }
+            
             $this->update([
                 'test_passed' => false,
                 'test_error' => $e->getMessage(),

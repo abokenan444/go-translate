@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('favicon.png') }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>GDPR Compliance - Cultural Translate</title>
     <meta name="description" content="Cultural Translate's commitment to GDPR compliance and data protection">
@@ -72,7 +75,7 @@
                 <div class="flex items-center space-x-4">
                     <a href="{{ route('home') }}" class="text-gray-300 hover:text-white transition">Home</a>
                     <a href="{{ route('features') }}" class="text-gray-300 hover:text-white transition">Features</a>
-                    <a href="{{ route('pricing') }}" class="text-gray-300 hover:text-white transition">Pricing</a>
+                    <a href="{{ url('/pricing-plans') }}" class="text-gray-300 hover:text-white transition">Pricing</a>
                 </div>
             </div>
         </div>

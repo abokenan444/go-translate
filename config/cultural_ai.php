@@ -6,7 +6,7 @@ return [
 
     'openai' => [
         'api_key' => env('OPENAI_API_KEY'),
-        'model'   => env('CULTURAL_AI_MODEL', 'gpt-4o-mini'),
+        'model'   => env('CULTURAL_AI_MODEL', 'gpt-5'),
         'base_url' => env('OPENAI_BASE_URL', 'https://api.openai.com/v1'),
     ],
 

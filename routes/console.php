@@ -17,3 +17,16 @@ Schedule::command("realtime:collect-metrics")->everyFiveMinutes();
 // Security Alert System
 Schedule::command('security:daily-report')->dailyAt('09:00');
 Schedule::command('security:cleanup')->weekly();
+
+// System Monitoring
+Schedule::job(new \App\Jobs\CollectSystemMetricsJob)->everyMinute();
+
+// Translator Performance Updates
+Schedule::command('performance:update-all')->daily();
+
+// Partner Payouts Processing
+Schedule::command('payouts:process')->daily();
+
+// Data Retention & Purge
+Schedule::command('documents:purge-expired')->daily();
+Schedule::command('evidence:cleanup-old')->weekly();

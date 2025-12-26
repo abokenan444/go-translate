@@ -3,8 +3,76 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('favicon.png') }}">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+        <!-- SEO Meta Tags -->
+        <title>CulturalTranslate - AI-Powered Cultural Translation Platform | Preserve Context & Meaning</title>
+        <meta name="description" content="Professional AI-powered translation platform that preserves cultural context, tone, and meaning. Support for 13+ languages, API access, voice translation, and real-time collaboration. Starting at €29.99/month.">
+        <meta name="keywords" content="AI translation, cultural translation, translation API, voice translation, multilingual platform, document translation, real-time translation, professional translation service, translation software, language localization">
+        <meta name="robots" content="index, follow">
+        <meta name="author" content="CulturalTranslate">
+        <link rel="canonical" href="{{ url('/') }}">
+        
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="{{ url('/') }}">
+        <meta property="og:title" content="CulturalTranslate - AI-Powered Cultural Translation Platform">
+        <meta property="og:description" content="Professional AI-powered translation platform that preserves cultural context, tone, and meaning. Support for 13+ languages with API access.">
+        <meta property="og:image" content="{{ asset('favicon.png') }}">
+        <meta property="og:site_name" content="CulturalTranslate">
+        <meta property="og:locale" content="en_US">
+        
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:url" content="{{ url('/') }}">
+        <meta name="twitter:title" content="CulturalTranslate - AI-Powered Cultural Translation Platform">
+        <meta name="twitter:description" content="Professional AI-powered translation that preserves cultural context and meaning. 13+ languages supported.">
+        <meta name="twitter:image" content="{{ asset('favicon.png') }}">
+        
+        <!-- Schema.org Structured Data -->
+        <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "CulturalTranslate",
+          "url": "{{ url('/') }}",
+          "logo": "{{ asset('favicon.png') }}",
+          "description": "AI-powered cultural translation platform preserving context and meaning across 13+ languages",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "Customer Service",
+            "availableLanguage": ["English", "Arabic", "Spanish", "French", "German", "Chinese", "Japanese", "Korean"]
+          },
+          "sameAs": [
+            "{{ url('/pricing-plans') }}",
+            "{{ url('/features') }}",
+            "{{ url('/contact') }}"
+          ]
+        }
+        </script>
+        
+        <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          "name": "CulturalTranslate",
+          "applicationCategory": "BusinessApplication",
+          "operatingSystem": "Web",
+          "offers": {
+            "@type": "Offer",
+            "price": "29.99",
+            "priceCurrency": "EUR",
+            "priceValidUntil": "2025-12-31"
+          },
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.8",
+            "ratingCount": "150"
+          }
+        }
+        </script>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">

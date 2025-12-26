@@ -22,22 +22,25 @@ class CulturalAdaptationEngine
                 return null;
             }
             
+            // Get cultural values from JSON
+            $values = json_decode($profile->values_json ?? '{}', true);
+            
             return [
-                'culture_code' => $profile->culture_code,
-                'culture_name' => $profile->culture_name,
-                'native_name' => $profile->native_name,
+                'culture_code' => $profile->culture_code ?? $profile->code,
+                'culture_name' => $profile->name,
+                'native_name' => $profile->name,
                 'description' => $profile->description,
-                'characteristics' => json_decode($profile->characteristics ?? '{}', true),
-                'preferred_tones' => json_decode($profile->preferred_tones ?? '[]', true),
-                'taboos' => json_decode($profile->taboos ?? '[]', true),
-                'formality_level' => $profile->formality_level ?? 'neutral',
-                'directness' => $profile->directness ?? 'moderate',
-                'uses_honorifics' => (bool)$profile->uses_honorifics,
-                'emotional_expressiveness' => $profile->emotional_expressiveness ?? 5,
-                'common_expressions' => json_decode($profile->common_expressions ?? '[]', true),
-                'text_direction' => $profile->text_direction ?? 'ltr',
-                'system_prompt' => $profile->system_prompt ?? '',
-                'translation_guidelines' => $profile->translation_guidelines ?? '',
+                'characteristics' => $values,
+                'preferred_tones' => [],
+                'taboos' => [],
+                'formality_level' => $values['formality'] ?? 'neutral',
+                'directness' => $values['directness'] ?? 'moderate',
+                'uses_honorifics' => false,
+                'emotional_expressiveness' => 5,
+                'common_expressions' => [],
+                'text_direction' => $values['text_direction'] ?? 'ltr',
+                'system_prompt' => '',
+                'translation_guidelines' => '',
             ];
         });
     }
@@ -49,27 +52,42 @@ class CulturalAdaptationEngine
     {
         return Cache::remember("emotional_tone_{$toneCode}", 3600, function () use ($toneCode) {
             $tone = DB::table('emotional_tones')
-                ->where('tone_code', $toneCode)
-                ->where('is_active', 1)
+                ->where('key', $toneCode)
                 ->first();
             
             if (!$tone) {
-                return null;
+                // Return default tone if not found
+                return [
+                    'tone_code' => $toneCode,
+                    'tone_name' => ucfirst($toneCode),
+                    'tone_name_en' => ucfirst($toneCode),
+                    'description' => "Default {$toneCode} tone",
+                    'formality_score' => 5,
+                    'warmth_score' => 5,
+                    'enthusiasm_score' => 5,
+                    'directness_score' => 5,
+                    'system_instructions' => '',
+                    'keywords_to_use' => [],
+                    'keywords_to_avoid' => [],
+                    'suitable_for' => [],
+                ];
             }
             
+            $params = json_decode($tone->parameters_json ?? '{}', true);
+            
             return [
-                'tone_code' => $tone->tone_code,
-                'tone_name' => $tone->tone_name,
-                'tone_name_en' => $tone->tone_name_en,
-                'description' => $tone->description,
-                'formality_score' => $tone->formality_score ?? 5,
-                'warmth_score' => $tone->warmth_score ?? 5,
-                'enthusiasm_score' => $tone->enthusiasm_score ?? 5,
-                'directness_score' => $tone->directness_score ?? 5,
-                'system_instructions' => $tone->system_instructions ?? '',
-                'keywords_to_use' => json_decode($tone->keywords_to_use ?? '[]', true),
-                'keywords_to_avoid' => json_decode($tone->keywords_to_avoid ?? '[]', true),
-                'suitable_for' => json_decode($tone->suitable_for ?? '[]', true),
+                'tone_code' => $tone->key,
+                'tone_name' => $tone->name,
+                'tone_name_en' => $tone->name,
+                'description' => $tone->description ?? '',
+                'formality_score' => $params['formality_score'] ?? $tone->intensity ?? 5,
+                'warmth_score' => $params['warmth_score'] ?? 5,
+                'enthusiasm_score' => $params['enthusiasm_score'] ?? 5,
+                'directness_score' => $params['directness_score'] ?? 5,
+                'system_instructions' => $params['system_instructions'] ?? '',
+                'keywords_to_use' => $params['keywords_to_use'] ?? [],
+                'keywords_to_avoid' => $params['keywords_to_avoid'] ?? [],
+                'suitable_for' => $params['suitable_for'] ?? [],
             ];
         });
     }
@@ -145,9 +163,9 @@ class CulturalAdaptationEngine
                 ->get()
                 ->map(function ($profile) {
                     return [
-                        'code' => $profile->culture_code,
-                        'name' => $profile->culture_name,
-                        'native_name' => $profile->native_name,
+                        'code' => $profile->culture_code ?? $profile->code,
+                        'name' => $profile->name,
+                        'native_name' => $profile->name,
                     ];
                 })
                 ->toArray();

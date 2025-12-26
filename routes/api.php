@@ -1,97 +1,117 @@
 <?php
+
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\API\ApiTranslationController;
-use App\Http\Controllers\API\ImageTranslationController;
-use App\Http\Controllers\API\VoiceTranslationController;
+use App\Http\Controllers\API\ApiController;
+use App\Http\Controllers\Api\ApiTranslationController;
+use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\UsersController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
 |--------------------------------------------------------------------------
-|
-| Cultural Translate Platform API v2.0
-| Base URL: https://culturaltranslate.com/api/v2
-|
 */
-// Public Demo Translation (no authentication required)
-Route::post('/demo-translate', [ApiTranslationController::class, 'demoTranslate']);
 
-// API v1 routes - ALL using auth:sanctum (no web middleware)
-Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
-    // Translation API
-    Route::post('/translate', [ApiTranslationController::class, 'translate'])->name('api.translate');
+// API v1 routes
+Route::prefix('v1')->group(function () {
+    // API information
+    Route::get('/', [ApiController::class, 'v1Info'])->name('api.v1.info');
     
-    // User Integrations API
-    Route::get('/integrations', [App\Http\Controllers\API\UserIntegrationController::class, 'index']);
-    Route::post('/integrations/{platform}/disconnect', [App\Http\Controllers\API\UserIntegrationController::class, 'disconnect']);
+    // Authentication endpoints
+    Route::post('/register', [AuthController::class, 'register'])->name('api.v1.register');
+    Route::post('/login', [AuthController::class, 'login'])->name('api.v1.login');
     
-    // Visual Translation API (Image)
-    Route::post('/visual/image', [ImageTranslationController::class, 'translateImage']);
+    // Public translation endpoint (with guest rate limiting)
+    Route::middleware('throttle:60,1')->post('/translate', [ApiController::class, 'publicTranslate'])->name('api.v1.translate.public');
     
-    // Voice Translation API
-    Route::post('/visual/voice', [VoiceTranslationController::class, 'translateVoice']);
-});
-
-Route::prefix('v2')->group(function () {
-    
-    // Health check
-    Route::get('/health', [ApiTranslationController::class, 'health']);
-    
-    // Get supported languages
-    Route::get('/languages', [ApiTranslationController::class, 'languages']);
-    
-    // Get available tones
-    Route::get('/tones', [ApiTranslationController::class, 'tones']);
-    
-    // Protected endpoints (require API key)
+    // Protected routes
     Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/logout', [AuthController::class, 'logout'])->name('api.v1.logout');
+        Route::get('/me', [AuthController::class, 'me'])->name('api.v1.me');
+
+        // Users (for mobile contacts / calling)
+        Route::get('/users', [UsersController::class, 'index'])->name('api.v1.users.index');
         
-        // Translate text
-        Route::post('/translate', [ApiTranslationController::class, 'translate']);
+        // Translation endpoints (authenticated - higher limits)
+        Route::post('/translate/authenticated', [ApiController::class, 'translate'])->name('api.v1.translate');
+        Route::post('/translate/batch', [ApiController::class, 'translateBatch'])->name('api.v1.translate.batch');
+        Route::get('/translations', [ApiController::class, 'translationHistory'])->name('api.v1.translations');
         
-        // Detect language
-        Route::post('/detect', [ApiTranslationController::class, 'detectLanguage']);
+        // Device tokens (for push notifications)
+        Route::post('/devices/register', [\App\Http\Controllers\Api\DeviceTokenController::class, 'register'])->name('api.devices.register');
+        Route::post('/devices/unregister', [\App\Http\Controllers\Api\DeviceTokenController::class, 'unregister'])->name('api.devices.unregister');
         
-        // Get usage statistics
-        Route::get('/stats', [ApiTranslationController::class, 'stats']);
+        // Partner mobile API endpoints
+        Route::prefix('partner')->middleware('permission:partner.access')->group(function () {
+            Route::get('/offers', [\App\Http\Controllers\Api\PartnerOffersController::class, 'index'])->name('api.partner.offers');
+            Route::post('/offers/{assignment}/accept', [\App\Http\Controllers\Api\PartnerOffersController::class, 'accept'])->name('api.partner.offers.accept');
+            Route::post('/offers/{assignment}/decline', [\App\Http\Controllers\Api\PartnerOffersController::class, 'decline'])->name('api.partner.offers.decline');
+        });
+    });
+    
+    // Public endpoints
+    Route::post('/detect', [ApiController::class, 'detect'])->name('api.v1.detect');
+    Route::get('/languages', [ApiController::class, 'languages'])->name('api.v1.languages');
+    Route::post('/certificate/validate', [ApiController::class, 'validateCertificate'])->name('api.v1.certificate.validate');
+    Route::get('/stats', [ApiController::class, 'stats'])->name('api.v1.stats');
+    Route::get('/health', [ApiController::class, 'health'])->name('api.v1.health');
+});
+
+// API v2 routes - Advanced translation with cultural adaptation
+Route::prefix('v2')->group(function () {
+    // Translation endpoints
+    Route::middleware('throttle:60,1')
+        ->post('/translate', [ApiTranslationController::class, 'translate'])
+        ->name('api.v2.translate');
+    
+    // Languages with native names
+    Route::get('/languages', [ApiTranslationController::class, 'languages'])->name('api.v2.languages');
+    
+    // Tones
+    Route::get('/tones', [ApiTranslationController::class, 'tones'])->name('api.v2.tones');
+    
+    // Batch translation
+    Route::middleware('throttle:30,1')
+        ->post('/translate/batch', [ApiTranslationController::class, 'batchTranslate'])
+        ->name('api.v2.translate.batch');
+});
+
+// Government API routes
+Route::prefix('government')->middleware('government_api')->group(function () {
+    Route::post('/verify-document', [\App\Http\Controllers\Api\GovernmentVerificationController::class, 'verifyDocument'])->name('api.gov.verify');
+    Route::get('/document/{documentId}/status', [\App\Http\Controllers\Api\GovernmentVerificationController::class, 'getDocumentStatus'])->name('api.gov.document.status');
+    Route::get('/stats', [\App\Http\Controllers\Api\GovernmentVerificationController::class, 'getStats'])->name('api.gov.stats');
+});
+
+// Partner Public Registry API
+Route::prefix('partners')->group(function () {
+    Route::get('/registry', [\App\Http\Controllers\Api\PartnerRegistryController::class, 'index'])->name('api.partners.registry');
+    Route::get('/registry/{partner}', [\App\Http\Controllers\Api\PartnerRegistryController::class, 'show'])->name('api.partners.registry.show');
+    Route::get('/certified', [\App\Http\Controllers\Api\PartnerRegistryController::class, 'certified'])->name('api.partners.certified');
+});
+
+// Legacy route for backward compatibility
+Route::get('/culturaltranslate/v1', [ApiController::class, 'v1Info']);
+
+// LiveCall WebRTC + Billing Routes
+Route::middleware('auth:sanctum')->group(function () {
+    Route::prefix('livecall')->group(function () {
+        Route::post('/sessions', [\App\Http\Controllers\Api\LiveCallController::class, 'createSession']);
+        Route::post('/sessions/{roomId}/join', [\App\Http\Controllers\Api\LiveCallController::class, 'joinSession']);
+        Route::post('/signal', [\App\Http\Controllers\Api\LiveCallController::class, 'signal']);
+        Route::post('/sessions/{roomId}/bill-tick', [\App\Http\Controllers\Api\LiveCallController::class, 'billTick']);
+    });
+    
+    Route::prefix('billing/minutes')->group(function () {
+        Route::get('/packages', [\App\Http\Controllers\Api\MinutesBillingController::class, 'packages']);
+        Route::post('/checkout', [\App\Http\Controllers\Api\MinutesBillingController::class, 'createCheckout']);
     });
 });
 
-// Feedback API
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/feedback', [App\Http\Controllers\API\FeedbackController::class, 'submitFeedback']);
-    Route::get('/feedback/{translationId}', [App\Http\Controllers\API\FeedbackController::class, 'getFeedback']);
-    Route::get('/versions/{translationId}', [App\Http\Controllers\API\FeedbackController::class, 'getSuggestedVersions']);
-    Route::post('/versions/{versionId}/approve', [App\Http\Controllers\API\FeedbackController::class, 'approveVersion']);
-    Route::get('/user/stats', [App\Http\Controllers\API\FeedbackController::class, 'getUserStats']);
-});
+// Stripe Webhook (no auth, no CSRF)
+Route::post('/stripe/webhook', [\App\Http\Controllers\StripeWebhookController::class, 'handle']);
 
-Route::post('/translate/demo', [App\Http\Controllers\DemoTranslationController::class, 'translate']);
-
-// Dashboard API endpoints are defined in routes/web.php under session-auth
-
-// User Integrations API (requires authentication)
-Route::middleware('auth:web')->prefix('integrations')->group(function () {
-    Route::get('/', [App\Http\Controllers\API\UserIntegrationController::class, 'index']);
-    Route::get('/stats', [App\Http\Controllers\API\UserIntegrationController::class, 'stats']);
-    Route::get('/{platform}', [App\Http\Controllers\API\UserIntegrationController::class, 'show']);
-});
-
-// Company-scoped API endpoints protected by Company API Key
-Route::middleware([\App\Http\Middleware\AuthenticateCompanyApiKey::class])
-    ->prefix('company')
-    ->group(function () {
-        Route::post('{company}/translate', [App\Http\Controllers\API\ApiTranslationController::class, 'translate'])
-            ->name('company.translate');
-        // Company webhook receiver
-        Route::post('{company}/webhooks/{provider}', [App\Http\Controllers\API\CompanyWebhookController::class, 'handle'])
-            ->name('company.webhook');
-    });
-
-// Training Data API Routes
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/training-data/{id}/rate', [App\Http\Controllers\API\TrainingDataController::class, 'rateTranslation']);
-    Route::get('/training-data/recent', [App\Http\Controllers\API\TrainingDataController::class, 'getRecentTranslations']);
-    Route::get('/training-data/statistics', [App\Http\Controllers\API\TrainingDataController::class, 'getStatistics']);
-    Route::get('/training-data/export', [App\Http\Controllers\API\TrainingDataController::class, 'exportTrainingData']);
-    Route::post('/training-data/bulk-approve', [App\Http\Controllers\API\TrainingDataController::class, 'bulkApprove']);
-});
+// Subscription and voice translation APIs
+require base_path('routes/api_subscription.php');
+Route::prefix('subscription')->group(base_path('routes/api_voice.php'));

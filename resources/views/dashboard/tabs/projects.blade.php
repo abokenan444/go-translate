@@ -316,11 +316,24 @@ function projectsTab() {
             this.loading = true;
             try {
                 const response = await window.apiClient.getProjects();
-                this.projects = response.data || [];
+                // API returns { success: true, data: [...] } - data is the array directly
+                const projectsArray = Array.isArray(response.data) ? response.data : (response.data || []);
+                this.projects = projectsArray.map(p => ({
+                    id: p.id,
+                    name: p.name || 'Untitled Project',
+                    description: p.description || '',
+                    translations_count: p.translations_count || p.translation_count || 0,
+                    members_count: p.members_count || 1,
+                    languages_count: p.languages_count || 0,
+                    status: p.status || 'active',
+                    members: p.members || [{ id: 1, name: 'You', avatar: 'https://ui-avatars.com/api/?name=You&background=6366f1&color=fff' }],
+                    recent_activity: p.recent_activity || [],
+                    updated_at: p.updated_at || p.created_at || new Date().toISOString()
+                }));
             } catch (error) {
                 console.error('Failed to load projects:', error);
-                // Demo data
-                this.projects = this.generateDemoProjects();
+                // Show empty state instead of demo data
+                this.projects = [];
             } finally {
                 this.loading = false;
             }

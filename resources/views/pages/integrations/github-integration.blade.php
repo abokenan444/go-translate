@@ -112,7 +112,8 @@ auto_translate:
             <div class="bg-white rounded-lg shadow-sm p-8 mb-8">
                 <h2 class="text-3xl font-bold text-gray-900 mb-6">API Usage</h2>
                 <p class="text-gray-600 mb-4">You can also use our API directly in your GitHub Actions:</p>
-                <pre class="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto"><code class="language-yaml">name: Translate README
+                <pre class="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto"><code class="language-yaml">@verbatim
+name: Translate README
 on:
   push:
     paths:
@@ -133,7 +134,8 @@ jobs:
               "repository": "${{ github.repository }}",
               "file": "README.md",
               "target_languages": ["ar", "es", "fr"]
-            }'</code></pre>
+            }'
+@endverbatim</code></pre>
             </div>
 
             <!-- Support -->

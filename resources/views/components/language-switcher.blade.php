@@ -89,19 +89,60 @@
 document.addEventListener('DOMContentLoaded', function() {
     const btn = document.getElementById('languageSwitcherBtn');
     const dropdown = document.getElementById('languageDropdown');
+    const currentLanguageSpan = document.getElementById('currentLanguage');
     
     if (btn && dropdown) {
+        // Toggle dropdown on button click
         btn.addEventListener('click', function(e) {
             e.stopPropagation();
-            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+            const isVisible = dropdown.style.display === 'block';
+            dropdown.style.display = isVisible ? 'none' : 'block';
         });
         
-        document.addEventListener('click', function() {
-            dropdown.style.display = 'none';
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
         });
         
-        dropdown.addEventListener('click', function(e) {
-            e.stopPropagation();
+        // Allow clicks on language links to work (don't stop propagation)
+        dropdown.querySelectorAll('a').forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                // Let the link work naturally
+                console.log('Switching to language:', this.getAttribute('href'));
+            });
+        });
+        
+        // Update current language display from session/cookie
+        const updateCurrentLanguage = function() {
+            // Get locale from cookie
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                const [name, value] = cookie.trim().split('=');
+                if (name === 'locale') {
+                    try {
+                        // Decode the encrypted cookie value
+                        const decoded = decodeURIComponent(value);
+                        // Try to extract locale code (simple pattern matching)
+                        const match = decoded.match(/[a-z]{2}/i);
+                        if (match && currentLanguageSpan) {
+                            currentLanguageSpan.textContent = match[0].toUpperCase();
+                        }
+                    } catch(e) {
+                        console.log('Could not decode locale cookie');
+                    }
+                }
+            }
+        };
+        
+        updateCurrentLanguage();
+        
+        // Listen for page visibility changes (when user returns to tab)
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                updateCurrentLanguage();
+            }
         });
     }
 });

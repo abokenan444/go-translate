@@ -8,7 +8,25 @@ class TrustProxies extends Middleware
      * The trusted proxies for this application.
      * @var array<int, string>|string|null
      */
-    protected $proxies = null;
+    protected $proxies;
+
+    public function __construct()
+    {
+        $trusted = env('TRUSTED_PROXIES');
+        if (!$trusted) {
+            // Trust no proxies by default to prevent spoofed X-Forwarded-* headers.
+            $this->proxies = null;
+            return;
+        }
+
+        $trusted = trim((string)$trusted);
+        if ($trusted === '*') {
+            $this->proxies = '*';
+            return;
+        }
+
+        $this->proxies = array_values(array_filter(array_map('trim', explode(',', $trusted))));
+    }
     /**
      * The headers that should be used to detect proxies.
      * @var int

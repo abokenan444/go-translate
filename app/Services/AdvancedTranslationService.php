@@ -149,7 +149,7 @@ class AdvancedTranslationService
             if ($smartCorrect) {
                 try {
                     $correction = $this->client->chat()->create([
-                        'model' => 'gpt-4',
+                        'model' => 'gpt-4o-mini',
                         'messages' => [
                             [
                                 'role' => 'system',
@@ -161,7 +161,7 @@ class AdvancedTranslationService
                             ]
                         ],
                         'temperature' => 0.1,
-                        'max_tokens' => 1200,
+                        'max_completion_tokens' => 1200,
                     ]);
                     if (is_array($correction)) {
                         $correctedText = trim($correction['choices'][0]['message']['content'] ?? '') ?: null;
@@ -205,7 +205,7 @@ class AdvancedTranslationService
             
             // Call OpenAI API
             // Choose model respecting company allowed models if provided
-            $model = 'gpt-4';
+            $model = 'gpt-4o-mini';
             if (is_array($allowedModels) && count($allowedModels) > 0) {
                 // pick first allowed model for simplicity
                 $model = $allowedModels[0];
@@ -224,7 +224,7 @@ class AdvancedTranslationService
                     ]
                 ],
                 'temperature' => 0.3,
-                'max_tokens' => 4000,
+                'max_completion_tokens' => 4000,
             ]);
 
             // Support both array and object response shapes from openai-php
@@ -414,7 +414,7 @@ class AdvancedTranslationService
         }
         try {
             $response = $this->client->chat()->create([
-                'model' => 'gpt-4',
+                'model' => 'gpt-4o-mini',
                 'messages' => [
                     [
                         'role' => 'system',
@@ -426,7 +426,7 @@ class AdvancedTranslationService
                     ]
                 ],
                 'temperature' => 0.1,
-                'max_tokens' => 10,
+                'max_completion_tokens' => 10,
             ]);
 
             if (is_array($response)) {

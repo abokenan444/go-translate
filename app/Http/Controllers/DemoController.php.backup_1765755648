@@ -1,0 +1,92 @@
+<?php
+namespace App\Http\Controllers;
+
+use App\Services\SimpleDemoTranslationService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+
+class DemoController extends Controller
+{
+    protected $translationService;
+
+    public function __construct(SimpleDemoTranslationService $translationService)
+    {
+        $this->translationService = $translationService;
+    }
+
+    /**
+     * Demo translation (no authentication required)
+     */
+    public function translate(Request $request)
+    {
+        $request->validate([
+            'text' => 'required|string|max:500', // Limit demo to 500 chars
+            'source_language' => 'required|string|size:2',
+            'target_language' => 'required|string|size:2',
+        ]);
+
+        // Rate limiting for demo
+        $ip = $request->ip();
+        $cacheKey = 'demo_translate_' . $ip;
+        
+        if (cache()->has($cacheKey)) {
+            $count = cache()->get($cacheKey);
+            if ($count >= 10) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Rate limit exceeded',
+                    'message' => 'لقد تجاوزت الحد المسموح. الرجاء إنشاء حساب للمتابعة.'
+                ], 429);
+            }
+            cache()->put($cacheKey, $count + 1, now()->addHour());
+        } else {
+            cache()->put($cacheKey, 1, now()->addHour());
+        }
+
+        try {
+            Log::info('Demo translation request', [
+                'text' => $request->text,
+                'source' => $request->source_language,
+                'target' => $request->target_language
+            ]);
+
+            $result = $this->translationService->translate([
+                "text" => $request->text,
+                "source_language" => $request->source_language,
+                "target_language" => $request->target_language,
+                "tone" => "professional",
+                "context" => "Demo translation",
+                "task_type" => null,
+                "industry" => null
+            ]);
+
+            Log::info('Demo translation result', $result);
+
+            if ($result['success']) {
+                return response()->json([
+                    'success' => true,
+                    'translated_text' => $result['translated_text'] ?? '',
+                    'source_language' => $result['source_language'] ?? $request->source_language,
+                    'target_language' => $result['target_language'] ?? $request->target_language,
+                    'quality_score' => $result['quality_score'] ?? 0,
+                    'word_count' => str_word_count($request->text),
+                ]);
+            } else {
+                Log::error('Demo translation failed', ['error' => $result['error'] ?? 'Unknown error']);
+                return response()->json([
+                    'success' => false,
+                    'error' => $result['error'] ?? 'Translation failed'
+                ], 500);
+            }
+        } catch (\Exception $e) {
+            Log::error('Demo translation exception', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'error' => 'Translation service error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+}

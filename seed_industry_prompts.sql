@@ -1,0 +1,35 @@
+-- Industry-Specific Translation Templates
+INSERT OR IGNORE INTO industry_templates (key, name, locale, description, prompt_template, created_at, updated_at) VALUES 
+-- Technology
+('tech-saas', 'SaaS Technology', 'en', 'Software as a Service products and documentation', 'Translate with technical accuracy. Maintain English terms for: API, endpoint, webhook, SDK, cloud, dashboard. Use {target_culture} conventions for UI elements. Keep brand names unchanged. Preserve code snippets and technical specs exactly.', datetime('now'), datetime('now')),
+('tech-mobile', 'Mobile Apps', 'en', 'Mobile application interfaces and app store content', 'Translate UI strings concisely for limited screen space in {target_language}. Adapt metaphors culturally. Preserve placeholder syntax like {{username}}. Use platform conventions (iOS/Android) for {target_region}. Keep CTA buttons action-oriented.', datetime('now'), datetime('now')),
+('tech-fintech', 'Financial Technology', 'en', 'Banking and payment applications', 'Translate with financial accuracy and compliance awareness for {target_region} regulations. Use formal tone. Maintain currency codes (USD, EUR, SAR). Preserve numerical formats. Include mandatory disclaimers for {target_country} financial laws.', datetime('now'), datetime('now')),
+
+-- E-commerce
+('ecom-fashion', 'Fashion & Apparel', 'en', 'Clothing and fashion retail', 'Translate product descriptions with {target_culture} fashion sensibilities. Adapt sizing standards (US/EU/UK) to {target_region}. Use aspirational, trendy language for {target_demographic}. Preserve brand storytelling while culturally adapting lifestyle references.', datetime('now'), datetime('now')),
+('ecom-beauty', 'Beauty & Cosmetics', 'en', 'Beauty products and skincare', 'Translate ingredient names using {target_region} INCI standards. Adapt beauty standards culturally for {target_market}. Use aspirational but compliant claims. Preserve usage instructions precisely. Include required regulatory warnings for {target_country}.', datetime('now'), datetime('now')),
+('ecom-food', 'Food & Beverage', 'en', 'Food products and restaurants', 'Translate menu items with cultural sensitivity for {target_culture} dietary customs (halal, kosher, vegan). Adapt flavor descriptions to {target_palate}. Preserve allergen warnings. Use appetizing, sensory language for {target_region}.', datetime('now'), datetime('now')),
+
+-- Healthcare
+('health-medical', 'Medical & Clinical', 'en', 'Healthcare and medical content', 'Translate with medical accuracy using {target_region} medical terminology. Maintain Latin pharmaceutical names. Use formal, reassuring tone. Preserve dosage and warning information exactly. Comply with {target_country} healthcare regulations.', datetime('now'), datetime('now')),
+('health-wellness', 'Wellness & Fitness', 'en', 'Wellness apps and fitness content', 'Translate with health-conscious, motivational tone for {target_culture}. Adapt fitness goals to {target_region} standards (metric/imperial). Use encouraging, accessible language. Preserve safety disclaimers. Reference culturally relevant wellness practices.', datetime('now'), datetime('now')),
+
+-- Finance
+('finance-banking', 'Banking & Finance', 'en', 'Banking services and investment', 'Translate with financial precision and regulatory compliance for {target_region}. Use formal, trustworthy tone. Preserve financial terms in English where standard. Include mandatory disclosures for {target_country} financial regulations. Adapt examples to local currency and markets.', datetime('now'), datetime('now')),
+('finance-insurance', 'Insurance', 'en', 'Insurance products and policies', 'Translate policy terms with legal accuracy for {target_jurisdiction}. Use clear, transparent language despite formality. Preserve coverage terms precisely. Include required legal disclaimers for {target_country}. Explain complex terms for {target_audience}.', datetime('now'), datetime('now')),
+
+-- Education
+('edu-elearning', 'E-Learning Platforms', 'en', 'Online courses and educational content', 'Translate educational content for {target_age_group} in {target_culture}. Adapt examples to culturally relevant contexts. Use encouraging, clear instructional tone. Preserve learning objectives. Reference {target_region} curriculum standards where applicable.', datetime('now'), datetime('now')),
+('edu-academic', 'Academic Publishing', 'en', 'Research papers and academic content', 'Translate with academic rigor using {target_region} scholarly conventions. Preserve citations and references exactly. Use formal academic tone. Maintain technical terminology. Follow {target_country} academic style guide (APA, MLA, Chicago).', datetime('now'), datetime('now')),
+
+-- Travel & Hospitality
+('travel-hotel', 'Hotels & Accommodation', 'en', 'Hotel bookings and hospitality', 'Translate with hospitable, welcoming tone for {target_culture}. Adapt amenities descriptions to {target_region} expectations. Use aspirational language. Preserve booking terms and cancellation policies precisely. Reference local attractions and cultural sites.', datetime('now'), datetime('now')),
+('travel-tourism', 'Tourism & Destinations', 'en', 'Travel guides and destination marketing', 'Translate destination content with cultural sensitivity and appeal for {target_travelers}. Adapt activity recommendations to {target_preferences}. Use evocative, inspiring language. Preserve safety information. Reference {target_region} travel customs and visa requirements.', datetime('now'), datetime('now')),
+
+-- Marketing
+('marketing-ads', 'Advertising Campaigns', 'en', 'Marketing campaigns and advertisements', 'Transcreate ad copy for {target_market} cultural resonance, not literal translation. Adapt slogans, puns, and wordplay creatively. Use persuasive, benefit-focused language. Preserve brand voice while localizing messaging. Reference {target_culture} values and aspirations.', datetime('now'), datetime('now')),
+('marketing-social', 'Social Media', 'en', 'Social media posts and content', 'Translate social content with platform-appropriate tone for {target_platform} in {target_region}. Keep it conversational and engaging. Adapt hashtags and emoji culturally. Preserve mentions and links. Use trending expressions for {target_audience}.', datetime('now'), datetime('now')),
+
+-- Legal
+('legal-contracts', 'Legal Contracts', 'en', 'Contracts and legal agreements', 'Translate legal documents with precision for {target_jurisdiction} legal system. Preserve legal terminology exactly. Use formal, unambiguous language. Include disclaimer about certified translation needs. Maintain clause structure. Reference {target_country} legal codes where applicable.', datetime('now'), datetime('now')),
+('legal-compliance', 'Compliance & Regulatory', 'en', 'Compliance documentation and regulations', 'Translate compliance content with regulatory accuracy for {target_region} laws. Use clear, authoritative tone. Preserve regulatory references. Include required legal notices for {target_country}. Maintain audit trail terminology precisely.', datetime('now'), datetime('now'));

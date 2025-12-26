@@ -88,27 +88,30 @@ class CheckSubscriptionsCommand extends Command
 
     protected function resetMonthlyTokens()
     {
-        $toReset = UserSubscription::where('status', 'active')
-            ->where(function($query) {
-                $query->whereNull('last_token_reset_at')
-                    ->orWhere('last_token_reset_at', '<=', Carbon::now()->subMonth());
-            })
-            ->whereHas('plan', function($query) {
-                $query->where('billing_period', 'monthly');
-            })
-            ->get();
+        $activeSubscriptions = UserSubscription::where('status', 'active')->get();
 
-        foreach ($toReset as $subscription) {
-            $subscription->update([
-                'tokens_used' => 0,
-                'tokens_remaining' => $subscription->plan->tokens_limit,
-                'last_token_reset_at' => Carbon::now(),
-                'low_tokens_notified' => false,
-            ]);
-            
-            $this->line("Reset tokens: User #{$subscription->user_id} - {$subscription->plan->name}");
+        $startOfMonth = now()->startOfMonth();
+
+        foreach ($activeSubscriptions as $subscription) {
+            $tokensLimit = (int) optional($subscription->plan)->tokens_limit;
+            if ($tokensLimit <= 0) {
+                continue;
+            }
+
+            $lastReset = $subscription->last_token_reset_at;
+
+            // Reset once per calendar month (works regardless of when scheduler runs)
+            if (!$lastReset || $lastReset->lt($startOfMonth)) {
+                $subscription->tokens_used = 0;
+                $subscription->tokens_remaining = $tokensLimit;
+                $subscription->last_token_reset_at = now();
+                $subscription->low_tokens_notified = false;
+                $subscription->save();
+
+                $this->info("Reset tokens for subscription {$subscription->id} (User: {$subscription->user_id})");
+            }
         }
 
-        return $toReset->count();
+        return $activeSubscriptions->count();
     }
 }

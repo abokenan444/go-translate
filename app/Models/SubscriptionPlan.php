@@ -1,15 +1,14 @@
 <?php
-
 namespace App\Models;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-
 class SubscriptionPlan extends Model
 {
     use HasFactory, SoftDeletes;
-
+    
+    protected $table = 'subscription_plans';
+    
     protected $fillable = [
         'name',
         'slug',
@@ -28,8 +27,8 @@ class SubscriptionPlan extends Model
         'is_custom',
         'is_active',
         'sort_order',
+        'certified_documents_limit',
     ];
-
     protected $casts = [
         'features' => 'array',
         'price' => 'decimal:2',
@@ -40,22 +39,18 @@ class SubscriptionPlan extends Model
         'is_custom' => 'boolean',
         'is_active' => 'boolean',
     ];
-
     public function subscriptions()
     {
         return $this->hasMany(UserSubscription::class);
     }
-
     public function activeSubscriptions()
     {
         return $this->hasMany(UserSubscription::class)->where('status', 'active');
     }
-
     public function getFormattedPriceAttribute()
     {
         return $this->currency . ' ' . number_format($this->price, 2);
     }
-
     public function getBillingPeriodTextAttribute()
     {
         return match($this->billing_period) {
@@ -65,17 +60,14 @@ class SubscriptionPlan extends Model
             default => $this->billing_period,
         };
     }
-
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
     }
-
     public function scopeNotCustom($query)
     {
         return $query->where('is_custom', false);
     }
-
     public function scopeOrdered($query)
     {
         return $query->orderBy('sort_order')->orderBy('price');

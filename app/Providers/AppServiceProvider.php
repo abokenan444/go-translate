@@ -2,6 +2,7 @@
 namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -9,7 +10,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Register PromptEngine bindings
+        $this->app->bind(
+            \App\Services\PromptEngine\Repositories\PromptRepositoryInterface::class,
+            function ($app) {
+                $jsonPath = base_path('app/Services/PromptEngine/Data/prompts.json');
+                return new \App\Services\PromptEngine\Repositories\JsonPromptRepository($jsonPath);
+            }
+        );
     }
     /**
      * Bootstrap any application services.
@@ -26,5 +34,8 @@ class AppServiceProvider extends ServiceProvider
             $_SERVER['HTTPS'] = 'on';
             $this->app['url']->forceScheme('https');
         }
+
+        // Register Observers
+        \App\Models\Document::observe(\App\Observers\DocumentObserver::class);
     }
 }

@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Filament\Admin\Resources\UserResource\Pages;
 
 use App\Filament\Admin\Resources\UserResource;
@@ -13,8 +12,7 @@ class ListUsers extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()
-                ->label('إضافة مستخدم جديد'),
+            Actions\CreateAction::make(),
         ];
     }
 }

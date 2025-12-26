@@ -44,6 +44,8 @@ class APIClient {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
             if (csrfToken) {
                 headers['X-CSRF-TOKEN'] = csrfToken;
+            } else {
+                console.warn('CSRF token not found in meta tag');
             }
         }
 
@@ -68,6 +70,13 @@ class APIClient {
         if (!this.token || this.token === 'null' || this.token === 'undefined') {
             config.credentials = 'include';
         }
+
+        console.log('API Request:', {
+            url,
+            method: config.method || 'GET',
+            headers: config.headers,
+            hasCSRF: !!config.headers['X-CSRF-TOKEN']
+        });
 
         try {
             const response = await fetch(url, config);
@@ -112,13 +121,53 @@ class APIClient {
     }
 
     async getProfile() {
-        return this.request('/me');
+        return this.request('/dashboard/user');
     }
 
     async updateProfile(data) {
         return this.request('/profile', {
             method: 'PUT',
             body: JSON.stringify(data),
+        });
+    }
+
+    // Dashboard APIs
+    async getDashboardUser() {
+        return this.request('/dashboard/user');
+    }
+
+    async getDashboardStats() {
+        return this.request('/dashboard/stats');
+    }
+
+    async getDashboardUsage() {
+        return this.request('/dashboard/usage');
+    }
+
+    async getDashboardLanguages() {
+        return this.request('/dashboard/languages');
+    }
+
+    async getDashboardHistory() {
+        return this.request('/dashboard/history');
+    }
+
+    async getDashboardProjects() {
+        return this.request('/dashboard/projects');
+    }
+
+    async getDashboardSubscription() {
+        return this.request('/dashboard/subscription');
+    }
+
+    async getInvoices() {
+        return this.request('/invoices');
+    }
+
+    async changePlan(planId) {
+        return this.request('/subscription/change', {
+            method: 'POST',
+            body: JSON.stringify({ plan_id: planId }),
         });
     }
 
@@ -203,19 +252,27 @@ class APIClient {
         return this.request('/plans');
     }
 
-    async subscribe(planId, paymentMethod) {
-        return this.request('/subscribe', {
+    async subscribe(planId, paymentMethod = null) {
+        const response = await this.request('/pricing/subscribe', {
             method: 'POST',
             body: JSON.stringify({ plan_id: planId, payment_method: paymentMethod }),
         });
+        
+        // If response contains redirect_url, redirect to Stripe Checkout
+        if (response.success && response.redirect_url) {
+            window.location.href = response.redirect_url;
+            return response;
+        }
+        
+        return response;
     }
 
     async getSubscription() {
-        return this.request('/subscription');
+        return this.request('/dashboard/subscription');
     }
 
     async getUsage() {
-        return this.request('/usage');
+        return this.request('/dashboard/usage');
     }
 
     async cancelSubscription() {
@@ -224,7 +281,7 @@ class APIClient {
 
     // Analytics APIs
     async getDashboard() {
-        return this.request('/analytics/dashboard');
+        return this.request('/dashboard/stats');
     }
 
     async getInsights() {
@@ -237,21 +294,33 @@ class APIClient {
 
     // Collaboration APIs
     async createProject(name, description) {
-        return this.request('/projects', {
+        return this.request('/dashboard/projects', {
             method: 'POST',
             body: JSON.stringify({ name, description }),
         });
     }
 
     async getProjects() {
-        return this.request('/projects');
+        return this.request('/dashboard/projects');
+    }
+
+    async getTranslations(page = 1, perPage = 10) {
+        return this.request('/dashboard/history');
     }
 
     async inviteToProject(projectId, email, role) {
-        return this.request(`/projects/${projectId}/invite`, {
+        return this.request(`/dashboard/projects/${projectId}/invite`, {
             method: 'POST',
             body: JSON.stringify({ email, role }),
         });
+    }
+
+    async deleteTranslation(id) {
+        return this.request(`/translations/${id}`, { method: 'DELETE' });
+    }
+
+    async deleteProject(id) {
+        return this.request(`/dashboard/projects/${id}`, { method: 'DELETE' });
     }
 }
 

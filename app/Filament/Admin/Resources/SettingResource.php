@@ -2,64 +2,57 @@
 
 namespace App\Filament\Admin\Resources;
 
-use App\Filament\Admin\Resources\SettingResource\Pages;
-use App\Filament\Admin\Resources\SettingResource\RelationManagers;
 use App\Models\Setting;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Admin\Resources\SettingResource\Pages;
 
 class SettingResource extends Resource
 {
     protected static ?string $model = Setting::class;
 
-    protected static bool $shouldRegisterNavigation = false;
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon  = 'heroicon-o-cog-6-tooth';
+    protected static ?string $navigationGroup = 'Platform Settings';
+    protected static ?string $navigationLabel = 'Settings';
 
     public static function form(Form $form): Form
     {
-        return $form
-            ->schema([
-                //
-            ]);
+        return $form->schema([
+            Forms\Components\TextInput::make('key')->required()->maxLength(255),
+            Forms\Components\Textarea::make('value')->rows(3),
+            Forms\Components\Textarea::make('description')
+                ->rows(2)
+                ->helperText('Internal description for admins'),
+        ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                //
-            ])
-            ->filters([
-                //
+                Tables\Columns\TextColumn::make('key')->searchable(),
+                Tables\Columns\TextColumn::make('value')->limit(60),
+                Tables\Columns\TextColumn::make('description')->limit(60),
+                Tables\Columns\TextColumn::make('updated_at')->dateTime('Y-m-d H:i'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                Tables\Actions\DeleteBulkAction::make(),
             ]);
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListSettings::route('/'),
+            'index'  => Pages\ListSettings::route('/'),
             'create' => Pages\CreateSetting::route('/create'),
-            'edit' => Pages\EditSetting::route('/{record}/edit'),
+            'edit'   => Pages\EditSetting::route('/{record}/edit'),
         ];
     }
 }

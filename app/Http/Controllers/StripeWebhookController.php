@@ -4,7 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Subscription;
 use App\Models\PaymentTransaction;
+use App\Models\MinutesWallet;
+use App\Models\MobileWalletTransaction;
+use App\Models\User;
+use App\Models\Wallet;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Stripe\StripeClient;
 use Stripe\Webhook;
@@ -22,6 +27,11 @@ class StripeWebhookController extends Controller
     /**
      * Handle Stripe webhook events
      */
+    public function handle(Request $request)
+    {
+        return $this->handleWebhook($request);
+    }
+
     public function handleWebhook(Request $request)
     {
         $payload = $request->getContent();
@@ -93,9 +103,85 @@ class StripeWebhookController extends Controller
     protected function handleCheckoutCompleted($session)
     {
         Log::info('Stripe webhook: Checkout completed', ['session_id' => $session->id]);
-        
-        // The StripeService::handleCheckoutSuccess already handles this
-        // This is a backup handler
+
+        $metadata = (array) ($session->metadata ?? []);
+        $minutesRaw = $metadata['minutes'] ?? null;
+        $userIdRaw = $metadata['user_id'] ?? null;
+
+        // Only handle minute packages if metadata is present.
+        if ($minutesRaw === null || $userIdRaw === null) {
+            return;
+        }
+
+        $minutes = (int) $minutesRaw;
+        $userId = (int) $userIdRaw;
+        if ($minutes <= 0 || $userId <= 0) {
+            Log::warning('Stripe webhook: Invalid minutes purchase metadata', [
+                'session_id' => $session->id,
+                'user_id' => $userIdRaw,
+                'minutes' => $minutesRaw,
+            ]);
+            return;
+        }
+
+        $paymentStatus = $session->payment_status ?? null;
+        if ($paymentStatus && $paymentStatus !== 'paid') {
+            Log::info('Stripe webhook: Checkout not paid, skipping minutes credit', [
+                'session_id' => $session->id,
+                'payment_status' => $paymentStatus,
+            ]);
+            return;
+        }
+
+        $existing = MobileWalletTransaction::query()
+            ->where('user_id', $userId)
+            ->where('type', 'topup')
+            ->where('metadata->stripe_session_id', $session->id)
+            ->exists();
+
+        if ($existing) {
+            Log::info('Stripe webhook: Minutes purchase already processed', ['session_id' => $session->id]);
+            return;
+        }
+
+        $user = User::find($userId);
+        if (!$user) {
+            Log::warning('Stripe webhook: User not found for minutes purchase', [
+                'session_id' => $session->id,
+                'user_id' => $userId,
+            ]);
+            return;
+        }
+
+        DB::transaction(function () use ($user, $minutes, $session, $metadata) {
+            $minutesWallet = MinutesWallet::firstOrCreate(
+                ['user_id' => $user->id],
+                ['balance_seconds' => 0]
+            );
+
+            $minutesWallet->balance_seconds += $minutes * 60;
+            $minutesWallet->save();
+
+            // Keep LiveCall wallet in sync as well.
+            $wallet = Wallet::firstOrCreate(['user_id' => $user->id]);
+            $wallet->increment('minutes_balance', $minutes);
+
+            MobileWalletTransaction::create([
+                'user_id' => $user->id,
+                'type' => 'topup',
+                'amount' => (float) $minutes,
+                'balance_after' => (float) floor(((int) $minutesWallet->balance_seconds) / 60),
+                'description' => 'Stripe minutes package',
+                'metadata' => [
+                    'source' => 'stripe',
+                    'stripe_session_id' => $session->id,
+                    'package_id' => $metadata['package_id'] ?? null,
+                    'minutes' => $minutes,
+                    'currency' => $session->currency ?? null,
+                    'amount_total' => $session->amount_total ?? null,
+                ],
+            ]);
+        });
     }
 
     /**

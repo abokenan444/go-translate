@@ -156,7 +156,7 @@ return [
     |
     */
 
-    'domain' => env('SESSION_DOMAIN'),
+    'domain' => '.culturaltranslate.com',
 
     /*
     |--------------------------------------------------------------------------
@@ -169,7 +169,7 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE'),
+    'secure' => true,
 
     /*
     |--------------------------------------------------------------------------
@@ -213,5 +213,39 @@ return [
     */
 
     'partitioned' => env('SESSION_PARTITIONED_COOKIE', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Government Session Security (Layer 1: Access & Identity)
+    |--------------------------------------------------------------------------
+    |
+    | Enhanced security settings for government and certified partner accounts.
+    | These settings ensure proper session timeout and security for high-trust
+    | accounts handling official documents and certifications.
+    |
+    */
+
+    'government_security' => [
+        // Session timeout for government accounts (in minutes)
+        'government_session_lifetime' => (int) env('GOVERNMENT_SESSION_LIFETIME', 30),
+        
+        // Session timeout for certified partners (in minutes)
+        'partner_session_lifetime' => (int) env('PARTNER_SESSION_LIFETIME', 60),
+        
+        // Strict IP binding for government sessions
+        'strict_ip_binding' => env('GOVERNMENT_STRICT_IP', true),
+        
+        // Require reauth for sensitive operations
+        'require_reauth_for_certification' => true,
+        
+        // Maximum concurrent sessions per government account
+        'max_concurrent_government_sessions' => 1,
+        
+        // IP whitelist for government access (comma-separated)
+        'government_ip_whitelist' => env('GOVERNMENT_IP_WHITELIST', ''),
+        
+        // Enable session activity logging
+        'log_session_activity' => true,
+    ],
 
 ];

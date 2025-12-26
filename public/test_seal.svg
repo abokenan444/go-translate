@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="1000" height="1000" viewBox="0 0 1000 1000">
+  <defs>
+    <radialGradient id="sealBg" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#fdf0d0"/>
+      <stop offset="100%" stop-color="#d9b36a"/>
+    </radialGradient>
+
+    <radialGradient id="blue" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#1b335f"/>
+      <stop offset="100%" stop-color="#081634"/>
+    </radialGradient>
+
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbe7b4"/>
+      <stop offset="50%" stop-color="#e1b65a"/>
+      <stop offset="100%" stop-color="#c18c2e"/>
+    </linearGradient>
+
+    <style>
+      .fontMain { font-family: "Times New Roman", serif; font-weight: bold; }
+      .gold     { fill:#fbe7b4; }
+    </style>
+
+    <!-- مسار النص العلوي -->
+    <path id="arcTop"
+          d="M 150,500 A 350,350 0 0,1 850,500" />
+    <!-- مسار النص السفلي (معكوس للقراءة الصحيحة) -->
+    <path id="arcBottom"
+          d="M 150,500 A 350,350 0 0,0 850,500" />
+  </defs>
+
+  <!-- خلفية شفافة -->
+  <rect x="0" y="0" width="1000" height="1000" fill="none"/>
+
+  <!-- دائرة ذهبية خارجية -->
+  <circle cx="500" cy="500" r="490"
+          fill="none" stroke="url(#gold)" stroke-width="20"/>
+
+  <!-- دائرة زرقاء رئيسية -->
+  <circle cx="500" cy="500" r="450"
+          fill="url(#blue)" stroke="url(#gold)" stroke-width="18"/>
+
+  <!-- دائرة زخرفية ذهبية -->
+  <circle cx="500" cy="500" r="390"
+          fill="none" stroke="#fbe7b4" stroke-width="8"
+          stroke-dasharray="6 10"/>
+
+  <!-- دائرة داخلية (حلقة قبل منطقة الـ QR) -->
+  <circle cx="500" cy="500" r="280"
+          fill="none" stroke="#fbe7b4" stroke-width="10"/>
+
+  <!-- الدائرة الداخلية للـ QR والتاريخ -->
+  <circle cx="500" cy="500" r="210"
+          fill="url(#sealBg)" stroke="url(#gold)" stroke-width="8"/>
+
+  <!-- نص علوي: CERTIFIED TRANSLATION -->
+  <text font-size="50" fill="#fbe7b4" class="fontMain" letter-spacing="4">
+    <textPath href="#arcTop" startOffset="50%" text-anchor="middle">
+      CERTIFIED TRANSLATION
+    </textPath>
+  </text>
+
+  <!-- نص سفلي: CULTURAL TRANSLATE -->
+  <text font-size="38" fill="#fbe7b4" class="fontMain" letter-spacing="1">
+    <textPath href="#arcBottom" startOffset="50%" text-anchor="middle">
+      CULTURAL TRANSLATE
+    </textPath>
+  </text>
+
+  <!-- شريط زخرفي مع النص OFFICIALLY CERTIFIED -->
+  <g transform="translate(500,720)">
+    <path d="
+      M -260,0
+      C -290,-40 -315,-40 -345,0
+      L -360,35
+      C -330,15 -315,15 -285,35
+      L 285,35
+      C 315,15 330,15 360,35
+      L 345,0
+      C 315,-40 290,-40 260,0
+      Z"
+      fill="url(#blue)" stroke="url(#gold)" stroke-width="6"/>
+    <text x="0" y="18" text-anchor="middle"
+          font-size="34" fill="#fbe7b4" class="fontMain">
+      OFFICIALLY CERTIFIED
+    </text>
+  </g>
+
+  <!-- QR Code داخل الدائرة الداخلية -->
+  <image href="data:image/png;base64,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" x="410" y="360" width="180" height="180" />
+
+  <!-- التاريخ أسفل QR Code -->
+  <text x="500" y="570" text-anchor="middle"
+        font-size="24" fill="#1b335f" class="fontMain">
+    December 11, 2025
+  </text>
+
+  <!-- خط زخرفي صغير فوق التاريخ -->
+  <line x1="420" y1="555" x2="580" y2="555" 
+        stroke="#1b335f" stroke-width="2" opacity="0.5"/>
+
+  <!-- اسم المنصة أسفل التاريخ -->
+  <text x="500" y="595" text-anchor="middle"
+        font-size="18" fill="#1b335f" class="fontMain" opacity="0.8">
+    culturaltranslate.com
+  </text>
+</svg>

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>اختبار رفع المستندات | Document Upload Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen py-12 px-4" x-data="uploadTest()">
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-2xl p-8 text-center">
+                <h1 class="text-3xl font-bold mb-2">🔧 اختبار نظام ترجمة المستندات</h1>
+                <p class="text-blue-100">Document Translation System Test</p>
+                <p class="text-sm text-blue-200 mt-2">✅ CSRF Token Enabled</p>
+            </div>
+
+            <!-- Test Form -->
+            <div class="bg-white rounded-b-2xl shadow-xl p-8">
+                <!-- Status Messages -->
+                <div x-show="message" class="mb-6 p-4 rounded-lg" 
+                     :class="messageType === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'">
+                    <p x-text="message"></p>
+                </div>
+
+                <!-- File Upload Section -->
+                <div class="mb-6">
+                    <label class="block text-lg font-semibold text-gray-700 mb-3">
+                        📁 اختر ملف للاختبار | Choose File for Test
+                    </label>
+                    
+                    <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-500 transition-colors"
+                         @dragover.prevent="dragover = true"
+                         @dragleave.prevent="dragover = false"
+                         @drop.prevent="handleDrop($event)"
+                         :class="{'border-blue-500 bg-blue-50': dragover}">
+                        
+                        <input type="file" 
+                               id="fileInput" 
+                               @change="handleFileSelect($event)"
+                               accept=".pdf,.docx,.jpg,.jpeg,.png"
+                               class="hidden">
+                        
+                        <div x-show="!selectedFile">
+                            <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                            </svg>
+                            <label for="fileInput" class="cursor-pointer text-blue-600 hover:text-blue-700 font-medium">
+                                اضغط لاختيار ملف | Click to select file
+                            </label>
+                            <p class="text-sm text-gray-500 mt-2">أو اسحب وأفلت الملف هنا</p>
+                            <p class="text-xs text-gray-400 mt-2">PDF, DOCX, JPG, PNG (max 10MB)</p>
+                        </div>
+
+                        <div x-show="selectedFile" class="flex items-center justify-center space-x-4 space-x-reverse">
+                            <svg class="h-10 w-10 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            <div class="text-right">
+                                <p class="font-medium text-gray-900" x-text="selectedFile ? selectedFile.name : ''"></p>
+                                <p class="text-sm text-gray-500" x-text="selectedFile ? formatFileSize(selectedFile.size) : ''"></p>
+                            </div>
+                            <button @click="selectedFile = null; document.getElementById('fileInput').value = ''" 
+                                    class="text-red-500 hover:text-red-700">
+                                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Language Selection -->
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            🌐 اللغة المصدر | Source Language
+                        </label>
+                        <select x-model="sourceLang" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="ar">العربية (Arabic)</option>
+                            <option value="en">English (الإنجليزية)</option>
+                            <option value="fr">Français (الفرنسية)</option>
+                            <option value="es">Español (الإسبانية)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            🎯 اللغة الهدف | Target Language
+                        </label>
+                        <select x-model="targetLang" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="en">English (الإنجليزية)</option>
+                            <option value="ar">العربية (Arabic)</option>
+                            <option value="fr">Français (الفرنسية)</option>
+                            <option value="es">Español (الإسبانية)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Options -->
+                <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+                    <label class="flex items-center mb-3 cursor-pointer">
+                        <input type="checkbox" x-model="preserveLayout" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500">
+                        <span class="mr-3 text-gray-700">📐 الحفاظ على التنسيق | Preserve Layout</span>
+                    </label>
+                    <label class="flex items-center cursor-pointer">
+                        <input type="checkbox" x-model="culturalAdaptation" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500">
+                        <span class="mr-3 text-gray-700">🌍 التكيف الثقافي | Cultural Adaptation</span>
+                    </label>
+                </div>
+
+                <!-- Upload Button -->
+                <button @click="testUpload()"
+                        :disabled="!selectedFile || uploading"
+                        :class="!selectedFile || uploading ? 'opacity-50 cursor-not-allowed' : 'hover:from-blue-700 hover:to-indigo-700'"
+                        class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-4 px-6 rounded-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg">
+                    <span x-show="!uploading">🚀 اختبار الرفع | Test Upload</span>
+                    <span x-show="uploading" class="flex items-center justify-center">
+                        <svg class="animate-spin h-5 w-5 ml-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        جاري الرفع... | Uploading...
+                    </span>
+                </button>
+
+                <!-- Response Display -->
+                <div x-show="response" class="mt-6 p-4 bg-gray-100 rounded-lg">
+                    <h3 class="font-bold text-gray-900 mb-2">📝 استجابة السيرفر | Server Response:</h3>
+                    <pre class="text-xs text-gray-700 overflow-x-auto whitespace-pre-wrap" x-text="JSON.stringify(response, null, 2)"></pre>
+                </div>
+            </div>
+
+            <!-- System Info -->
+            <div class="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-6">
+                <h3 class="font-bold text-blue-900 mb-3">ℹ️ معلومات النظام | System Information</h3>
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <span class="font-medium text-blue-800">API Endpoint:</span>
+                        <code class="block mt-1 text-blue-600 bg-white p-2 rounded">/dashboard/file-translation/upload</code>
+                    </div>
+                    <div>
+                        <span class="font-medium text-blue-800">Method:</span>
+                        <code class="block mt-1 text-blue-600 bg-white p-2 rounded">POST (multipart/form-data)</code>
+                    </div>
+                    <div>
+                        <span class="font-medium text-blue-800">Max File Size:</span>
+                        <code class="block mt-1 text-blue-600 bg-white p-2 rounded">10 MB</code>
+                    </div>
+                    <div>
+                        <span class="font-medium text-blue-800">Allowed Types:</span>
+                        <code class="block mt-1 text-blue-600 bg-white p-2 rounded">PDF, DOCX, JPG, PNG</code>
+                    </div>
+                    <div class="col-span-2">
+                        <span class="font-medium text-blue-800">CSRF Token:</span>
+                        <code class="block mt-1 text-blue-600 bg-white p-2 rounded text-xs break-all" x-text="getCsrfToken()"></code>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Instructions -->
+            <div class="mt-6 bg-yellow-50 border border-yellow-200 rounded-xl p-6">
+                <h3 class="font-bold text-yellow-900 mb-3">⚠️ ملاحظة هامة | Important Note</h3>
+                <p class="text-yellow-800 text-sm mb-2">
+                    صفحة ترجمة المستندات الرئيسية محمية وتتطلب تسجيل الدخول.
+                    <br>The main document translation page is protected and requires authentication.
+                </p>
+                <p class="text-yellow-800 text-sm">
+                    للوصول إلى النظام الكامل:
+                    <br>To access the full system:
+                </p>
+                <ol class="list-decimal list-inside text-yellow-800 text-sm mt-2 space-y-1 mr-4">
+                    <li>سجل الدخول: <a href="https://culturaltranslate.com/login" class="text-blue-600 hover:underline">https://culturaltranslate.com/login</a></li>
+                    <li>انتقل إلى: <a href="https://culturaltranslate.com/dashboard/file-translation" class="text-blue-600 hover:underline">صفحة الترجمة</a></li>
+                    <li>ارفع الملفات واحصل على الترجمة</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function uploadTest() {
+            return {
+                selectedFile: null,
+                sourceLang: 'ar',
+                targetLang: 'en',
+                preserveLayout: true,
+                culturalAdaptation: true,
+                uploading: false,
+                dragover: false,
+                message: '',
+                messageType: '',
+                response: null,
+
+                getCsrfToken() {
+                    return document.querySelector('meta[name="csrf-token"]')?.content || 'TOKEN NOT FOUND';
+                },
+
+                handleFileSelect(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        this.validateAndSetFile(file);
+                    }
+                },
+
+                handleDrop(event) {
+                    this.dragover = false;
+                    const file = event.dataTransfer.files[0];
+                    if (file) {
+                        this.validateAndSetFile(file);
+                    }
+                },
+
+                validateAndSetFile(file) {
+                    // Check file size (10MB max)
+                    if (file.size > 10 * 1024 * 1024) {
+                        this.showMessage('الملف كبير جداً! الحد الأقصى 10 ميجابايت | File too large! Max 10MB', 'error');
+                        return;
+                    }
+
+                    // Check file type
+                    const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/jpg', 'image/png'];
+                    if (!allowedTypes.includes(file.type)) {
+                        this.showMessage('نوع الملف غير مدعوم! | Unsupported file type!', 'error');
+                        return;
+                    }
+
+                    this.selectedFile = file;
+                    this.showMessage('✅ تم اختيار الملف بنجاح | File selected successfully', 'success');
+                },
+
+                formatFileSize(bytes) {
+                    if (bytes === 0) return '0 Bytes';
+                    const k = 1024;
+                    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                    const i = Math.floor(Math.log(bytes) / Math.log(k));
+                    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+                },
+
+                showMessage(msg, type) {
+                    this.message = msg;
+                    this.messageType = type;
+                    setTimeout(() => {
+                        this.message = '';
+                    }, 5000);
+                },
+
+                async testUpload() {
+                    if (!this.selectedFile) {
+                        this.showMessage('الرجاء اختيار ملف | Please select a file', 'error');
+                        return;
+                    }
+
+                    const csrfToken = this.getCsrfToken();
+                    if (csrfToken === 'TOKEN NOT FOUND') {
+                        this.showMessage('❌ خطأ: CSRF token غير موجود | CSRF token not found', 'error');
+                        this.response = {
+                            error: 'CSRF token missing',
+                            solution: 'يجب أن يكون الملف .blade.php وليس .html'
+                        };
+                        return;
+                    }
+
+                    this.uploading = true;
+                    this.response = null;
+
+                    try {
+                        const formData = new FormData();
+                        formData.append('file', this.selectedFile);
+                        formData.append('source_lang', this.sourceLang);
+                        formData.append('target_lang', this.targetLang);
+                        formData.append('preserve_layout', this.preserveLayout ? '1' : '0');
+                        formData.append('cultural_adaptation', this.culturalAdaptation ? '1' : '0');
+
+                        const response = await fetch('/dashboard/file-translation/upload', {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-CSRF-TOKEN': csrfToken,
+                                'Accept': 'application/json'
+                            }
+                        });
+
+                        const data = await response.json();
+                        this.response = data;
+
+                        if (response.ok && data.success) {
+                            this.showMessage('✅ ' + (data.message || 'تم رفع الملف بنجاح! | File uploaded successfully!'), 'success');
+                        } else {
+                            this.showMessage('❌ ' + (data.message || 'فشل الرفع | Upload failed'), 'error');
+                        }
+                    } catch (error) {
+                        console.error('Upload error:', error);
+                        this.response = {
+                            error: error.message,
+                            statusCode: error.status || 'unknown',
+                            note: 'قد تحتاج إلى تسجيل الدخول أولاً | You may need to login first',
+                            redirectTo: 'https://culturaltranslate.com/login'
+                        };
+                        this.showMessage('❌ خطأ في الاتصال | Connection error: ' + error.message, 'error');
+                    } finally {
+                        this.uploading = false;
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

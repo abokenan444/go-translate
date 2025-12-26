@@ -1,0 +1,9 @@
+﻿// Subscription-based Translation API (Requires Auth + Subscription)
+Route::middleware(['auth:sanctum', \App\Http\Middleware\CheckSubscriptionLimits::class])
+    ->prefix('subscription')
+    ->group(function () {
+        Route::post('/translate', [App\Http\Controllers\Api\SubscriptionTranslationController::class, 'translate']);
+        Route::get('/status', [App\Http\Controllers\Api\SubscriptionTranslationController::class, 'getStatus']);
+        Route::get('/usage', [App\Http\Controllers\Api\SubscriptionTranslationController::class, 'getUsageStats']);
+        Route::post('/credits/add', [App\Http\Controllers\Api\SubscriptionTranslationController::class, 'addCredits']);
+    });

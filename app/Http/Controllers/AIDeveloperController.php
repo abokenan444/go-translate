@@ -197,7 +197,24 @@ class AIDeveloperController extends Controller
 
     protected function ensureOwner(Request $request): void
     {
-        // Check session instead of user
+        if (! config('ai_developer.enabled')) {
+            abort(403, 'AI Developer is disabled.');
+        }
+
+        // Allow password-based session
+        if ($request->session()->has('ai_developer_authenticated')) {
+            return;
+        }
+
+        $user = $request->user();
+        if (! $user) {
+            abort(401, 'Unauthorized');
+        }
+
+        $ownerEmail = config('ai_developer.owner_email');
+        if (! $ownerEmail || $user->email !== $ownerEmail) {
+            abort(403, 'You are not allowed to use AI Developer System.');
+        }
     }
 
     /**

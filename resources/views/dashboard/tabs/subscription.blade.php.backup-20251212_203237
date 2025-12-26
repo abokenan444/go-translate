@@ -1,0 +1,386 @@
+<div x-data="subscriptionTab()" x-init="loadSubscription()" class="max-w-4xl mx-auto space-y-6">
+    
+    <!-- Current Plan -->
+    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg p-8 text-white">
+        <div class="flex items-center justify-between">
+            <div>
+                <div class="text-sm opacity-90 mb-2">Current Plan</div>
+                <h2 class="text-3xl font-bold" x-text="subscription.plan_name"></h2>
+                <p class="mt-2 opacity-90" x-text="formatPrice(subscription.price, subscription.currency) + ' / ' + subscription.billing_cycle"></p>
+            </div>
+            <div class="text-right" x-show="subscription.renews_at">
+                <div class="text-sm opacity-90 mb-2">Renews on</div>
+                <div class="text-xl font-semibold" x-text="formatDate(subscription.renews_at)"></div>
+            </div>
+            <div class="text-right" x-show="!subscription.renews_at && subscription.is_trial">
+                <div class="text-sm opacity-90 mb-2">Trial Ends</div>
+                <div class="text-xl font-semibold" x-text="formatDate(subscription.trial_ends_at)"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Usage Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+            <div class="text-sm font-medium text-gray-600 mb-2">Characters Used</div>
+            <div class="text-2xl font-bold text-gray-900 mb-2" x-text="formatNumber(usage.characters_used)"></div>
+            <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+                <div class="h-2 rounded-full bg-indigo-600" :style="`width: ${(usage.characters_used / usage.characters_limit * 100)}%`"></div>
+            </div>
+            <div class="text-xs text-gray-500">of <span x-text="formatNumber(usage.characters_limit)"></span> limit</div>
+        </div>
+        
+        <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+            <div class="text-sm font-medium text-gray-600 mb-2">API Calls</div>
+            <div class="text-2xl font-bold text-gray-900 mb-2" x-text="formatNumber(usage.api_calls)"></div>
+            <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+                <div class="h-2 rounded-full bg-purple-600" :style="`width: ${(usage.api_calls / usage.api_limit * 100)}%`"></div>
+            </div>
+            <div class="text-xs text-gray-500">of <span x-text="formatNumber(usage.api_limit)"></span> limit</div>
+        </div>
+        
+        <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+            <div class="text-sm font-medium text-gray-600 mb-2">Team Members</div>
+            <div class="text-2xl font-bold text-gray-900 mb-2" x-text="usage.team_members"></div>
+            <div class="text-xs text-gray-500">of <span x-text="usage.team_limit"></span> seats</div>
+        </div>
+    </div>
+    
+    <!-- Available Plans -->
+    <div>
+        <h3 class="text-xl font-bold text-gray-900 mb-4">Available Plans</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <template x-for="plan in plans" :key="plan.id">
+                <div class="bg-white rounded-lg shadow-sm border-2 transition hover:shadow-md" 
+                     :class="plan.id === subscription.plan_id ? 'border-indigo-600' : 'border-gray-200'">
+                    <div class="p-6">
+                        <div x-show="plan.id === subscription.plan_id" class="inline-block px-3 py-1 text-xs font-semibold bg-indigo-100 text-indigo-800 rounded-full mb-4">
+                            Current Plan
+                        </div>
+                        <h4 class="text-xl font-bold text-gray-900 mb-2" x-text="plan.name"></h4>
+                        <div class="mb-4">
+                            <span class="text-3xl font-bold text-gray-900" x-text="formatPrice(plan.price, plan.currency)"></span>
+                            <span class="text-gray-600" x-text="'/ ' + (plan.billing_period || 'month')"></span>
+                        </div>
+                        <ul class="space-y-3 mb-6">
+                            <template x-for="feature in plan.features" :key="feature">
+                                <li class="flex items-start space-x-2 text-sm text-gray-700">
+                                    <i class="fas fa-check text-green-600 mt-0.5"></i>
+                                    <span x-text="feature"></span>
+                                </li>
+                            </template>
+                        </ul>
+                        <button @click="changePlan(plan.id)" 
+                                :disabled="plan.id === subscription.plan_id"
+                                :class="plan.id === subscription.plan_id ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-indigo-600 text-white hover:bg-indigo-700'"
+                                class="w-full px-4 py-2 rounded-lg font-semibold transition">
+                            <span x-text="plan.id === subscription.plan_id ? 'Current Plan' : (plan.price > subscription.price ? 'Upgrade' : 'Downgrade')"></span>
+                        </button>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+    
+    <!-- Billing History -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div class="p-6 border-b border-gray-200 flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-900">Billing History</h3>
+            <button @click="downloadInvoices()" class="text-sm text-indigo-600 hover:text-indigo-700" x-show="invoices.length > 0">
+                <i class="fas fa-download mr-1"></i> Download All
+            </button>
+        </div>
+        <div class="divide-y divide-gray-200" x-show="invoices.length > 0">
+            <template x-for="invoice in invoices" :key="invoice.id">
+                <div class="p-6 flex items-center justify-between hover:bg-gray-50 transition">
+                    <div class="flex-1">
+                        <div class="text-sm font-medium text-gray-900" x-text="invoice.description"></div>
+                        <div class="text-sm text-gray-500 mt-1" x-text="formatDate(invoice.date)"></div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="text-right">
+                            <div class="text-sm font-semibold text-gray-900" x-text="'$' + invoice.amount"></div>
+                            <span class="px-2 py-1 text-xs font-medium rounded-full" 
+                                  :class="{
+                                      'bg-green-100 text-green-800': invoice.status === 'paid',
+                                      'bg-yellow-100 text-yellow-800': invoice.status === 'pending',
+                                      'bg-red-100 text-red-800': invoice.status === 'failed'
+                                  }" 
+                                  x-text="invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)"></span>
+                        </div>
+                        <button @click="downloadInvoice(invoice.id)" class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                </div>
+            </template>
+        </div>
+        <div x-show="invoices.length === 0" class="p-12 text-center">
+            <i class="fas fa-file-invoice text-4xl text-gray-300 mb-4"></i>
+            <p class="text-gray-500">No billing history yet</p>
+        </div>
+    </div>
+    
+    <!-- Payment Method -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" x-show="paymentMethod !== null">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Payment Method</h3>
+        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-credit-card text-2xl text-gray-400"></i>
+                <div>
+                    <div class="text-sm font-medium text-gray-900">•••• •••• •••• <span x-text="paymentMethod?.last4 || '0000'"></span></div>
+                    <div class="text-xs text-gray-500">Expires <span x-text="(paymentMethod?.exp_month || '00') + '/' + (paymentMethod?.exp_year || '0000')"></span></div>
+                </div>
+            </div>
+            <button @click="updatePaymentMethod()" class="text-sm text-indigo-600 hover:text-indigo-700">
+                Update
+            </button>
+        </div>
+    </div>
+    
+    <!-- Cancel Subscription -->
+    <div class="bg-red-50 rounded-lg border border-red-200 p-6" x-show="subscription.plan_id !== null && subscription.price > 0">
+        <h3 class="text-lg font-semibold text-red-900 mb-2">Cancel Subscription</h3>
+        <p class="text-sm text-red-700 mb-4">Once you cancel, you'll lose access to all premium features at the end of your billing period.</p>
+        <button @click="cancelSubscription()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+            Cancel Subscription
+        </button>
+    </div>
+    
+</div>
+
+<script>
+function subscriptionTab() {
+    return {
+        subscription: {
+            plan_id: null,
+            plan_name: 'Free',
+            price: 0,
+            billing_cycle: 'month',
+            renews_at: null,
+            status: 'active',
+            is_trial: false,
+            trial_ends_at: null
+        },
+        usage: {
+            characters_used: 0,
+            characters_limit: 10000,
+            api_calls: 0,
+            api_limit: 100,
+            team_members: 1,
+            team_limit: 1
+        },
+        plans: [],
+        invoices: [],
+        paymentMethod: null,
+        loading: false,
+        
+        async loadSubscription() {
+            try {
+                this.loading = true;
+                
+                console.log('Loading subscription data...');
+                
+                // Load subscription data
+                const subResponse = await window.apiClient.getDashboardSubscription();
+                console.log('Subscription response:', subResponse);
+                
+                if (subResponse.success && subResponse.data) {
+                    this.subscription = {
+                        plan_id: subResponse.data.plan_id,
+                        plan_name: subResponse.data.plan_name || 'Free',
+                        price: subResponse.data.price || 0,
+                        billing_cycle: subResponse.data.billing_cycle || 'month',
+                        renews_at: subResponse.data.renews_at,
+                        status: subResponse.data.status || 'active',
+                        is_trial: subResponse.data.is_trial || false,
+                        trial_ends_at: subResponse.data.trial_ends_at
+                    };
+                }
+                
+                // Load usage data
+                const usageResponse = await window.apiClient.getDashboardUsage();
+                console.log('Usage response:', usageResponse);
+                
+                if (usageResponse.success && usageResponse.data) {
+                    this.usage = usageResponse.data;
+                }
+                
+                // Load plans
+                await this.loadPlans();
+                
+                // Load invoices
+                await this.loadInvoices();
+                
+            } catch (error) {
+                console.error('Failed to load subscription:', error);
+                this.$dispatch('show-toast', { type: 'error', message: 'Failed to load subscription data' });
+            } finally {
+                this.loading = false;
+            }
+        },
+        
+        async loadPlans() {
+            try {
+                console.log('Loading plans from /api/pricing...');
+                const response = await fetch('/api/pricing', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include'
+                });
+                
+                console.log('Response status:', response.status);
+                const data = await response.json();
+                console.log('Plans response:', data);
+                
+                if (data.success && Array.isArray(data.plans)) {
+                    this.plans = data.plans.map(plan => ({
+                        id: plan.id,
+                        name: plan.display_name || plan.name,
+                        price: plan.price || 0,
+                        currency: plan.currency || 'EUR',
+                        billing_period: plan.billing_period || 'monthly',
+                        features: this.getPlanFeatures(plan)
+                    }));
+                    console.log('Mapped plans:', this.plans);
+                } else {
+                    console.error('Invalid plans data:', data);
+                }
+            } catch (error) {
+                console.error('Failed to load plans:', error);
+            }
+        },
+        
+        async loadInvoices() {
+            try {
+                const response = await fetch('/api/invoices');
+                const data = await response.json();
+                if (data.success && data.invoices) {
+                    this.invoices = data.invoices;
+                } else {
+                    // No invoices found - show empty array
+                    this.invoices = [];
+                }
+            } catch (error) {
+                console.error('Failed to load invoices:', error);
+                this.invoices = [];
+            }
+        },
+        
+        getPlanFeatures(plan) {
+            const features = [];
+            
+            // Add character limit
+            if (plan.character_limit) {
+                const charLimit = plan.character_limit >= 1000000 
+                    ? `${(plan.character_limit / 1000000)}M` 
+                    : `${(plan.character_limit / 1000)}K`;
+                features.push(`${charLimit} characters/month`);
+            }
+            
+            // Add API calls
+            if (plan.api_calls) {
+                features.push(`${plan.api_calls.toLocaleString()} API calls`);
+            }
+            
+            // Add team members
+            if (plan.team_members) {
+                features.push(`${plan.team_members} team member${plan.team_members > 1 ? 's' : ''}`);
+            }
+            
+            // Add feature flags if they exist
+            if (plan.features) {
+                if (plan.features.priority_support) features.push('Priority support');
+                if (plan.features.cultural_adaptation) features.push('Cultural adaptation');
+                if (plan.features.voice_translation) features.push('Voice translation');
+                if (plan.features.real_time_translation) features.push('Real-time translation');
+                if (plan.features.custom_integrations) features.push('Custom integrations');
+                if (plan.features.api_access) features.push('API access');
+            }
+            
+            features.push('All languages');
+            return features;
+        },
+        
+        async changePlan(planId) {
+            if (!confirm('Change your subscription plan?')) return;
+            
+            try {
+                // Refresh CSRF token first
+                const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+                if (csrfMeta && csrfMeta.hasAttribute('content')) {
+                    console.log('CSRF token exists:', csrfMeta.content.substring(0, 10) + '...');
+                } else {
+                    console.error('CSRF token meta tag not found!');
+                }
+                
+                const response = await window.apiClient.subscribe(planId, 'card');
+                
+                // If redirect_url is returned, user will be redirected by api-client
+                // Otherwise, plan was activated directly
+                if (response.success && !response.redirect_url) {
+                    await this.loadSubscription();
+                    this.$dispatch('show-toast', { type: 'success', message: 'Plan changed successfully!' });
+                }
+            } catch (error) {
+                console.error('Plan change error:', error);
+                this.$dispatch('show-toast', { type: 'error', message: 'Failed to change plan' });
+            }
+        },
+        
+        async cancelSubscription() {
+            if (!confirm('Are you sure you want to cancel your subscription?')) return;
+            
+            try {
+                await window.apiClient.cancelSubscription();
+                this.$dispatch('show-toast', { type: 'success', message: 'Subscription cancelled' });
+            } catch (error) {
+                this.$dispatch('show-toast', { type: 'error', message: 'Failed to cancel subscription' });
+            }
+        },
+        
+        updatePaymentMethod() {
+            this.$dispatch('show-toast', { type: 'info', message: 'Redirecting to payment portal...' });
+        },
+        
+        downloadInvoice(id) {
+            this.$dispatch('show-toast', { type: 'info', message: 'Downloading invoice...' });
+        },
+        
+        downloadInvoices() {
+            this.$dispatch('show-toast', { type: 'info', message: 'Downloading all invoices...' });
+        },
+        
+        formatNumber(num) {
+            return num ? num.toLocaleString() : '0';
+        },
+        
+        formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return 'N/A';
+            
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        },
+        
+        formatPrice(price, currency = 'EUR') {
+            const symbols = {
+                'USD': '$',
+                'EUR': '€',
+                'GBP': '£',
+                'JPY': '¥'
+            };
+            const symbol = symbols[currency] || currency;
+            return symbol + parseFloat(price || 0).toFixed(2);
+        }
+    }
+}
+</script>

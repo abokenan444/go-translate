@@ -160,7 +160,7 @@
                             >
                             <span class="ml-2 text-sm text-gray-400">Remember me</span>
                         </label>
-                        <a href="#" class="text-sm text-purple-400 hover:text-purple-300 transition">
+                        <a href="{{ route('password.request') }}" class="text-sm text-purple-400 hover:text-purple-300 transition">
                             Forgot password?
                         </a>
                     </div>

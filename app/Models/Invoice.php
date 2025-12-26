@@ -11,27 +11,20 @@ class Invoice extends Model
         'user_id',
         'company_id',
         'subscription_id',
-        'stripe_invoice_id',
+        'invoice_number',
         'amount',
-        'tax',
-        'total',
         'currency',
         'status',
-        'invoice_number',
-        'invoice_date',
-        'due_date',
+        'issued_at',
+        'due_at',
         'paid_at',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
-        'tax' => 'decimal:2',
-        'total' => 'decimal:2',
-        'invoice_date' => 'date',
-        'due_date' => 'date',
+        'issued_at' => 'datetime',
+        'due_at' => 'datetime',
         'paid_at' => 'datetime',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
     ];
 
     public function user(): BelongsTo

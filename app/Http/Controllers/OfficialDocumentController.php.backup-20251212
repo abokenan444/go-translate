@@ -1,0 +1,304 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\OfficialDocument;
+use App\Models\OfficialTranslationOrder;
+use App\Models\DocumentCertificate;
+use App\Jobs\ProcessOfficialDocumentTranslation;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
+use Stripe\Stripe;
+use Stripe\Checkout\Session as StripeCheckout;
+
+class OfficialDocumentController extends Controller
+{
+    /**
+     * Show the service landing page.
+     */
+    public function index()
+    {
+        $pricing = config('official_documents.pricing');
+        $documentTypes = config('official_documents.document_types');
+        
+        return view('official-documents.index', compact('pricing', 'documentTypes'));
+    }
+
+    /**
+     * Show the upload form.
+     */
+    public function create()
+    {
+        $documentTypes = config('official_documents.document_types');
+        $languages = config('languages.supported', [
+            'en' => 'English',
+            'ar' => 'Arabic',
+            'fr' => 'French',
+            'de' => 'German',
+            'es' => 'Spanish',
+            'nl' => 'Dutch',
+        ]);
+        
+        return view('official-documents.upload', compact('documentTypes', 'languages'));
+    }
+
+    /**
+     * Handle document upload and create order.
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'document' => 'required|file|mimes:pdf|max:' . config('official_documents.upload.max_file_size', 20480),
+            'source_language' => 'required|string|max:10',
+            'target_language' => 'required|string|max:10',
+            'document_type' => 'required|string',
+        ]);
+
+        try {
+            // Store the original document
+            $file = $request->file('document');
+            $path = $file->storeAs('documents/original', $file->hashName());
+
+            // Calculate hash for integrity
+            $originalHash = hash_file('sha256', storage_path('app/private/' . $path));
+
+            // Create document record
+            $document = OfficialDocument::create([
+                'user_id' => auth()->id(),
+                'document_type' => $request->document_type,
+                'source_language' => $request->source_language,
+                'target_language' => $request->target_language,
+                'original_file_path' => $path,
+                'original_hash' => $originalHash,
+                'status' => 'pending',
+            ]);
+
+            // Calculate price (default per document pricing)
+            $price = config('official_documents.pricing.default_price', 10.00);
+            $currency = config('official_documents.pricing.currency', 'EUR');
+
+            // Create order
+            $order = OfficialTranslationOrder::create([
+                'user_id' => auth()->id(),
+                'document_id' => $document->id,
+                'page_count' => 1, // Could be calculated from PDF
+                'price' => $price,
+                'currency' => $currency,
+                'payment_status' => 'unpaid',
+            ]);
+
+            // Update document with order reference
+            $document->update([
+                'order_id' => $order->id,
+                'status' => 'awaiting_payment',
+            ]);
+
+            Log::info('Official document uploaded', [
+                'document_id' => $document->id,
+                'order_id' => $order->id,
+                'user_id' => auth()->id(),
+            ]);
+
+            return redirect()->route('official.documents.checkout', $order->id)
+                ->with('success', __('Document uploaded successfully. Please complete payment to begin translation.'));
+
+        } catch (\Exception $e) {
+            Log::error('Failed to upload official document', [
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+
+            return back()->with('error', __('Failed to upload document. Please try again.'));
+        }
+    }
+
+    /**
+     * Show checkout page for an order.
+     */
+    public function checkout($orderId)
+    {
+        $order = OfficialTranslationOrder::with('document')->findOrFail($orderId);
+
+        // Verify ownership
+        if ($order->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // If already paid, redirect to documents list
+        if ($order->isPaid()) {
+            return redirect()->route('official.documents.my-documents')
+                ->with('info', __('This order has already been paid.'));
+        }
+
+        return view('official-documents.checkout', compact('order'));
+    }
+
+    /**
+     * Create Stripe checkout session.
+     */
+    public function createCheckoutSession($orderId)
+    {
+        $order = OfficialTranslationOrder::with('document')->findOrFail($orderId);
+
+        // Verify ownership
+        if ($order->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // If already paid, redirect
+        if ($order->isPaid()) {
+            return redirect()->route('official.documents.my-documents');
+        }
+
+        try {
+            Stripe::setApiKey(config('official_documents.payment.stripe.secret_key'));
+
+            $session = StripeCheckout::create([
+                'payment_method_types' => ['card'],
+                'mode' => 'payment',
+                'line_items' => [[
+                    'price_data' => [
+                        'currency' => strtolower($order->currency),
+                        'unit_amount' => (int) ($order->price * 100),
+                        'product_data' => [
+                            'name' => 'Certified Official Document Translation',
+                            'description' => sprintf(
+                                '%s (%s → %s)',
+                                $order->document->document_type_name,
+                                strtoupper($order->document->source_language),
+                                strtoupper($order->document->target_language)
+                            ),
+                        ],
+                    ],
+                    'quantity' => 1,
+                ]],
+                'success_url' => route('official.documents.payment.success', $order->id) . '?session_id={CHECKOUT_SESSION_ID}',
+                'cancel_url' => route('official.documents.checkout', $order->id),
+                'client_reference_id' => (string) $order->id,
+                'customer_email' => auth()->user()->email,
+            ]);
+
+            // Update order with payment reference
+            $order->update([
+                'payment_status' => 'pending',
+                'payment_reference' => $session->id,
+            ]);
+
+            return redirect($session->url);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to create Stripe checkout session', [
+                'order_id' => $order->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return back()->with('error', __('Failed to initiate payment. Please try again.'));
+        }
+    }
+
+    /**
+     * Handle successful payment.
+     */
+    public function paymentSuccess(Request $request, $orderId)
+    {
+        $order = OfficialTranslationOrder::with('document')->findOrFail($orderId);
+
+        // Verify ownership
+        if ($order->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $sessionId = $request->get('session_id');
+
+        // Verify the session matches
+        if ($order->payment_reference !== $sessionId) {
+            abort(400, 'Invalid payment session');
+        }
+
+        // Mark as paid if not already
+        if (!$order->isPaid()) {
+            $order->markAsPaid($sessionId);
+            $order->document->update(['status' => 'paid']);
+
+            // Process translation immediately (sync) for guest users
+            // This ensures they can download the file before leaving the page
+            try {
+                ProcessOfficialDocumentTranslation::dispatchSync($order->document);
+                
+                Log::info('Payment successful, translation completed', [
+                    'order_id' => $order->id,
+                    'document_id' => $order->document->id,
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Translation processing failed', [
+                    'order_id' => $order->id,
+                    'error' => $e->getMessage(),
+                ]);
+                
+                return redirect()->route('official.documents.my-documents')
+                    ->with('error', 'Payment successful, but translation processing failed. Please contact support.');
+            }
+        }
+
+        return redirect()->route('official.documents.my-documents')
+            ->with('success', __('Payment successful! Your document is now being processed for certified translation.'));
+    }
+
+    /**
+     * Show user's documents.
+     */
+    public function myDocuments()
+    {
+        $documents = OfficialDocument::with(['order', 'certificate', 'translation'])
+            ->where('user_id', auth()->id())
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
+
+        return view('official-documents.my-documents', compact('documents'));
+    }
+
+    /**
+     * Download certified document.
+     */
+    public function download($certId)
+    {
+        $certificate = DocumentCertificate::with('document.translation')
+            ->where('cert_id', $certId)
+            ->firstOrFail();
+
+        $document = $certificate->document;
+
+        // Verify ownership
+        if ($document->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Check if document is completed
+        if (!$document->isCompleted()) {
+            return back()->with('error', __('This document is not yet ready for download.'));
+        }
+
+        $translation = $document->translation;
+        $certifiedPath = $translation->certified_file_path;
+
+        // Build full file path
+        $fullPath = storage_path('app/' . $certifiedPath);
+        
+        // Check if file exists
+        if (!$certifiedPath || !file_exists($fullPath)) {
+            return back()->with('error', __('Certified document file not found.'));
+        }
+
+        $filename = sprintf(
+            'CT-%s-%s-certified.pdf',
+            $certificate->cert_id,
+            $document->document_type
+        );
+
+        // Force download with proper headers
+        return response()->download($fullPath, $filename, [
+            'Content-Type' => 'application/pdf',
+        ]);
+    }
+}

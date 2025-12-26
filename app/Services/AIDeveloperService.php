@@ -63,7 +63,7 @@ SYS;
 
         $openaiKey  = config('ai_developer.openai.api_key');
         $openaiBase = rtrim(config('ai_developer.openai.api_base'), '/');
-        $model      = config('ai_developer.openai.model', 'gpt-4.1-mini');
+        $model      = config('ai_developer.openai.model', 'gpt-5');
 
         if (! $openaiKey) {
             return [

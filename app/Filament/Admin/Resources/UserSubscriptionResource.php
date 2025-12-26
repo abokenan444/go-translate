@@ -116,6 +116,39 @@ class UserSubscriptionResource extends Resource
                             ->rows(3)
                             ->columnSpanFull(),
                     ]),
+
+                Forms\Components\Section::make('اشتراك استثنائي مجاني | Complimentary Subscription')
+                    ->description('منح الاشتراك مجاناً كاستثناء إداري | Grant this subscription for free as an admin exception')
+                    ->schema([
+                        Forms\Components\Toggle::make('is_complimentary')
+                            ->label('اشتراك مجاني استثنائي | Is Complimentary')
+                            ->helperText('فعّل هذا الخيار لمنح الاشتراك مجاناً بدون دفع')
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                if ($state) {
+                                    $set('granted_at', now());
+                                    $set('granted_by_admin_id', auth()->id());
+                                    // Auto-activate complimentary subscriptions
+                                    $set('status', 'active');
+                                }
+                            }),
+                        
+                        Forms\Components\Textarea::make('complimentary_reason')
+                            ->label('سبب الاستثناء | Reason for Exception')
+                            ->placeholder('مثال: شريك استراتيجي، جامعة للتجربة، عميل VIP، إلخ...')
+                            ->rows(3)
+                            ->required(fn (callable $get) => $get('is_complimentary'))
+                            ->visible(fn (callable $get) => $get('is_complimentary'))
+                            ->columnSpanFull(),
+                        
+                        Forms\Components\Hidden::make('granted_by_admin_id')
+                            ->default(auth()->id()),
+                        
+                        Forms\Components\Hidden::make('granted_at')
+                            ->default(now()),
+                    ])
+                    ->columns(2)
+                    ->collapsed(),
             ]);
     }
 
@@ -217,6 +250,19 @@ class UserSubscriptionResource extends Resource
                     ->boolean()
                     ->toggleable(isToggledHiddenByDefault: true),
                 
+                Tables\Columns\IconColumn::make('is_complimentary')
+                    ->label('مجاني 🎁')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-gift')
+                    ->falseIcon('heroicon-o-currency-dollar')
+                    ->trueColor('success')
+                    ->falseColor('gray')
+                    ->tooltip(fn ($record): string => 
+                        $record->is_complimentary ? 
+                        'اشتراك مجاني استثنائي: ' . ($record->complimentary_reason ?? 'لا يوجد سبب') : 
+                        'اشتراك مدفوع'
+                    ),
+                
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('تاريخ الإنشاء')
                     ->dateTime()
@@ -251,6 +297,12 @@ class UserSubscriptionResource extends Resource
                         $query->where('expires_at', '<=', Carbon::now()->addDays(7))
                               ->where('expires_at', '>', Carbon::now())
                     ),
+                
+                Tables\Filters\TernaryFilter::make('is_complimentary')
+                    ->label('اشتراكات مجانية')
+                    ->placeholder('الكل')
+                    ->trueLabel('مجاني فقط 🎁')
+                    ->falseLabel('مدفوع فقط 💳'),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\Payment\StripeService;
+use App\Models\SubscriptionPlan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -21,49 +22,68 @@ class StripeController extends Controller
      */
     public function pricing()
     {
-        $plans = [
-            'basic' => [
-                'name' => 'Basic',
-                'price' => 29,
-                'price_id' => config('services.stripe.prices.basic'),
-                'tokens' => '100K',
-                'features' => [
-                    '100,000 translation tokens/month',
-                    'Basic cultural adaptation',
-                    'Email support',
-                    'API access',
-                ],
-            ],
-            'pro' => [
-                'name' => 'Professional',
-                'price' => 99,
-                'price_id' => config('services.stripe.prices.pro'),
-                'tokens' => '500K',
-                'features' => [
-                    '500,000 translation tokens/month',
-                    'Advanced cultural intelligence',
-                    'Industry-specific vocabulary',
-                    'Priority support',
-                    'Custom glossaries',
-                    'Team collaboration',
-                ],
-            ],
-            'enterprise' => [
-                'name' => 'Enterprise',
-                'price' => 299,
-                'price_id' => config('services.stripe.prices.enterprise'),
-                'tokens' => 'Unlimited',
-                'features' => [
-                    'Unlimited translation tokens',
-                    'Full cultural AI suite',
-                    'Dedicated account manager',
-                    '24/7 priority support',
-                    'Custom integrations',
-                    'SLA guarantee',
-                    'Advanced analytics',
-                ],
-            ],
-        ];
+        $plans = SubscriptionPlan::where('is_active', 1)
+            ->orderBy('sort_order')
+            ->get()
+            ->map(function($plan) {
+                $features = [];
+                
+                // Handle features - could be JSON string or already decoded array
+                if (is_array($plan->features)) {
+                    $features = $plan->features;
+                } elseif (is_string($plan->features)) {
+                    try {
+                        $features = json_decode($plan->features, true) ?? [];
+                    } catch (\Exception $e) {
+                        $features = [];
+                    }
+                }
+                
+                // Build features list
+                $featuresList = [];
+                if ($plan->tokens_limit) {
+                    $tokens = $plan->tokens_limit >= 1000000 
+                        ? number_format($plan->tokens_limit / 1000000, 1) . 'M' 
+                        : number_format($plan->tokens_limit / 1000) . 'K';
+                    $featuresList[] = $tokens . ' translation tokens/month';
+                }
+                if ($plan->api_access) {
+                    $featuresList[] = 'API access';
+                }
+                if ($plan->priority_support) {
+                    $featuresList[] = 'Priority support';
+                }
+                if ($plan->custom_integrations) {
+                    $featuresList[] = 'Custom integrations';
+                }
+                if ($plan->max_team_members) {
+                    $featuresList[] = 'Up to ' . $plan->max_team_members . ' team members';
+                }
+                if ($plan->max_projects) {
+                    $featuresList[] = 'Up to ' . $plan->max_projects . ' projects';
+                }
+                
+                // Add custom features from JSON if any
+                if (is_array($features)) {
+                    $featuresList = array_merge($featuresList, $features);
+                }
+                
+                return [
+                    'id' => $plan->id,
+                    'name' => $plan->name,
+                    'slug' => $plan->slug,
+                    'price' => $plan->price,
+                    'currency' => $plan->currency ?? 'EUR',
+                    'price_id' => null, // Will be created dynamically
+                    'tokens' => $plan->tokens_limit >= 999999999 ? 'Unlimited' : 
+                        ($plan->tokens_limit >= 1000000 ? 
+                            number_format($plan->tokens_limit / 1000000, 1) . 'M' : 
+                            number_format($plan->tokens_limit / 1000) . 'K'),
+                    'features' => $featuresList,
+                    'is_popular' => $plan->slug === 'pro' || $plan->slug === 'professional',
+                ];
+            })
+            ->toArray();
 
         return view('stripe.pricing', compact('plans'));
     }
@@ -74,19 +94,35 @@ class StripeController extends Controller
     public function checkout(Request $request)
     {
         $request->validate([
-            'plan' => 'required|in:basic,pro,enterprise',
+            'plan' => 'required|in:basic,pro,professional,enterprise',
         ]);
 
         $user = Auth::user();
-        $plan = $request->plan;
-        $priceId = config("services.stripe.prices.{$plan}");
+        $planSlug = $request->plan;
+        
+        // Map 'pro' to 'professional' for compatibility
+        if ($planSlug === 'pro') {
+            $planSlug = 'professional';
+        }
+        
+        // Try to get price from config first
+        $priceId = config("services.stripe.prices.{$planSlug}") ?: config("services.stripe.prices.{$request->plan}");
+        
+        // If not in config, try database
+        if (!$priceId) {
+            $dbPlan = \App\Models\SubscriptionPlan::where('slug', $planSlug)->first();
+            if ($dbPlan && $dbPlan->stripe_price_id) {
+                $priceId = $dbPlan->stripe_price_id;
+            }
+        }
 
         if (!$priceId) {
-            return back()->with('error', 'Invalid plan selected');
+            // If still no price ID, show a helpful message
+            return back()->with('error', 'Stripe price not configured for this plan. Please contact support or configure STRIPE_PRICE_' . strtoupper($planSlug) . ' in environment.');
         }
 
         try {
-            $session = $this->stripeService->createCheckoutSession($user, $priceId, $plan);
+            $session = $this->stripeService->createCheckoutSession($user, $priceId, $planSlug);
             return redirect($session['url']);
         } catch (\Exception $e) {
             Log::error('Checkout failed', ['error' => $e->getMessage()]);

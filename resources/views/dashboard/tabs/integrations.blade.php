@@ -230,7 +230,21 @@ function integrationsManager() {
         
         async loadIntegrations() {
             try {
-                const response = await fetch('/api/v1/integrations');
+                const response = await fetch('/api/integrations', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    console.error('Failed to load integrations: HTTP', response.status);
+                    return;
+                }
+                
                 const data = await response.json();
                 
                 // Map integrations by platform

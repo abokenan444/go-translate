@@ -1,0 +1,79 @@
+name: go_translate_mobile
+description: "Professional Flutter WebRTC calling app with translation features"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.3 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  
+  # Networking
+  http: ^1.1.0
+  dio: ^5.4.0
+  
+  # State Management
+  provider: ^6.1.1
+  
+  # Storage
+  shared_preferences: ^2.2.2
+  
+  # WebRTC - Using stable version that works
+  flutter_webrtc: ^0.9.47
+  
+  # Real-time Communication
+  socket_io_client: ^2.0.3
+  
+  # UI Components
+  google_fonts: ^6.1.0
+  flutter_svg: ^2.0.9
+  cached_network_image: ^3.3.1
+  
+  # Permissions
+  permission_handler: ^11.1.0
+
+  # Realtime voice translation (play audio)
+  # record: Temporarily removed due to build issues
+  audioplayers: ^6.1.0
+  path_provider: ^2.1.4
+
+  # Open Stripe Checkout URL
+  url_launcher: ^6.3.0
+  
+  # Deep Links / Universal Links
+  app_links: ^6.3.3
+  
+  # Background Notifications & FCM
+  firebase_core: ^3.8.1
+  firebase_messaging: ^15.1.5
+  flutter_local_notifications: ^18.0.1
+  
+  # Incoming Call UI
+  flutter_callkit_incoming: ^2.1.0
+  
+  # Utils
+  intl: ^0.19.0
+  uuid: ^4.3.3
+  timeago: ^3.6.1
+  
+  # Icons
+  font_awesome_flutter: ^10.6.0
+  
+  # Image Picker for profile editing
+  image_picker: ^1.0.7
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/icons/

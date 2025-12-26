@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- معلومات التطبيق الأساسية -->
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDisplayName</key>
+	<string>CulturalTranslate</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>CulturalTranslate</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(FLUTTER_BUILD_NAME)</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
+	<key>UIMainStoryboardFile</key>
+	<string>Main</string>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	
+	<!-- أذونات الكاميرا -->
+	<key>NSCameraUsageDescription</key>
+	<string>يحتاج التطبيق للوصول إلى الكاميرا لإجراء مكالمات الفيديو المترجمة.</string>
+	
+	<!-- أذونات الميكروفون -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>يحتاج التطبيق للوصول إلى الميكروفون لإجراء المكالمات الصوتية والترجمة الفورية.</string>
+	
+	<!-- أذونات جهات الاتصال -->
+	<key>NSContactsUsageDescription</key>
+	<string>يحتاج التطبيق للوصول إلى جهات الاتصال لمساعدتك في الاتصال بأصدقائك وعائلتك.</string>
+	
+	<!-- أذونات الموقع -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>يحتاج التطبيق لمعرفة موقعك لتحسين الخدمة وتوفير إحصائيات دقيقة عن استخدام التطبيق.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>يحتاج التطبيق لمعرفة موقعك لتحسين الخدمة وتوفير إحصائيات دقيقة حتى عند عدم استخدام التطبيق.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>يحتاج التطبيق لمعرفة موقعك دائماً لتحسين تجربة الاستخدام والإحصائيات.</string>
+	
+	<!-- أذونات المكتبة الصوتية -->
+	<key>NSAppleMusicUsageDescription</key>
+	<string>يحتاج التطبيق للوصول إلى مكتبتك الصوتية لحفظ وتشغيل الترجمات الصوتية.</string>
+	
+	<!-- أذونات الصور والملفات -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>يحتاج التطبيق للوصول إلى الصور لمشاركتها أثناء المكالمات.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>يحتاج التطبيق لحفظ الصور ومقاطع الفيديو من المكالمات.</string>
+	
+	<!-- أذونات التقويم (للجدولة) -->
+	<key>NSCalendarsUsageDescription</key>
+	<string>يحتاج التطبيق للوصول إلى التقويم لجدولة المكالمات المترجمة.</string>
+	
+	<!-- أذونات التذكيرات -->
+	<key>NSRemindersUsageDescription</key>
+	<string>يحتاج التطبيق للوصول إلى التذكيرات لتنبيهك بالمكالمات المجدولة.</string>
+	
+	<!-- أذونات Bluetooth -->
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>يحتاج التطبيق للوصول إلى Bluetooth لتوصيل سماعات الرأس اللاسلكية أثناء المكالمات.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>يحتاج التطبيق للوصول إلى أجهزة Bluetooth لتحسين جودة الصوت.</string>
+	
+	<!-- أذونات التعرف على الكلام -->
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>يحتاج التطبيق للتعرف على الكلام لتوفير الترجمة الفورية الدقيقة.</string>
+	
+	<!-- أذونات Siri (للاختصارات) -->
+	<key>NSSiriUsageDescription</key>
+	<string>يحتاج التطبيق للوصول إلى Siri لإنشاء اختصارات سريعة للمكالمات المترجمة.</string>
+	
+	<!-- أذونات Face ID / Touch ID -->
+	<key>NSFaceIDUsageDescription</key>
+	<string>يحتاج التطبيق للوصول إلى Face ID لحماية حسابك وبياناتك.</string>
+	
+	<!-- إعدادات الخلفية -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+		<string>voip</string>
+		<string>remote-notification</string>
+		<string>fetch</string>
+		<string>processing</string>
+		<string>location</string>
+	</array>
+	
+	<!-- دعم URL Schemes للدفع والروابط العميقة -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.culturaltranslate.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>culturaltranslate</string>
+			</array>
+		</dict>
+	</array>
+	
+	<!-- السماح بالاتصال بالسيرفرات -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+	
+	<!-- دعم Universal Links -->
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:culturaltranslate.com</string>
+		<string>applinks:www.culturaltranslate.com</string>
+		<string>applinks:app.culturaltranslate.com</string>
+	</array>
+	
+	<!-- دعم Custom URL Schemes للـ Deep Links -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.culturaltranslate.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>culturaltranslate</string>
+			</array>
+		</dict>
+	</array>
+	
+	<!-- إعدادات الإشعارات -->
+	<key>UIUserNotificationSettings</key>
+	<dict>
+		<key>UIUserNotificationTypeAlert</key>
+		<true/>
+		<key>UIUserNotificationTypeBadge</key>
+		<true/>
+		<key>UIUserNotificationTypeSound</key>
+		<true/>
+	</dict>
+	
+	<!-- دعم CallKit للمكالمات -->
+	<key>NSSupportsLiveActivities</key>
+	<true/>
+	
+	<!-- إعدادات إضافية -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+</dict>
+</plist>

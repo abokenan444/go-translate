@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Log;
 class CulturalPromptEngine
 {
     protected $apiKey;
-    protected $model = 'gpt-4o-mini';
+    protected $model = 'gpt-5';
 
     public function __construct()
     {

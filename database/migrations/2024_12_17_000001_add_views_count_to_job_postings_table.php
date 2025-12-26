@@ -1,0 +1,42 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        if (!Schema::hasTable('job_postings')) {
+            return;
+        }
+
+        if (!Schema::hasColumn('job_postings', 'views_count')) {
+            Schema::table('job_postings', function (Blueprint $table) {
+                $table->unsignedBigInteger('views_count')->default(0)->after('status');
+                $table->index('views_count');
+            });
+        }
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        if (!Schema::hasTable('job_postings')) {
+            return;
+        }
+
+        if (Schema::hasColumn('job_postings', 'views_count')) {
+            Schema::table('job_postings', function (Blueprint $table) {
+                $table->dropIndex(['views_count']);
+                $table->dropColumn('views_count');
+            });
+        }
+    }
+};

@@ -1,0 +1,21 @@
+{
+  "name": "culturaltranslate-wordpress-plugin",
+  "version": "1.0.0",
+  "description": "WordPress plugin for CulturalTranslate",
+  "main": "culturaltranslate.php",
+  "scripts": {
+    "build": "wp-scripts build",
+    "start": "wp-scripts start"
+  },
+  "keywords": [
+    "wordpress",
+    "translation",
+    "localization",
+    "cultural"
+  ],
+  "author": "CulturalTranslate",
+  "license": "GPL-2.0-or-later",
+  "devDependencies": {
+    "@wordpress/scripts": "^26.0.0"
+  }
+}

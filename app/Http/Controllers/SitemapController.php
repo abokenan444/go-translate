@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\JobPosting;
 
 class SitemapController extends Controller
 {
@@ -21,6 +22,12 @@ class SitemapController extends Controller
         // Blog sitemap
         $sitemap .= '<sitemap>';
         $sitemap .= '<loc>' . url('/sitemap-blog.xml') . '</loc>';
+        $sitemap .= '<lastmod>' . now()->toAtomString() . '</lastmod>';
+        $sitemap .= '</sitemap>';
+        
+        // Careers sitemap
+        $sitemap .= '<sitemap>';
+        $sitemap .= '<loc>' . url('/sitemap-careers.xml') . '</loc>';
         $sitemap .= '<lastmod>' . now()->toAtomString() . '</lastmod>';
         $sitemap .= '</sitemap>';
         
@@ -43,6 +50,14 @@ class SitemapController extends Controller
             ['url' => '/contact', 'priority' => '0.7', 'changefreq' => 'monthly'],
             ['url' => '/dashboard', 'priority' => '0.8', 'changefreq' => 'daily'],
             ['url' => '/realtime', 'priority' => '0.8', 'changefreq' => 'weekly'],
+            ['url' => '/careers', 'priority' => '0.8', 'changefreq' => 'weekly'],
+            ['url' => '/integrations/github', 'priority' => '0.7', 'changefreq' => 'monthly'],
+            ['url' => '/integrations/wordpress', 'priority' => '0.7', 'changefreq' => 'monthly'],
+            ['url' => '/integrations/woocommerce', 'priority' => '0.7', 'changefreq' => 'monthly'],
+            ['url' => '/terms-of-service', 'priority' => '0.5', 'changefreq' => 'yearly'],
+            ['url' => '/privacy-policy', 'priority' => '0.5', 'changefreq' => 'yearly'],
+            ['url' => '/gdpr', 'priority' => '0.5', 'changefreq' => 'yearly'],
+            ['url' => '/security', 'priority' => '0.5', 'changefreq' => 'yearly'],
         ];
         
         foreach ($pages as $page) {
@@ -78,6 +93,28 @@ class SitemapController extends Controller
             }
         } catch (\Exception $e) {
             // No blog posts table
+        }
+        
+        $sitemap .= '</urlset>';
+        
+        return response($sitemap, 200)->header('Content-Type', 'application/xml');
+    }
+    
+    public function careers()
+    {
+        $sitemap = '<?xml version="1.0" encoding="UTF-8"?>';
+        $sitemap .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+        
+        // Add career pages
+        $jobs = JobPosting::open()->get();
+        
+        foreach ($jobs as $job) {
+            $sitemap .= '<url>';
+            $sitemap .= '<loc>' . route('careers.show', $job->slug) . '</loc>';
+            $sitemap .= '<lastmod>' . $job->updated_at->toAtomString() . '</lastmod>';
+            $sitemap .= '<changefreq>weekly</changefreq>';
+            $sitemap .= '<priority>0.7</priority>';
+            $sitemap .= '</url>';
         }
         
         $sitemap .= '</urlset>';

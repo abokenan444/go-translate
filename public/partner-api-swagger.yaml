@@ -1,0 +1,417 @@
+openapi: 3.0.3
+info:
+  title: Cultural Translation Platform - Partners API
+  description: |
+    Complete API documentation for Cultural Translation Platform Partners.
+    
+    ## Authentication
+    All requests require an API key in the header:
+    ```
+    X-API-Key: pk_your_api_key_here
+    ```
+    
+    ## Environments
+    - Production: Use production API keys
+    - Sandbox: Add `X-Environment: sandbox` header
+    
+  version: 2.0.0
+  contact:
+    name: API Support
+    email: support@culturaltranslate.com
+    url: https://culturaltranslate.com/support
+  license:
+    name: Proprietary
+    url: https://culturaltranslate.com/terms
+
+servers:
+  - url: https://culturaltranslate.com/api/v1/partner
+    description: Production server
+  - url: https://sandbox.culturaltranslate.com/api/v1/partner
+    description: Sandbox server
+
+security:
+  - ApiKeyAuth: []
+
+tags:
+  - name: Translation
+    description: Text and document translation endpoints
+  - name: Documents
+    description: Document management and translation
+  - name: Stats
+    description: Usage statistics and analytics
+  - name: Webhooks
+    description: Webhook management
+
+paths:
+  /translate:
+    post:
+      tags:
+        - Translation
+      summary: Translate text
+      description: Translate text from one language to another
+      operationId: translateText
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - text
+                - from
+                - to
+              properties:
+                text:
+                  type: string
+                  description: Text to translate
+                  example: "Hello World"
+                from:
+                  type: string
+                  description: Source language code (ISO 639-1)
+                  example: "en"
+                to:
+                  type: string
+                  description: Target language code (ISO 639-1)
+                  example: "ar"
+                context:
+                  type: string
+                  description: Optional context for better translation
+                  example: "legal"
+      responses:
+        '200':
+          description: Successful translation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  translated_text:
+                    type: string
+                    example: "مرحباً بالعالم"
+                  from:
+                    type: string
+                    example: "en"
+                  to:
+                    type: string
+                    example: "ar"
+                  characters:
+                    type: integer
+                    example: 11
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+
+  /documents/translate:
+    post:
+      tags:
+        - Documents
+      summary: Translate document
+      description: Upload and translate a document
+      operationId: translateDocument
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+                - from
+                - to
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Document file (PDF, DOCX, etc.)
+                from:
+                  type: string
+                  description: Source language code
+                  example: "en"
+                to:
+                  type: string
+                  description: Target language code
+                  example: "ar"
+                document_type:
+                  type: string
+                  enum: [contract, certificate, passport, academic, legal, general]
+                  example: "contract"
+      responses:
+        '200':
+          description: Document translation initiated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  document_id:
+                    type: string
+                    example: "doc_abc123"
+                  status:
+                    type: string
+                    example: "processing"
+                  estimated_completion:
+                    type: string
+                    format: date-time
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /documents/{documentId}:
+    get:
+      tags:
+        - Documents
+      summary: Get document status
+      description: Check translation status of a document
+      operationId: getDocumentStatus
+      parameters:
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "doc_abc123"
+      responses:
+        '200':
+          description: Document status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  document_id:
+                    type: string
+                  status:
+                    type: string
+                    enum: [pending, processing, completed, failed]
+                  progress:
+                    type: integer
+                    minimum: 0
+                    maximum: 100
+                  download_url:
+                    type: string
+                    nullable: true
+        '404':
+          description: Document not found
+
+  /stats:
+    get:
+      tags:
+        - Stats
+      summary: Get usage statistics
+      description: Retrieve current usage statistics and quota information
+      operationId: getStats
+      responses:
+        '200':
+          description: Usage statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  quota:
+                    type: integer
+                    example: 10000
+                  used:
+                    type: integer
+                    example: 2543
+                  remaining:
+                    type: integer
+                    example: 7457
+                  percentage:
+                    type: number
+                    format: float
+                    example: 25.43
+                  reset_date:
+                    type: string
+                    format: date
+                    example: "2025-01-01"
+
+  /stats/detailed:
+    get:
+      tags:
+        - Stats
+      summary: Get detailed analytics
+      description: Retrieve detailed usage analytics with date range
+      operationId: getDetailedStats
+      parameters:
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date
+          example: "2025-01-01"
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date
+          example: "2025-01-31"
+      responses:
+        '200':
+          description: Detailed analytics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_translations:
+                    type: integer
+                  total_characters:
+                    type: integer
+                  total_documents:
+                    type: integer
+                  daily_breakdown:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        date:
+                          type: string
+                          format: date
+                        translations:
+                          type: integer
+                        characters:
+                          type: integer
+
+  /webhooks:
+    get:
+      tags:
+        - Webhooks
+      summary: List webhooks
+      description: Get all configured webhooks
+      operationId: listWebhooks
+      responses:
+        '200':
+          description: List of webhooks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Webhook'
+
+    post:
+      tags:
+        - Webhooks
+      summary: Create webhook
+      description: Register a new webhook endpoint
+      operationId: createWebhook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - url
+                - events
+              properties:
+                url:
+                  type: string
+                  format: uri
+                  example: "https://example.com/webhook"
+                events:
+                  type: array
+                  items:
+                    type: string
+                    enum: [translation.completed, document.completed, quota.warning, quota.exceeded]
+                  example: ["translation.completed", "document.completed"]
+                secret:
+                  type: string
+                  description: Optional secret for webhook signature verification
+      responses:
+        '201':
+          description: Webhook created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhook'
+
+  /webhooks/{webhookId}:
+    delete:
+      tags:
+        - Webhooks
+      summary: Delete webhook
+      description: Remove a webhook endpoint
+      operationId: deleteWebhook
+      parameters:
+        - name: webhookId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Webhook deleted
+        '404':
+          description: Webhook not found
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Partner API key (starts with pk_)
+
+  schemas:
+    Webhook:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "wh_abc123"
+        url:
+          type: string
+          format: uri
+        events:
+          type: array
+          items:
+            type: string
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: "Error message"
+        code:
+          type: string
+          example: "INVALID_REQUEST"
+
+  responses:
+    Unauthorized:
+      description: Invalid or missing API key
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error: "Invalid API key"
+            code: "UNAUTHORIZED"
+
+    RateLimitExceeded:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error: "Rate limit exceeded"
+            code: "RATE_LIMIT_EXCEEDED"

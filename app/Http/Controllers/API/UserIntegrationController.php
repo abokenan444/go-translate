@@ -13,16 +13,36 @@ class UserIntegrationController extends Controller
      */
     public function index(Request $request)
     {
-        $user = $request->user();
-        
-        $integrations = $user->userIntegrations()
-            ->select('id', 'platform', 'status', 'connected_at', 'last_used_at')
-            ->get();
-        
-        return response()->json([
-            'success' => true,
-            'integrations' => $integrations
-        ]);
+        try {
+            $user = $request->user() ?? auth()->user();
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => true,
+                    'integrations' => []
+                ]);
+            }
+            
+            // Check if user has userIntegrations relationship
+            try {
+                $integrations = $user->userIntegrations()
+                    ->select('id', 'platform', 'status', 'connected_at', 'last_used_at')
+                    ->get();
+            } catch (\Exception $e) {
+                // Table or relationship doesn't exist
+                $integrations = [];
+            }
+            
+            return response()->json([
+                'success' => true,
+                'integrations' => $integrations
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => true,
+                'integrations' => []
+            ]);
+        }
     }
 
     /**

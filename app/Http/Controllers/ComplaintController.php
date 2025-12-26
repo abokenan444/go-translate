@@ -25,7 +25,7 @@ class ComplaintController extends Controller
         ]);
         
         $complaint = Complaint::create([
-            'user_id' => auth()->id(),
+            'user_id' => auth()->user()?->id,
             'name' => $validated['name'],
             'email' => $validated['email'],
             'phone' => $validated['phone'] ?? null,

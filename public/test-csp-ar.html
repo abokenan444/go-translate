@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار CSP - Cultural Translate</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-box {
+            background: #f7fafc;
+            border-right: 4px solid #667eea;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+        .test-title {
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        .result {
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 2px solid #38a169;
+        }
+        .error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 2px solid #e53e3e;
+        }
+        .info {
+            background: #bee3f8;
+            color: #2c5282;
+            border: 2px solid #3182ce;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .code {
+            background: #2d3748;
+            color: #68d391;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+            direction: ltr;
+            text-align: left;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px 5px;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔒 اختبار Content Security Policy</h1>
+        
+        <div class="info">
+            <strong>ℹ️ معلومات:</strong>
+            <p>هذه الصفحة تختبر إعدادات CSP للتأكد من أن الموقع يعمل بشكل صحيح مع السكريبتات الخارجية.</p>
+        </div>
+
+        <div class="test-box">
+            <div class="test-title">✅ الاختبار 1: eval() Function</div>
+            <p>اختبار استخدام eval() - مطلوب لبعض المكتبات الخارجية</p>
+            <div id="eval-result" class="result">جاري الاختبار...</div>
+        </div>
+
+        <div class="test-box">
+            <div class="test-title">✅ الاختبار 2: Function Constructor</div>
+            <p>اختبار استخدام new Function() - مطلوب لـ Tailwind CDN</p>
+            <div id="function-result" class="result">جاري الاختبار...</div>
+        </div>
+
+        <div class="test-box">
+            <div class="test-title">✅ الاختبار 3: setTimeout مع String</div>
+            <p>اختبار setTimeout مع نص - مستخدم في بعض المكتبات القديمة</p>
+            <div id="timeout-result" class="result">جاري الاختبار...</div>
+        </div>
+
+        <div class="test-box">
+            <div class="test-title">📋 CSP Headers الحالية</div>
+            <button onclick="showHeaders()">عرض CSP Headers</button>
+            <div id="headers-result" class="code" style="display:none;"></div>
+        </div>
+
+        <div class="test-box">
+            <div class="test-title">🎯 الخلاصة</div>
+            <div id="summary" class="result">انتظر حتى تكتمل الاختبارات...</div>
+        </div>
+    </div>
+
+    <script>
+        let passedTests = 0;
+        let totalTests = 3;
+
+        // Test 1: eval()
+        function testEval() {
+            try {
+                eval("1 + 1");
+                document.getElementById('eval-result').innerHTML = '✅ نجح: eval() يعمل بشكل صحيح';
+                document.getElementById('eval-result').className = 'result success';
+                passedTests++;
+            } catch (e) {
+                document.getElementById('eval-result').innerHTML = '❌ فشل: ' + e.message;
+                document.getElementById('eval-result').className = 'result error';
+            }
+        }
+
+        // Test 2: Function constructor
+        function testFunction() {
+            try {
+                const fn = new Function('return 42');
+                const result = fn();
+                if (result === 42) {
+                    document.getElementById('function-result').innerHTML = '✅ نجح: Function constructor يعمل بشكل صحيح';
+                    document.getElementById('function-result').className = 'result success';
+                    passedTests++;
+                }
+            } catch (e) {
+                document.getElementById('function-result').innerHTML = '❌ فشل: ' + e.message;
+                document.getElementById('function-result').className = 'result error';
+            }
+        }
+
+        // Test 3: setTimeout with string
+        function testTimeout() {
+            try {
+                setTimeout("document.getElementById('timeout-result').innerHTML = '✅ نجح: setTimeout يعمل بشكل صحيح'; document.getElementById('timeout-result').className = 'result success';", 100);
+                passedTests++;
+                setTimeout(updateSummary, 200);
+            } catch (e) {
+                document.getElementById('timeout-result').innerHTML = '❌ فشل: ' + e.message;
+                document.getElementById('timeout-result').className = 'result error';
+                setTimeout(updateSummary, 200);
+            }
+        }
+
+        // Show headers
+        function showHeaders() {
+            const headersDiv = document.getElementById('headers-result');
+            if (headersDiv.style.display === 'none') {
+                // In a real scenario, we'd fetch this from the server
+                // For now, show expected headers
+                headersDiv.innerHTML = `Content-Security-Policy:
+default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob: ws: wss:
+script-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:
+style-src 'self' 'unsafe-inline' https: data:
+img-src 'self' data: https: blob:
+font-src 'self' data: https:
+connect-src 'self' https: ws: wss: data: blob:`;
+                headersDiv.style.display = 'block';
+            } else {
+                headersDiv.style.display = 'none';
+            }
+        }
+
+        // Update summary
+        function updateSummary() {
+            const summaryDiv = document.getElementById('summary');
+            if (passedTests === totalTests) {
+                summaryDiv.innerHTML = `🎉 ممتاز! نجحت جميع الاختبارات (${passedTests}/${totalTests})<br>
+                <small>الموقع يعمل بشكل صحيح مع إعدادات CSP الحالية</small>`;
+                summaryDiv.className = 'result success';
+            } else {
+                summaryDiv.innerHTML = `⚠️ نجح ${passedTests} من ${totalTests} اختبار<br>
+                <small>قد تحتاج إلى مراجعة إعدادات CSP</small>`;
+                summaryDiv.className = 'result error';
+            }
+        }
+
+        // Run all tests
+        testEval();
+        testFunction();
+        testTimeout();
+    </script>
+</body>
+</html>

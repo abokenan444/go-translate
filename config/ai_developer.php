@@ -1,27 +1,20 @@
 <?php
-
 return [
-
     'enabled' => env('AI_DEV_ENABLED', true),
-
     'owner_email' => env('AI_DEV_OWNER_EMAIL', 'admin@example.com'),
-
     // safe  = تحليل فقط بدون أي مقترحات تنفيذية
     // review = اقتراح تغييرات + تخزينها كـ pending حتى تقوم بالموافقة اليدوية
     // full  = (غير موصى به) محاولة التنفيذ المباشر – لا تُستخدم في الإنتاج
     'mode' => env('AI_DEV_MODE', 'review'),
-
     // مسار المشروع الجذري الذي يُسمح للـ Agent بالعمل ضمنه
     'project_root' => base_path(),
-
     // إعدادات OpenAI
     'openai' => [
         'api_base' => env('OPENAI_BASE_URL', 'https://api.openai.com/v1'),
         'api_key'  => env('OPENAI_API_KEY'),
-        // اختر موديل خفيف وسريع للتطوير اليومي
-        'model'    => env('AI_DEV_MODEL', 'gpt-4.1-mini'),
+        // استخدام GPT-5 للتطوير
+        'model'    => env('AI_DEV_MODEL', 'gpt-5'),
     ],
-
     // الأوامر المسموح بتنفيذها من صفحة الـ Deploy
     'allowed_commands' => [
         'php artisan config:cache',
@@ -36,7 +29,6 @@ return [
         'php artisan queue:work --once',
         'composer dump-autoload -o',
     ],
-
     // نظام الطوارئ للـ SuperAI Agent
     'emergency' => [
         // تفعيل نظام الطوارئ
@@ -56,4 +48,7 @@ return [
         // مدة الحظر بالدقائق بعد تجاوز المحاولات
         'lockout_minutes' => 15,
     ],
+    
+    // كلمة المرور القديمة (deprecated - استخدم emergency.password)
+    'emergency_password' => env('AI_EMERGENCY_PASSWORD'),
 ];

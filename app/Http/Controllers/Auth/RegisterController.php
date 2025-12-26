@@ -117,7 +117,11 @@ class RegisterController extends Controller
             return redirect()->route('dashboard')->with('success', 'تم إنشاء حسابك بنجاح! تم تفعيل تجربة مجانية لمدة 14 يومًا.');
         } catch (\Throwable $e) {
             DB::rollBack();
-            return back()->withErrors(['register' => 'حدث خطأ أثناء التسجيل. حاول مرة أخرى.']);
+            \Log::error('Registration error: ' . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return back()->withErrors(['register' => 'حدث خطأ أثناء التسجيل. حاول مرة أخرى.'])->withInput();
         }
     }
 
@@ -185,7 +189,11 @@ class RegisterController extends Controller
             return redirect()->route('dashboard')->with('success', 'مرحباً بك! تم تفعيل تجربتك المجانية لمدة 14 يومًا.');
         } catch (\Throwable $e) {
             DB::rollBack();
-            return back()->withErrors(['register' => 'حدث خطأ أثناء التسجيل. حاول مرة أخرى.']);
+            \Log::error('Trial registration error: ' . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return back()->withErrors(['register' => 'حدث خطأ أثناء التسجيل. حاول مرة أخرى.'])->withInput();
         }
     }
 }

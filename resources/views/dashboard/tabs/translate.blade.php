@@ -1,3 +1,12 @@
+<?php 
+// Ensure all required variables are available
+if(!isset($languages)) {
+    $languages = \App\Models\CulturalProfile::orderBy('region')->orderBy('name')->get();
+}
+if(!isset($industries)) {
+    $industries = \App\Models\IndustryTemplate::orderBy('name')->get();
+}
+?>
 <div class="max-w-6xl mx-auto" x-data="translateTab()">
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h3 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
@@ -9,21 +18,18 @@
         <div class="flex flex-col md:flex-row items-center gap-4 mb-4">
             <div class="flex-1 w-full">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Source Language</label>
-                <select x-model="sourceLanguage" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                <select id="translateSourceLang" x-model="sourceLanguage" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
                     <option value="auto">Auto-detect</option>
-                    <option value="en">English</option>
-                    <option value="ar">Arabic</option>
-                    <option value="es">Spanish</option>
-                    <option value="fr">French</option>
-                    <option value="de">German</option>
-                    <option value="it">Italian</option>
-                    <option value="pt">Portuguese</option>
-                    <option value="ru">Russian</option>
-                    <option value="zh">Chinese</option>
-                    <option value="ja">Japanese</option>
-                    <option value="ko">Korean</option>
-                    <option value="hi">Hindi</option>
-                    <option value="tr">Turkish</option>
+                    @php
+                        $regions = $languages->groupBy('region');
+                    @endphp
+                    @foreach($regions as $region => $langs)
+                        <optgroup label="{{ $region }}">
+                            @foreach($langs as $lang)
+                                <option value="{{ $lang->locale }}">{{ $lang->name }} ({{ $lang->locale }})</option>
+                            @endforeach
+                        </optgroup>
+                    @endforeach
                 </select>
             </div>
             
@@ -33,24 +39,31 @@
             
             <div class="flex-1 w-full">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Target Language</label>
-                <select x-model="targetLanguage" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                    <option value="ar">Arabic</option>
-                    <option value="en">English</option>
-                    <option value="es">Spanish</option>
-                    <option value="fr">French</option>
-                    <option value="de">German</option>
-                    <option value="it">Italian</option>
-                    <option value="pt">Portuguese</option>
-                    <option value="ru">Russian</option>
-                    <option value="zh">Chinese</option>
-                    <option value="ja">Japanese</option>
-                    <option value="ko">Korean</option>
-                    <option value="hi">Hindi</option>
-                    <option value="tr">Turkish</option>
+                <select id="translateTargetLang" x-model="targetLanguage" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                    <option value="">Select target language</option>
+                    @foreach($regions as $region => $langs)
+                        <optgroup label="{{ $region }}">
+                            @foreach($langs as $lang)
+                                <option value="{{ $lang->locale }}">{{ $lang->name }} ({{ $lang->locale }})</option>
+                            @endforeach
+                        </optgroup>
+                    @endforeach
                 </select>
             </div>
         </div>
 
+        <!-- Industry/Sector -->
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Industry/Sector (optional)</label>
+            <select id="translateIndustry" x-model="industry" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                <option value="">Select industry (optional)</option>
+                @foreach($industries as $industry)
+                    <option value="{{ $industry->slug }}">{{ $industry->name }}</option>
+                @endforeach
+            </select>
+            <p class="mt-2 text-xs text-gray-500">Select industry for specialized terminology.</p>
+        </div>
+        
         <!-- Optional Target Culture -->
         <div class="mb-6">
             <label class="block text-sm font-medium text-gray-700 mb-2">Target Culture (optional)</label>
@@ -231,6 +244,26 @@ function translateTab() {
             asyncJobId: '',
         qualityScore: null,
         
+        getDefaultCulture(lang) {
+            const defaultCultures = {
+                'ar': 'ar-SA',
+                'en': 'en-US',
+                'es': 'es-ES',
+                'fr': 'fr-FR',
+                'de': 'de-DE',
+                'it': 'it-IT',
+                'pt': 'pt-BR',
+                'ru': 'ru-RU',
+                'zh': 'zh-CN',
+                'ja': 'ja-JP',
+                'ko': 'ko-KR',
+                'hi': 'hi-IN',
+                'tr': 'tr-TR',
+                'nl': 'nl-NL'
+            };
+            return defaultCultures[lang] || null;
+        },
+        
         updateCharCount() {
             this.charCount = this.sourceText.length;
         },
@@ -276,7 +309,7 @@ function translateTab() {
                         text: this.sourceText,
                         source_language: this.sourceLanguage,
                         target_language: this.targetLanguage,
-                        target_culture: this.targetCulture || null,
+                        target_culture: this.targetCulture || this.getDefaultCulture(this.targetLanguage),
                         tone: 'professional',
                         ai_model: this.aiModel,
                         smart_correct: this.smartCorrect,
@@ -386,23 +419,135 @@ function translateTab() {
             this.qualityScore = null;
         },
         
-        startVoiceInput() {
-            const event = new CustomEvent('show-toast', {
-                detail: { type: 'info', message: 'Voice input feature coming soon!' }
-            });
-            window.dispatchEvent(event);
+        async startVoiceInput() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                const event = new CustomEvent('show-toast', {
+                    detail: { type: 'error', message: 'Voice input not supported in your browser' }
+                });
+                window.dispatchEvent(event);
+                return;
+            }
+
+            try {
+                if (!this.isRecording) {
+                    // Start recording
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    this.mediaRecorder = new MediaRecorder(stream);
+                    this.audioChunks = [];
+
+                    this.mediaRecorder.ondataavailable = (event) => {
+                        this.audioChunks.push(event.data);
+                    };
+
+                    this.mediaRecorder.onstop = async () => {
+                        const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
+                        await this.processVoiceTranslation(audioBlob);
+                        stream.getTracks().forEach(track => track.stop());
+                    };
+
+                    this.mediaRecorder.start();
+                    this.isRecording = true;
+                    
+                    const event = new CustomEvent('show-toast', {
+                        detail: { type: 'info', message: 'Recording... Click again to stop' }
+                    });
+                    window.dispatchEvent(event);
+                } else {
+                    // Stop recording
+                    this.mediaRecorder.stop();
+                    this.isRecording = false;
+                }
+            } catch (error) {
+                console.error('Voice input error:', error);
+                const event = new CustomEvent('show-toast', {
+                    detail: { type: 'error', message: 'Microphone access denied' }
+                });
+                window.dispatchEvent(event);
+            }
+        },
+
+        async processVoiceTranslation(audioBlob) {
+            try {
+                this.translating = true;
+                const formData = new FormData();
+                formData.append('audio', audioBlob, 'recording.webm');
+                formData.append('source_lang', this.sourceLanguage);
+                formData.append('target_lang', this.targetLanguage);
+                formData.append('return_audio', '1');
+
+                const response = await fetch('/api/subscription/voice/translate', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json',
+                        'Authorization': 'Bearer ' + (localStorage.getItem('api_token') || ''),
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.data) {
+                    this.sourceText = data.data.transcribed_text || '';
+                    this.translatedText = data.data.translated_text || '';
+                    this.updateCharCount();
+
+                    // Play output audio if available
+                    if (data.data.audio_url) {
+                        const audio = new Audio(data.data.audio_url);
+                        audio.play();
+                    }
+
+                    const event = new CustomEvent('show-toast', {
+                        detail: { 
+                            type: 'success', 
+                            message: `Voice translated! Cost: $${data.usage.cost}` 
+                        }
+                    });
+                    window.dispatchEvent(event);
+                } else {
+                    throw new Error(data.message || 'Voice translation failed');
+                }
+            } catch (error) {
+                console.error('Voice translation error:', error);
+                const event = new CustomEvent('show-toast', {
+                    detail: { type: 'error', message: error.message || 'Voice translation failed' }
+                });
+                window.dispatchEvent(event);
+            } finally {
+                this.translating = false;
+            }
         },
         
         async handleImageUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
             
+            // Validate file type
+            const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+            if (!validTypes.includes(file.type)) {
+                const event = new CustomEvent('show-toast', {
+                    detail: { type: 'error', message: 'Please upload a valid image file (JPG, PNG, WEBP)' }
+                });
+                window.dispatchEvent(event);
+                return;
+            }
+
+            // Validate file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                const event = new CustomEvent('show-toast', {
+                    detail: { type: 'error', message: 'Image size must be less than 5MB' }
+                });
+                window.dispatchEvent(event);
+                return;
+            }
+            
             try {
                 this.translating = true;
                 const formData = new FormData();
                 formData.append('image', file);
-                formData.append('source_language', this.sourceLanguage);
                 formData.append('target_language', this.targetLanguage);
+                formData.append('source_language', this.sourceLanguage || 'auto');
                 if (this.targetCulture) formData.append('target_culture', this.targetCulture);
                 if (this.extractOnly) formData.append('extract_only', '1');
                 if (this.applyGlossary === false) formData.append('apply_glossary', '0');
@@ -415,18 +560,27 @@ function translateTab() {
                     },
                     body: formData
                 });
-                const imgContentType = response.headers.get('content-type') || '';
-                const data = imgContentType.includes('application/json') ? await response.json() : { success: false, error: 'Non-JSON response' };
-                if (data.data) {
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.success && data.data) {
                     if (data.data.extracted_text) this.sourceText = data.data.extracted_text;
                     if (data.data.translated_text) this.translatedText = data.data.translated_text;
                     if (data.data.quality_score) this.qualityScore = data.data.quality_score;
+                    
+                    this.updateCharCount();
+                    
+                    const toastEvent = new CustomEvent('show-toast', {
+                        detail: { type: 'success', message: 'Image translated successfully!' }
+                    });
+                    window.dispatchEvent(toastEvent);
+                } else {
+                    throw new Error(data.error || 'Image translation failed');
                 }
-                this.updateCharCount();
-                const toastEvent = new CustomEvent('show-toast', {
-                    detail: { type: data.success ? 'success' : 'error', message: data.success ? 'Image translated successfully!' : (data.error || 'Image translation failed') }
-                });
-                window.dispatchEvent(toastEvent);
             } catch (error) {
                 const event = new CustomEvent('show-toast', {
                     detail: { type: 'error', message: 'Failed to translate image' }
@@ -440,15 +594,54 @@ function translateTab() {
         async handlePdfUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
+
+            // Validate file type
+            if (file.type !== 'application/pdf') {
+                const event = new CustomEvent('show-toast', {
+                    detail: { type: 'error', message: 'Please upload a valid PDF file' }
+                });
+                window.dispatchEvent(event);
+                return;
+            }
+
+            // Validate file size (max 10MB)
+            if (file.size > 10 * 1024 * 1024) {
+                const event = new CustomEvent('show-toast', {
+                    detail: { type: 'error', message: 'PDF size must be less than 10MB' }
+                });
+                window.dispatchEvent(event);
+                return;
+            }
+
             try {
                 this.translating = true;
                 const formData = new FormData();
                 formData.append('pdf', file);
-                formData.append('source_language', this.sourceLanguage);
                 formData.append('target_language', this.targetLanguage);
-                if (this.targetCulture) formData.append('target_culture', this.targetCulture);
+                formData.append('source_language', this.sourceLanguage || 'auto');
+                
+                // Auto-detect culture code if not specified
+                const defaultCultures = {
+                    'ar': 'ar-SA',
+                    'en': 'en-US',
+                    'es': 'es-ES',
+                    'fr': 'fr-FR',
+                    'de': 'de-DE',
+                    'it': 'it-IT',
+                    'pt': 'pt-BR',
+                    'ru': 'ru-RU',
+                    'zh': 'zh-CN',
+                    'ja': 'ja-JP',
+                    'ko': 'ko-KR',
+                    'hi': 'hi-IN',
+                    'tr': 'tr-TR',
+                    'nl': 'nl-NL'
+                };
+                const culture = this.targetCulture || defaultCultures[this.targetLanguage] || null;
+                if (culture) formData.append('target_culture', culture);
                 if (this.extractOnly) formData.append('extract_only', '1');
                 if (this.applyGlossary === false) formData.append('apply_glossary', '0');
+                
                 if (this.asyncPdf) {
                     const resp = await fetch('/api/mte/pdf/async', {
                         method: 'POST',
@@ -458,8 +651,13 @@ function translateTab() {
                         },
                         body: formData
                     });
+
+                    if (!resp.ok) {
+                        throw new Error(`Server error: ${resp.status}`);
+                    }
+
                     const d = await resp.json();
-                    if (!resp.ok || !d.success) throw new Error(d.error || 'Failed to start async PDF translation');
+                    if (!d.success) throw new Error(d.error || 'Failed to start async PDF translation');
                     const jobId = d.job_id;
                     this.asyncJobId = jobId;
                     this.pdfProgress = { current: 0, total: null, chars: 0 };
@@ -551,5 +749,7 @@ function translateTab() {
         }
     }
 }
+
+// Languages and industries are loaded server-side
 </script>
 

@@ -4,6 +4,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Laravel\Sanctum\HasApiTokens;
@@ -20,9 +21,22 @@ class User extends Authenticatable implements FilamentUser
         'name',
         'email',
         'password',
+        'account_type',
+        'company_name',
         'company_id',
         'role',
+        'status',
         'account_status',
+        'is_government_verified',
+        'government_verified_at',
+        // Mobile app settings
+        'app_language',
+        'default_send_language',
+        'default_receive_language',
+        'auto_topup_enabled',
+        'auto_topup_threshold',
+        'auto_topup_amount',
+        'referral_code',
     ];
     /**
      * The attributes that should be hidden for serialization.
@@ -63,6 +77,11 @@ class User extends Authenticatable implements FilamentUser
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function minutesWallet(): HasOne
+    {
+        return $this->hasOne(MinutesWallet::class);
     }
     /**
      * Get the user's subscriptions.
@@ -162,5 +181,40 @@ class User extends Authenticatable implements FilamentUser
         return $this->userIntegrations()
             ->where('platform', $platform)
             ->first();
+    }
+
+    /**
+     * Get the user's government registration.
+     */
+    public function governmentRegistration()
+    {
+        return $this->hasOne(GovernmentRegistration::class);
+    }
+
+    /**
+     * Check if user is a verified government entity.
+     */
+    public function isVerifiedGovernment(): bool
+    {
+        return $this->account_type === 'government' 
+            && $this->is_government_verified === true;
+    }
+
+    /**
+     * Check if government verification is still valid (not expired).
+     */
+    public function hasValidGovernmentVerification(): bool
+    {
+        if (!$this->isVerifiedGovernment()) {
+            return false;
+        }
+
+        // If no expiry date set, verification is permanent
+        if (!$this->governmentRegistration || !$this->governmentRegistration->verification_expiry_date) {
+            return true;
+        }
+
+        // Check if not expired
+        return $this->governmentRegistration->verification_expiry_date->isFuture();
     }
 }

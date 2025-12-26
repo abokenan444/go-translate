@@ -14,14 +14,14 @@ use App\Models\User;
 class SuperAIAgentService
 {
     protected string $openaiApiKey;
-    protected string $model = 'gpt-4o';
+    protected string $model = 'gpt-5';
     protected array $conversationHistory = [];
     protected ?User $currentUser = null;
 
     public function __construct()
     {
         $this->openaiApiKey = config('openai.api_key') ?? env('OPENAI_API_KEY');
-        $this->model = config('ai_developer.openai.model', 'gpt-4o');
+        $this->model = config('ai_developer.openai.model', 'gpt-5');
     }
 
     /**

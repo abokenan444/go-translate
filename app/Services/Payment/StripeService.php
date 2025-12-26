@@ -49,6 +49,66 @@ class StripeService
     }
 
     /**
+     * Create checkout session for subscription with dynamic pricing
+     */
+    public function createCheckoutSessionDynamic(
+        User $user, 
+        string $planName, 
+        float $price, 
+        string $currency = 'EUR',
+        string $interval = 'monthly'
+    ): array {
+        try {
+            $customerId = $this->getOrCreateCustomer($user);
+
+            // Create price in Stripe with correct currency
+            $stripePrice = $this->stripe->prices->create([
+                'unit_amount' => (int)($price * 100), // Convert to cents
+                'currency' => strtolower($currency),
+                'recurring' => [
+                    'interval' => $interval === 'yearly' ? 'year' : 'month',
+                ],
+                'product_data' => [
+                    'name' => $planName,
+                ],
+            ]);
+
+            $session = $this->stripe->checkout->sessions->create([
+                'customer' => $customerId,
+                'payment_method_types' => ['card', 'ideal'],
+                'line_items' => [[
+                    'price' => $stripePrice->id,
+                    'quantity' => 1,
+                ]],
+                'mode' => 'subscription',
+                'success_url' => route('stripe.success') . '?session_id={CHECKOUT_SESSION_ID}',
+                'cancel_url' => route('stripe.cancel'),
+                'metadata' => [
+                    'user_id' => $user->id,
+                    'plan_name' => $planName,
+                ],
+                'subscription_data' => [
+                    'metadata' => [
+                        'user_id' => $user->id,
+                        'plan_name' => $planName,
+                    ],
+                ],
+            ]);
+
+            return [
+                'session_id' => $session->id,
+                'url' => $session->url,
+            ];
+        } catch (ApiErrorException $e) {
+            Log::error('Stripe checkout session creation failed', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage()
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
      * Create checkout session for subscription
      */
     public function createCheckoutSession(User $user, string $priceId, string $planName): array
@@ -58,7 +118,7 @@ class StripeService
 
             $session = $this->stripe->checkout->sessions->create([
                 'customer' => $customerId,
-                'payment_method_types' => ['card'],
+                'payment_method_types' => ['card', 'ideal'],
                 'line_items' => [[
                     'price' => $priceId,
                     'quantity' => 1,

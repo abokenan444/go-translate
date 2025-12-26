@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CSP Test</title>
+</head>
+<body>
+    <h1>CSP Test Page</h1>
+    <p>Check browser console for CSP headers</p>
+    <p>Testing eval:</p>
+    <div id="result"></div>
+    
+    <script>
+        // Test eval
+        try {
+            eval("document.getElementById('result').innerHTML = 'eval() works! CSP allows unsafe-eval';");
+        } catch (e) {
+            document.getElementById('result').innerHTML = 'eval() blocked by CSP: ' + e.message;
+        }
+        
+        // Log CSP
+        console.log('Testing CSP...');
+        console.log('Check Network tab > Response Headers for Content-Security-Policy');
+    </script>
+</body>
+</html>

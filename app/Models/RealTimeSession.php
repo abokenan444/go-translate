@@ -42,6 +42,11 @@ class RealTimeSession extends Model
         return $this->hasMany(RealTimeTurn::class, 'session_id');
     }
 
+    public function participants()
+    {
+        return $this->hasMany(RealTimeParticipant::class, 'session_id');
+    }
+
     public function owner()
     {
         return $this->belongsTo(User::class, 'owner_id');

@@ -132,7 +132,7 @@
             <p>
                 <a href="{{ url('/') }}">Home</a> | 
                 <a href="{{ url('/features') }}">Features</a> | 
-                <a href="{{ url('/pricing') }}">Pricing</a> | 
+                <a href="{{ url('/pricing-plans') }}">Pricing</a> | 
                 <a href="{{ url('/contact') }}">Contact</a>
             </p>
             <p style="font-size: 12px; color: #999; margin-top: 20px;">

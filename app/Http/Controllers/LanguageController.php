@@ -2,8 +2,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Session;
-use App\Services\TranslationSyncService;
 use App\Jobs\TranslatePagesJob;
 
 class LanguageController extends Controller
@@ -26,12 +26,13 @@ class LanguageController extends Controller
         'hi', // Hindi
         'tr', // Turkish
         'nl', // Dutch
+        'pl', // Polish
     ];
 
     /**
      * Switch application language
      */
-    public function switch($locale, TranslationSyncService $syncService)
+    public function switch(Request $request, string $locale)
     {
         // Convert to lowercase for consistency
         $locale = strtolower($locale);
@@ -43,22 +44,42 @@ class LanguageController extends Controller
         
         // Store in session
         Session::put('locale', $locale);
+        Session::save(); // Force save
         
-        // Store in cookie for 1 year
-        cookie()->queue('locale', $locale, 525600);
-        
-        // Set application locale
+        // Set application locale immediately
         app()->setLocale($locale);
+        
+        // Log for debugging
+        \Log::info('Language switched', [
+            'new_locale' => $locale,
+            'session_locale' => Session::get('locale'),
+        ]);
 
-        // Kick off background sync of page translations for selected locale
-        try {
-            TranslatePagesJob::dispatch($locale);
-        } catch (\Throwable $e) {
-            // Non-fatal
+        // Optional: kick off background sync of page translations.
+        // SECURITY: never allow this to be abused from a public GET endpoint.
+        // Enable only via env + strict throttling using Cache.
+        if ((bool) env('TRANSLATION_SYNC_ON_LANGUAGE_SWITCH', false)) {
+            try {
+                $cacheKey = 'translation_sync:last_dispatch:' . $locale;
+                // Allow at most once per 30 minutes per locale.
+                if (Cache::add($cacheKey, now()->timestamp, now()->addMinutes(30))) {
+                    TranslatePagesJob::dispatch($locale);
+                }
+            } catch (\Throwable $e) {
+                // Non-fatal
+            }
         }
         
-        // Redirect back
-        return redirect()->back()->with('success', 'Language changed. Syncing translations...');
+        // Redirect back with cookie (avoid open redirect to external hosts)
+        $previous = url()->previous();
+        $previousHost = parse_url($previous, PHP_URL_HOST);
+        if ($previousHost && $previousHost !== $request->getHost()) {
+            $previous = route('home');
+        }
+
+        return redirect()->to($previous)
+            ->cookie('locale', $locale, 525600) // 1 year
+            ->with('success', 'Language changed to ' . strtoupper($locale));
     }
     
     /**

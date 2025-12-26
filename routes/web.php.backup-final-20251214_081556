@@ -1,0 +1,826 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+// Affiliate referral redirects
+Route::get('/r/{slug}', [\App\Http\Controllers\ReferralController::class, 'redirect'])->name('referral.redirect');
+
+// Admin payout trigger (protect with auth middleware in real setup)
+Route::middleware(['web'])->group(function () {
+    Route::get('/admin/affiliates/payout/{period?}', [\App\Http\Controllers\AffiliatesAdminController::class, 'triggerPayout'])
+        ->name('affiliates.payout.trigger');
+    // Test endpoint to simulate a successful purchase and record affiliate conversion
+    Route::post('/test/purchase/success', [\App\Http\Controllers\TestPurchaseController::class, 'success']);
+});
+// Redirect deprecated/legacy admin paths to homepage to avoid exposure
+Route::get('/admin-dashboard{any?}', function () {
+    return redirect('/');
+})->where('any', '.*');
+
+Route::get('/backoffice{any?}', function () {
+    return redirect('/');
+})->where('any', '.*');
+
+use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\LanguageController;
+
+
+Route::domain('admin.culturaltranslate.com')->group(function () {
+    Route::get('/', function () {
+        return redirect('/admin');
+    });
+});
+
+
+// Language Switcher
+Route::get('/language/{locale}', [LanguageController::class, 'switch'])->name('language.switch');
+
+// CTS System Routes
+
+// CTS Information Pages
+Route::get('/cts-standard', [App\Http\Controllers\PagesController::class, 'ctsStandard'])->name('pages.cts-standard');
+Route::get('/cultural-risk-engine', [App\Http\Controllers\PagesController::class, 'culturalRiskEngine'])->name('pages.cultural-risk-engine');
+Route::get('/certificate-verification-info', [App\Http\Controllers\PagesController::class, 'certificateVerification'])->name('pages.certificate-verification');
+Route::get('/about-cts', [App\Http\Controllers\PagesController::class, 'aboutCts'])->name('pages.about-cts');
+
+// Test Locale Page (for debugging)
+Route::get('/test-locale', function () {
+    return view('test-locale');
+})->name('test.locale');
+
+// Landing Page
+Route::get("/", [App\Http\Controllers\LandingController::class, "index"])->name("home");
+
+// Public Pages
+Route::get("/features", function() { return view("features"); })->name("features");
+
+// Services Routes
+Route::prefix('services')->name('services.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\ServicesController::class, 'index'])->name('all');
+    Route::get('/certified-translation', [\App\Http\Controllers\ServicesController::class, 'certifiedTranslation'])->name('certified-translation');
+    Route::get('/physical-copy', [\App\Http\Controllers\ServicesController::class, 'physicalCopy'])->name('physical-copy');
+    Route::get('/partners', [\App\Http\Controllers\ServicesController::class, 'partners'])->name('partners');
+    Route::get('/affiliate', [\App\Http\Controllers\ServicesController::class, 'affiliate'])->name('affiliate');
+    Route::get('/enterprise', [\App\Http\Controllers\ServicesController::class, 'enterprise'])->name('enterprise');
+    Route::get('/document-translation', [\App\Http\Controllers\ServicesController::class, 'documentTranslation'])->name('document-translation');
+});
+
+Route::get('/pricing', [\App\Http\Controllers\PricingController::class, 'index'])->name('pricing');
+Route::post('/contact-custom-plan', [\App\Http\Controllers\PricingController::class, 'contactCustomPlan'])->name('pricing.contact-custom');
+
+// Stripe Pricing and Checkout (public)
+Route::get('/plans', [\App\Http\Controllers\StripeController::class, 'pricing'])->name('stripe.pricing');
+
+Route::get('/use-cases', function () {
+    return view('pages.use-cases');
+})->name('use-cases');
+
+Route::get('/api-docs', function () {
+    return view('pages.api-docs');
+})->name('api.docs.page');
+
+// Status page
+Route::view('/status', 'pages.status')->name('status');
+
+// Careers routes are defined later with controller; removing simple view route to avoid conflicts.
+
+Route::get('/demo', function () {
+    return view('pages.demo');
+})->name('demo');
+
+Route::get('/about', function () {
+    return view('pages.about');
+})->name('about');
+
+Route::get('/contact', function () {
+    return view('pages.contact');
+})->name('contact');
+
+Route::post('/contact/submit', [App\Http\Controllers\ContactController::class, 'submit'])
+    ->middleware(['honeypot:2', 'dedupe:30', 'advanced.ratelimit:5,10', 'recaptcha:contact_form,0.5'])
+    ->name('contact.submit');
+
+Route::get('/gdpr', [\App\Http\Controllers\GdprController::class, 'index'])->name('gdpr');
+
+// Stripe Webhook (MUST be outside auth middleware and CSRF protection)
+Route::post('/stripe/webhook', [\App\Http\Controllers\StripeWebhookController::class, 'handleWebhook']);
+
+Route::get('/blog', function () {
+    return view('pages.blog');
+})->name('blog');
+
+Route::get('/integrations', function () {
+    return view('pages.integrations');
+})->name('integrations');
+
+// Complaints
+Route::get('/complaints', [\App\Http\Controllers\ComplaintController::class, 'index'])->name('complaints');
+Route::post('/complaints/submit', [\App\Http\Controllers\ComplaintController::class, 'submit'])->name('complaints.submit');
+Route::get('/complaints/track', [\App\Http\Controllers\ComplaintController::class, 'track'])->name('complaints.track');
+
+// Dashboard for authenticated users
+Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+    /*Route::get('/dashboard', function () {
+        return view('dashboard.app');
+    })->name('dashboard');*/
+    
+    // Cultural Memory Graph Visualization
+    Route::get('/dashboard/cultural-graph', function () {
+        return view('dashboard.cultural-graph');
+    })->name('dashboard.cultural-graph');
+
+    // Dataset Export & Download
+        Route::middleware(['super-admin'])->group(function() {
+            Route::post('/dashboard/dataset/export', [\App\Http\Controllers\DatasetController::class, 'export'])->name('dashboard.dataset.export');
+            Route::get('/dashboard/dataset/download', [\App\Http\Controllers\DatasetController::class, 'download'])->name('dashboard.dataset.download');
+        });
+
+    // Video Integration OAuth (Zoom / Teams)
+    Route::middleware(['throttle:10,1'])->group(function() {
+        Route::post('/integrations/connect/{provider}', [\App\Http\Controllers\IntegrationOAuthController::class, 'connect'])->name('integrations.oauth.connect');
+        Route::get('/integrations/callback/{provider}', [\App\Http\Controllers\IntegrationOAuthController::class, 'callback'])->name('integrations.oauth.callback');
+        Route::delete('/integrations/disconnect/{provider}', [\App\Http\Controllers\IntegrationOAuthController::class, 'disconnect'])->name('integrations.oauth.disconnect');
+    });
+    
+    // Dashboard Translation API (session-auth). Named uniquely to avoid conflict with API routes.
+    Route::post('/api/v1/translate', [\App\Http\Controllers\API\ApiTranslationController::class, 'translate'])->name('web.api.translate');
+
+    // Prometheus metrics endpoint (read-only, restrict to super-admin if sensitive)
+    Route::get('/metrics', function() { 
+        $user = \Illuminate\Support\Facades\Auth::user();
+        if (!$user || $user->role !== 'super_admin') {
+            return response('forbidden', 403); 
+        }
+        $output = \App\Services\Monitoring\MonitoringService::export();
+        return response($output, 200)->header('Content-Type', 'text/plain; version=0.0.4');
+    });
+
+    // Stripe Subscription Management (authenticated)
+    Route::post('/stripe/checkout', [\App\Http\Controllers\StripeController::class, 'checkout'])->name('stripe.checkout');
+    Route::get('/stripe/success', [\App\Http\Controllers\StripeController::class, 'success'])->name('stripe.success');
+    Route::get('/stripe/cancel', [\App\Http\Controllers\StripeController::class, 'cancel'])->name('stripe.cancel');
+    Route::post('/stripe/cancel-subscription', [\App\Http\Controllers\StripeController::class, 'cancelSubscription'])->name('stripe.cancel-subscription');
+    Route::post('/stripe/resume-subscription', [\App\Http\Controllers\StripeController::class, 'resumeSubscription'])->name('stripe.resume-subscription');
+    Route::get('/stripe/portal', [\App\Http\Controllers\StripeController::class, 'portal'])->name('stripe.portal');
+});
+
+
+//         ->name('admin.dashboard');
+// });
+
+//     ->name('admin.')
+//     ->group(function () {
+//         Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])
+//             ->name('dashboard');
+//     });
+
+//     ->name('admin.')
+//     ->group(function () {
+//         Route::get('ai-dev-chat', [\App\Http\Controllers\Admin\AIAgentChatController::class, 'index'])
+//             ->name('ai-agent-chat.index');
+//
+//         Route::post('ai-dev-chat', [\App\Http\Controllers\Admin\AIAgentChatController::class, 'send'])
+//             ->name('ai-agent-chat.send');
+//     });
+
+// Legal & Info Pages
+
+
+
+Route::get('/_temp_admin_login', function () {
+    $user = App\Models\User::where('email', 'admin@culturaltranslate.com')->first();
+    if ($user) {
+        Auth::login($user);
+        return redirect('/admin-dashboard');
+    }
+    return 'User not found';
+});
+
+
+require __DIR__.'/ai_developer.php';
+require __DIR__.'/auth.php';
+require __DIR__.'/super_ai.php';
+
+// Translation Routes
+require __DIR__.'/translation.php';
+
+// Demo Translation (Public)
+Route::post('/api/demo-translate', [App\Http\Controllers\DemoController::class, 'translate'])->name('api.demo-translate');
+
+// Cultural Prompt Engine Routes
+Route::middleware(['web', 'auth'])
+    ->prefix('admin/cultural-prompts')
+    ->group(function () {
+        Route::view('/', 'admin.cultural_prompts.index')
+            ->name('admin.cultural-prompts.index');
+
+        Route::post('/preview', [\App\Http\Controllers\CulturalPromptController::class, 'preview'])
+            ->name('admin.cultural-prompts.preview');
+    });
+Route::get('/language/{locale}', [App\Http\Controllers\LanguageController::class, 'switch'])->name('language.switch');
+Route::get('/sitemap.xml', [App\Http\Controllers\SitemapController::class, 'index']);
+
+// Real-Time Voice Translation
+Route::get('/realtime/meeting/{publicId}', [App\Http\Controllers\RealTime\RealTimeSessionController::class, 'showMeeting'])->name('realtime.meeting.show');
+Route::get('/realtime/meeting-video/{publicId}', function ($publicId) { $session = App\Models\RealTimeSession::where('public_id', $publicId)->firstOrFail(); return view('realtime.meeting-video', compact('session')); })->name('realtime.meeting.video');
+Route::get('/realtime/call/{publicId}', function ($publicId) { $session = App\Models\RealTimeSession::where('public_id', $publicId)->firstOrFail(); return view('realtime.call-mode', compact('session')); })->name('realtime.call');
+Route::get('/realtime/premium/{publicId}', function ($publicId) { $session = App\Models\RealTimeSession::where('public_id', $publicId)->firstOrFail(); return view('realtime.premium-meeting', compact('session')); })->name('realtime.premium');
+
+// Guest Join System
+Route::get('/join/{sessionId}', [App\Http\Controllers\RealTime\GuestJoinController::class, 'show'])->name('realtime.guest.join');
+Route::post('/join/{sessionId}/token', [App\Http\Controllers\RealTime\GuestJoinController::class, 'generateToken'])->name('realtime.guest.token');
+Route::get('/join/{sessionId}/qr', [App\Http\Controllers\RealTime\GuestJoinController::class, 'qrCode'])->name('realtime.guest.qr');
+Route::get('/join/{sessionId}/verify/{token}', [App\Http\Controllers\RealTime\GuestJoinController::class, 'verifyToken'])->name('realtime.guest.verify');
+
+// Metrics Dashboard
+Route::middleware(['auth'])->group(function () {
+    Route::get('/realtime/metrics', [App\Http\Controllers\RealTime\MetricsController::class, 'dashboard'])->name('realtime.metrics.dashboard');
+    Route::get('/api/realtime/metrics', [App\Http\Controllers\RealTime\MetricsController::class, 'getMetrics'])->name('api.realtime.metrics');
+    Route::get('/api/realtime/metrics/{sessionId}', [App\Http\Controllers\RealTime\MetricsController::class, 'sessionMetrics'])->name('api.realtime.session.metrics');
+});
+
+// Dashboard API endpoints (authenticated via web session)
+Route::middleware('auth')->prefix('api/dashboard')->group(function () {
+    Route::get('/user', [App\Http\Controllers\DashboardApiController::class, 'getUser']);
+    Route::get('/stats', [App\Http\Controllers\DashboardApiController::class, 'getStats']);
+    Route::get('/usage', [App\Http\Controllers\DashboardApiController::class, 'getUsage']);
+    Route::get('/usage-chart', [App\Http\Controllers\DashboardApiController::class, 'getUsageData']);
+    Route::get('/languages', [App\Http\Controllers\DashboardApiController::class, 'getLanguagesData']);
+    Route::get('/history', [App\Http\Controllers\DashboardApiController::class, 'getHistory']);
+    Route::get('/projects', [App\Http\Controllers\DashboardApiController::class, 'getProjects']);
+    Route::get('/subscription', [App\Http\Controllers\DashboardApiController::class, 'getSubscription']);
+    // Translate endpoint for dashboard (session-auth)
+    Route::post('/translate', [\App\Http\Controllers\API\ApiTranslationController::class, 'translate']);
+});
+
+// Invoices endpoint
+Route::middleware('auth')->get('/api/invoices', [App\Http\Controllers\DashboardApiController::class, 'getInvoices']);
+
+// Integrations endpoint
+Route::middleware('auth')->get('/api/integrations', [App\Http\Controllers\API\UserIntegrationController::class, 'index']);
+
+// API v1 endpoints for Dashboard (authenticated via web session)
+Route::middleware('auth')->prefix('api/v1')->group(function () {
+    Route::get('/me', [App\Http\Controllers\DashboardApiController::class, 'getUser']);
+    Route::get('/analytics/dashboard', [App\Http\Controllers\DashboardApiController::class, 'getStats']);
+    Route::get('/translations', [App\Http\Controllers\DashboardApiController::class, 'getHistory']);
+    Route::get('/projects', [App\Http\Controllers\DashboardApiController::class, 'getProjects']);
+    Route::get('/subscription', [App\Http\Controllers\DashboardApiController::class, 'getSubscription']);
+});
+// Sitemap routes
+Route::get('/sitemap.xml', [App\Http\Controllers\SitemapController::class, 'index']);
+Route::get('/sitemap-main.xml', [App\Http\Controllers\SitemapController::class, 'main']);
+Route::get('/sitemap-blog.xml', [App\Http\Controllers\SitemapController::class, 'blog']);
+// Pricing API routes
+Route::get('/api/pricing', [App\Http\Controllers\PricingController::class, 'api']);
+Route::get('/api/pricing/{id}', [App\Http\Controllers\PricingController::class, 'show']);
+Route::post('/api/pricing/subscribe', [App\Http\Controllers\PricingController::class, 'subscribe'])->middleware('auth');
+
+// Dashboard-friendly subscription API endpoints expected by the front-end client
+Route::middleware('auth')->prefix('api')->group(function () {
+    // Alias for plans list
+    Route::get('/plans', [App\Http\Controllers\PricingController::class, 'api']);
+
+    // Current subscription summary
+    Route::get('/subscription', function () {
+        $userId = \Illuminate\Support\Facades\Auth::id();
+        $sub = \Illuminate\Support\Facades\DB::table('user_subscriptions as us')
+            ->leftJoin('subscription_plans as sp', 'sp.id', '=', 'us.subscription_plan_id')
+            ->where('us.user_id', $userId)
+            ->where('us.status', 'active')
+            ->orderByDesc('us.starts_at')
+            ->select([
+                'us.id as user_subscription_id',
+                'us.subscription_plan_id as plan_id',
+                'us.starts_at',
+                'us.expires_at',
+                'sp.name as plan_name',
+                'sp.price',
+                'sp.billing_period',
+            ])
+            ->first();
+
+        if (!$sub) {
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'plan_id' => null,
+                    'plan_name' => 'Free',
+                    'price' => 0,
+                    'billing_cycle' => 'month',
+                    'renews_at' => now()->addDays(14)->toIso8601String(),
+                ],
+            ]);
+        }
+
+        $renewsAt = $sub->expires_at
+            ? \Illuminate\Support\Carbon::parse($sub->expires_at)
+            : (($sub->billing_period ?? 'monthly') === 'yearly'
+                ? \Illuminate\Support\Carbon::parse($sub->starts_at)->addYear()
+                : \Illuminate\Support\Carbon::parse($sub->starts_at)->addMonth());
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'plan_id' => $sub->plan_id,
+                'plan_name' => $sub->plan_name,
+                'price' => (float) $sub->price,
+                'billing_cycle' => ($sub->billing_period ?? 'monthly') === 'yearly' ? 'year' : 'month',
+                'renews_at' => \Illuminate\Support\Carbon::parse($renewsAt)->toIso8601String(),
+            ],
+        ]);
+    });
+
+    // Usage summary for dashboard
+    Route::get('/usage', function () {
+        $userId = \Illuminate\Support\Facades\Auth::id();
+        $active = \Illuminate\Support\Facades\DB::table('user_subscriptions as us')
+            ->leftJoin('subscription_plans as sp', 'sp.id', '=', 'us.subscription_plan_id')
+            ->where('us.user_id', $userId)
+            ->where('us.status', 'active')
+            ->orderByDesc('us.starts_at')
+            ->select(['us.tokens_used', 'us.tokens_remaining', 'sp.tokens_limit', 'sp.max_team_members'])
+            ->first();
+
+        $charactersUsed = $active ? (int) ($active->tokens_used ?? 0) : 0;
+        $charactersLimit = $active ? (int) ($active->tokens_limit ?? 0) : 100000;
+        $apiCalls = (int) round($charactersUsed / 10);
+        $apiLimit = (int) round($charactersLimit / 10);
+        $teamMembers = 1;
+        $teamLimit = $active ? (int) ($active->max_team_members ?? 1) : 1;
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'characters_used' => $charactersUsed,
+                'characters_limit' => $charactersLimit,
+                'api_calls' => $apiCalls,
+                'api_limit' => $apiLimit,
+                'team_members' => $teamMembers,
+                'team_limit' => $teamLimit,
+            ],
+        ]);
+    });
+
+    // Subscribe/upgrade alias matching the API client
+    Route::post('/subscribe', [App\Http\Controllers\PricingController::class, 'subscribe']);
+    
+    // Cultural Intelligence Engine (CIE)
+    Route::post('/cie/analyze', [App\Http\Controllers\CIEController::class, 'analyze']);
+    Route::post('/cie/brand-voice', [App\Http\Controllers\CIEController::class, 'brandVoice']);
+    Route::post('/cie/normalize', [App\Http\Controllers\CIEController::class, 'normalize']);
+    Route::post('/cie/emotion-map', [App\Http\Controllers\CIEController::class, 'emotionMap']);
+
+    // Multimodal Translation Engine (MTE)
+    Route::post('/mte/text', [App\Http\Controllers\MTEController::class, 'translateText']);
+    Route::post('/mte/image', [App\Http\Controllers\MTEController::class, 'translateImage']);
+    Route::post('/mte/pdf', [App\Http\Controllers\MTEController::class, 'translatePDF']);
+    Route::post('/mte/pdf/async', [App\Http\Controllers\MTEController::class, 'enqueuePDF']);
+    Route::get('/mte/pdf/status/{jobId}', [App\Http\Controllers\MTEController::class, 'pdfStatus']);
+    Route::post('/mte/asr', [App\Http\Controllers\MTEController::class, 'transcribeAudio']);
+    Route::post('/mte/tts', [App\Http\Controllers\MTEController::class, 'synthesizeSpeech']);
+
+    // Knowledge Base & Memory (KBM)
+    Route::get('/kbm/memories', [App\Http\Controllers\KBMController::class, 'listMemories']);
+    Route::post('/kbm/review', [App\Http\Controllers\KBMController::class, 'review']);
+    Route::get('/kbm/graph', [App\Http\Controllers\KBMController::class, 'graph']);
+
+    // Real-time Communication (RTC)
+    Route::post('/rtc/session', [App\Http\Controllers\RTCController::class, 'createSession']);
+    Route::post('/rtc/session/end', [App\Http\Controllers\RTCController::class, 'endSession']);
+
+    // Governance
+    Route::get('/governance/audit-logs', [App\Http\Controllers\GovernanceController::class, 'auditLogs']);
+    Route::post('/governance/request-erasure', function() {
+        $uid = \Illuminate\Support\Facades\Auth::id();
+        \App\Services\Governance\GovernanceService::logStatic($uid, 'request_erasure', 'user', $uid, []);
+        return response()->json(['success' => true]);
+    });
+});
+
+// API v1 endpoints for usage
+Route::get('/api/v1/usage', function() {
+    return response()->json([
+        'success' => true,
+        'data' => [
+            'characters_used' => 45200,
+            'characters_limit' => 100000,
+            'api_calls' => 1234,
+            'api_limit' => 10000,
+            'team_members' => 5,
+            'team_limit' => 10
+        ]
+    ]);
+})->middleware('auth:web');
+
+Route::get('/api/v1/subscription', function() {
+    return response()->json([
+        'success' => true,
+        'data' => [
+            'plan_id' => 2,
+            'plan_name' => 'Professional',
+            'price' => 49,
+            'billing_cycle' => 'month',
+            'renews_at' => now()->addDays(15)->toISOString()
+        ]
+    ]);
+})->middleware('auth:web');
+
+// Integration Documentation Pages
+Route::get('/integrations/github', function () {
+    return view('pages.integrations.github-integration');
+});
+
+Route::get('/integrations/wordpress', function () {
+    return view('pages.integrations.wordpress-integration');
+});
+
+Route::get('/integrations/woocommerce', function () {
+    return view('pages.integrations.woocommerce-integration');
+});
+Route::post('/integrations/connect/{platform}', [App\Http\Controllers\IntegrationConnectController::class, 'connect'])->name('integrations.connect');
+Route::get('/integrations/callback/{platform}', [App\Http\Controllers\IntegrationConnectController::class, 'callback'])->name('integrations.callback');
+Route::post('/integrations/disconnect/{platform}', [App\Http\Controllers\IntegrationConnectController::class, 'disconnect'])->name('integrations.disconnect');
+
+// Careers Routes
+Route::get('/careers', [App\Http\Controllers\CareersController::class, 'index'])->name('careers.index');
+Route::get('/careers/{job}', [App\Http\Controllers\CareersController::class, 'show'])->name('careers.show');
+Route::post('/careers/{job}/apply', [App\Http\Controllers\CareersController::class, 'apply'])->name('careers.apply');
+Route::get('/careers/applications/{application}/resume', [App\Http\Controllers\CareersController::class, 'downloadResume'])->name('careers.download-resume')->middleware('auth');
+
+// Sitemap
+Route::get('/sitemap.xml', [App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
+Route::get('/sitemap-main.xml', [App\Http\Controllers\SitemapController::class, 'main'])->name('sitemap.main');
+Route::get('/sitemap-blog.xml', [App\Http\Controllers\SitemapController::class, 'blog'])->name('sitemap.blog');
+Route::get('/sitemap-careers.xml', [App\Http\Controllers\SitemapController::class, 'careers'])->name('sitemap.careers');
+
+Route::get('/docs', [App\Http\Controllers\DocsController::class, 'index'])->name('docs.index');
+Route::get('/docs/{page}', [App\Http\Controllers\DocsController::class, 'show'])->name('docs.show');
+
+// Sandbox Preview Routes
+require __DIR__ . '/sandbox.php';
+
+// Two-Factor Authentication Routes
+require __DIR__ . '/two-factor.php';
+
+// API Playground
+Route::get('/playground', function () {
+    return view('pages.api-playground');
+})->name('playground');
+
+Route::prefix('sso')->group(function () {
+    Route::get('metadata', [\App\Http\Controllers\Auth\SSOController::class, 'metadata'])->name('sso.metadata');
+    Route::get('login/{provider}', [\App\Http\Controllers\Auth\SSOController::class, 'login'])->name('sso.login');
+    Route::post('callback/{provider}', [\App\Http\Controllers\Auth\SSOController::class, 'callback'])->name('sso.callback');
+});
+
+// Legal & Support Pages
+Route::get('/privacy-policy', [App\Http\Controllers\PageController::class, 'show'])->defaults('slug', 'privacy-policy')->name('privacy-policy');
+
+Route::get("/privacy", function () { return view("pages.privacy"); });
+
+Route::get('/terms-of-service', [App\Http\Controllers\PageController::class, 'show'])->defaults('slug', 'terms-of-service')->name('terms-of-service');
+
+Route::get("/terms", function () { return view("pages.terms"); });
+
+Route::get("/security", function () { return view("pages.security"); });
+
+Route::get('/help-center', [App\Http\Controllers\PageController::class, 'show'])->defaults('slug', 'help-center')->name('help-center');
+Route::get("/legal-documents", [App\Http\Controllers\PageController::class, "show"])->defaults("slug", "legal-documents")->name("legal-documents.index");
+Route::get("/help", function () { return view("pages.help"); });
+
+
+
+Route::get('/guides', function () {
+    return view('pages.guides');
+})->name('guides');
+
+// Additional Pages
+Route::get('/press', function () {
+    return view('pages.press');
+})->name('press');
+
+Route::get('/community', function () {
+    return view('pages.community');
+})->name('community');
+
+// Affiliate Program Page
+Route::get('/affiliate', function() {     return view('pages.affiliate');
+})->name('affiliate');
+
+// Enterprise Subscription Routes
+Route::get('/enterprise', [\App\Http\Controllers\EnterpriseSubscriptionController::class, 'pricing'])->name('enterprise.pricing');
+Route::get('/enterprise/request', [\App\Http\Controllers\EnterpriseSubscriptionController::class, 'requestForm'])->name('enterprise.request');
+Route::post('/enterprise/request', [\App\Http\Controllers\EnterpriseSubscriptionController::class, 'submitRequest'])->name('enterprise.submit-request');
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/enterprise/dashboard', [\App\Http\Controllers\EnterpriseSubscriptionController::class, 'dashboard'])->name('enterprise.dashboard');
+    Route::get('/enterprise/usage', [\App\Http\Controllers\EnterpriseSubscriptionController::class, 'getUsage'])->name('enterprise.usage');
+    Route::get('/enterprise/report', [\App\Http\Controllers\EnterpriseSubscriptionController::class, 'downloadReport'])->name('enterprise.download-report');
+    Route::post('/enterprise/payment-method', [\App\Http\Controllers\EnterpriseSubscriptionController::class, 'updatePaymentMethod'])->name('enterprise.update-payment');
+});
+
+Route::get('/changelog', function () {
+    return view('pages.changelog');
+})->name('changelog');
+
+Route::get('/cookies', function () {
+    return view('pages.cookies');
+})->name('cookies');
+
+// Official Documents Translation Routes
+require __DIR__.'/official_documents.php';
+Route::get('/developers', function() { return view('pages.developers'); })->name('developers');
+Route::get('/sandbox', function() { return view('sandbox'); })->name('sandbox.index');
+Route::get('/partners', function () { return view('partners'); })->name('partners.index');
+
+Route::get("/live-demo", function() { return view("pages.live-demo"); })->name("live-demo");
+// File Translation Routes
+Route::middleware(['auth'])->prefix('dashboard/file-translation')->name('dashboard.file-translation.')->group(function () {
+    Route::get('/',[App\Http\Controllers\Dashboard\FileTranslationController::class, 'index'])->name('index');
+    Route::post('/upload',[App\Http\Controllers\Dashboard\FileTranslationController::class, 'upload'])->name('upload');
+    Route::get('/download/{id}',[App\Http\Controllers\Dashboard\FileTranslationController::class, 'download'])->name('download');
+    Route::delete('/delete/{id}',[App\Http\Controllers\Dashboard\FileTranslationController::class, 'delete'])->name('delete');
+});
+
+// Affiliate Dashboard Routes
+Route::middleware(['auth'])->prefix('dashboard/affiliate')->name('dashboard.affiliate.')->group(function () {
+    Route::get('/',[App\Http\Controllers\Dashboard\AffiliateController::class, 'dashboard'])->name('dashboard');
+    Route::post('/generate-link',[App\Http\Controllers\Dashboard\AffiliateController::class, 'generateLink'])->name('generate-link');
+    Route::get('/stats',[App\Http\Controllers\Dashboard\AffiliateController::class, 'stats'])->name('stats');
+    Route::get("/links", [App\Http\Controllers\Dashboard\AffiliateController::class, "links"])->name("links");
+    Route::post("/toggle-link/{id}", [App\Http\Controllers\Dashboard\AffiliateController::class, "toggleLink"])->name("toggle-link");
+    Route::get("/payouts", [App\Http\Controllers\Dashboard\AffiliateController::class, "payouts"])->name("payouts");
+    Route::post("/request-payout", [App\Http\Controllers\Dashboard\AffiliateController::class, "requestPayout"])->name("request-payout");
+});
+Route::get('/ref/{code}',[App\Http\Controllers\Dashboard\AffiliateController::class, 'trackClick'])->name('affiliate.track');
+
+
+// Certified Translation Routes
+Route::get('/certified-translation', [App\Http\Controllers\CertifiedTranslationController::class, 'index'])->name('certified.translation');
+Route::post('/translation/certified/generate', [App\Http\Controllers\CertifiedTranslationController::class, 'generate'])->name('certified.generate');
+Route::get('/certified/download/{id}', [App\Http\Controllers\CertifiedTranslationController::class, 'download'])->name('certified.download');
+Route::get('/verify-translation/{certificate_id}', [App\Http\Controllers\CertifiedTranslationController::class, 'verify'])->name('certified.verify');
+Route::get('/qr-verify/{certificate_id}', [App\Http\Controllers\CertifiedTranslationController::class, 'verify'])->name('certified.qr.verify');
+
+// Support Routes
+Route::get("/support", [App\Http\Controllers\SupportController::class, "index"])->name("support");
+Route::post("/support/submit", [App\Http\Controllers\SupportController::class, "submit"])->name("support.submit");
+
+
+
+// Support Routes
+Route::get("/support", [App\Http\Controllers\SupportController::class, "index"])->name("support");
+Route::post("/support/submit", [App\Http\Controllers\SupportController::class, "submit"])->name("support.submit");
+
+Route::get('/{slug}', [App\Http\Controllers\PageController::class, 'show'])->name('page.show');
+
+
+// Legal Documents Routes
+
+
+// Legal Documents Routes
+Route::middleware(['auth'])->group(function () {
+});
+
+// Legal Documents Routes
+use App\Http\Controllers\LegalDocumentController;
+
+Route::middleware(['auth'])
+    ->prefix('legal-documents')
+    ->name('legal-documents.')
+    ->group(function () {
+        Route::post('/upload',   [LegalDocumentController::class, 'upload'])->name('upload');
+        Route::post('/payment',  [LegalDocumentController::class, 'payment'])->name('payment');
+        Route::post('/translate',[LegalDocumentController::class, 'translate'])->name('translate');
+        Route::get('/download/{trackingNumber}', [LegalDocumentController::class, 'download'])->name('download');
+    });
+
+// Official Documents Payment Callbacks
+Route::middleware(['auth'])->prefix('dashboard/official-documents')->name('dashboard.official-documents.')->group(function () {
+    Route::get('/success', [App\Http\Controllers\Api\DashboardOfficialDocumentController::class, 'paymentSuccess'])->name('success');
+    Route::get('/cancel', [App\Http\Controllers\Api\DashboardOfficialDocumentController::class, 'paymentCancel'])->name('cancel');
+});
+
+// Official Documents API for Dashboard (with CSRF protection)
+Route::middleware(['auth'])->prefix('api/official-documents')->group(function () {
+    Route::post('/estimate', [App\Http\Controllers\Api\DashboardOfficialDocumentController::class, 'estimate']);
+    Route::post('/create-payment', [App\Http\Controllers\Api\DashboardOfficialDocumentController::class, 'createPayment']);
+    Route::get('/my-documents', [App\Http\Controllers\Api\DashboardOfficialDocumentController::class, 'myDocuments']);
+    Route::get('/download/{id}', [App\Http\Controllers\Api\DashboardOfficialDocumentController::class, 'download']);
+    Route::get('/{id}', [App\Http\Controllers\Api\DashboardOfficialDocumentController::class, 'show']);
+});
+
+// Language and Industry APIs
+Route::get('/api/languages', [App\Http\Controllers\Api\LanguageController::class, 'index']);
+Route::get('/api/industries', [App\Http\Controllers\Api\LanguageController::class, 'industries']);
+
+// Partner Routes
+Route::get('/partners', [App\Http\Controllers\PartnerApplicationController::class, 'index'])->name('partners');
+Route::post('/api/partner-applications', [App\Http\Controllers\PartnerApplicationController::class, 'store'])
+    ->middleware(['honeypot:3', 'dedupe:30', 'advanced.ratelimit:5,10', 'recaptcha:partner_application,0.5']);
+
+// Shipping Management Routes
+Route::middleware(['auth'])->prefix('shipping')->name('shipping.')->group(function () {
+    Route::get('/', [App\Http\Controllers\ShippingController::class, 'index'])->name('index');
+    Route::get('/track', [App\Http\Controllers\ShippingController::class, 'track'])->name('track');
+    Route::get('/{document}', [App\Http\Controllers\ShippingController::class, 'show'])->name('show');
+    Route::post('/{document}/update-status', [App\Http\Controllers\ShippingController::class, 'updateStatus'])->name('update-status');
+    Route::post('/{document}/mark-printed', [App\Http\Controllers\ShippingController::class, 'markPrinted'])->name('mark-printed');
+    Route::get('/{document}/timeline', [App\Http\Controllers\ShippingController::class, 'timeline'])->name('timeline');
+    Route::post('/calculate-cost', [App\Http\Controllers\ShippingController::class, 'calculateCost'])->name('calculate-cost');
+    Route::post('/{document}/request-physical-copy', [App\Http\Controllers\ShippingController::class, 'requestPhysicalCopy'])->name('request-physical-copy');
+});
+
+// Certified Partner Routes
+Route::middleware(['auth'])->prefix('partner')->name('partner.')->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\Partner\CertifiedPartnerController::class, 'dashboard'])->name('dashboard');
+    Route::get('/documents', [App\Http\Controllers\Partner\CertifiedPartnerController::class, 'documents'])->name('documents');
+    Route::get('/documents/{document}', [App\Http\Controllers\Partner\CertifiedPartnerController::class, 'showDocument'])->name('documents.show');
+    Route::post('/documents/{document}/apply-stamp', [App\Http\Controllers\Partner\CertifiedPartnerController::class, 'applyStamp'])->name('documents.apply-stamp');
+    Route::post('/documents/{document}/mark-printed', [App\Http\Controllers\Partner\CertifiedPartnerController::class, 'markPrinted'])->name('documents.mark-printed');
+    Route::get('/documents/{document}/download', [App\Http\Controllers\Partner\CertifiedPartnerController::class, 'downloadForPrint'])->name('documents.download');
+    Route::get('/print-queue', [App\Http\Controllers\Partner\CertifiedPartnerController::class, 'printQueue'])->name('print-queue');
+    Route::post('/upload-stamp', [App\Http\Controllers\Partner\CertifiedPartnerController::class, 'uploadStamp'])->name('upload-stamp');
+    Route::get('/earnings', [App\Http\Controllers\Partner\CertifiedPartnerController::class, 'earnings'])->name('earnings');
+});
+
+// Analytics Dashboard Routes
+Route::middleware(['auth'])->prefix('admin/analytics')->name('admin.analytics.')->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\Admin\AnalyticsDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/data', [App\Http\Controllers\Admin\AnalyticsDashboardController::class, 'getData'])->name('data');
+    Route::get('/export', [App\Http\Controllers\Admin\AnalyticsDashboardController::class, 'export'])->name('export');
+});
+
+require __DIR__.'/partner_web.php';
+
+// Documentation Routes
+Route::get('/docs/partners', [App\Http\Controllers\DocumentationController::class, 'partners'])->name('docs.partners');
+Route::get('/api/v1', [App\Http\Controllers\DocumentationController::class, 'apiIndex'])->name('api.index');
+Route::get('/verify/{code}', [App\Http\Controllers\VerificationController::class, 'show'])->name('verification.show');
+Route::get('/verify/{code}/pdf', [App\Http\Controllers\VerificationController::class, 'exportPdf'])->name('verification.pdf');
+
+// API Verification Routes
+Route::prefix('api')->group(function () {
+    Route::get('/verify/{code}', [App\Http\Controllers\API\ApiVerificationController::class, 'verify']);
+    Route::get('/countries', [App\Http\Controllers\API\ApiVerificationController::class, 'countries']);
+    Route::get('/sectors', [App\Http\Controllers\API\ApiVerificationController::class, 'sectors']);
+});
+
+
+// Legal Sub-Pages
+Route::get('/legal-documents/terms-of-service', function() {
+    return app(App\Http\Controllers\PageController::class)->show('terms-of-service');
+})->name('legal.tos');
+
+Route::get('/legal-documents/privacy-policy', function() {
+    return app(App\Http\Controllers\PageController::class)->show('privacy-policy');
+})->name('legal.privacy');
+
+Route::get('/legal-documents/translation-standards', function() {
+    return app(App\Http\Controllers\PageController::class)->show('translation-standards');
+})->name('legal.standards');
+
+// Monitoring Dashboard Routes
+Route::middleware(['auth'])->prefix('monitoring')->name('monitoring.')->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\MonitoringController::class, 'dashboard'])->name('dashboard');
+    Route::get('/download-report/{file}', [App\Http\Controllers\MonitoringController::class, 'downloadReport'])->name('download-report');
+});
+
+// Monitoring API Routes
+Route::middleware(['auth'])->prefix('api/monitoring')->group(function () {
+    Route::get('/status', [App\Http\Controllers\MonitoringController::class, 'getStatus']);
+    Route::get('/reports', [App\Http\Controllers\MonitoringController::class, 'getReports']);
+    Route::get('/alerts', [App\Http\Controllers\MonitoringController::class, 'getAlerts']);
+    Route::post('/run-check', [App\Http\Controllers\MonitoringController::class, 'runCheck']);
+});
+
+// Missing Routes - Added by Platform Health Check
+// Official Documents Routes
+Route::middleware(['auth'])->prefix('official-documents')->name('official-documents.')->group(function () {
+    Route::get('/', [App\Http\Controllers\OfficialDocumentController::class, 'index'])->name('index');
+    Route::get('/my-documents', [App\Http\Controllers\OfficialDocumentController::class, 'myDocuments'])->name('my-documents');
+    Route::post('/upload', [App\Http\Controllers\OfficialDocumentController::class, 'upload'])->name('upload');
+});
+
+// Official Documents Upload Form (alternative route name)
+Route::middleware(['auth'])->get('/official/documents/upload/form', [App\Http\Controllers\OfficialDocumentController::class, 'uploadForm'])->name('official.documents.upload.form');
+
+// Official Documents Aliases (for backward compatibility)
+Route::middleware(['auth'])->prefix('official/documents')->name('official.documents.')->group(function () {
+    Route::get('/', [App\Http\Controllers\OfficialDocumentController::class, 'index'])->name('index');
+    Route::get('/my-documents', [App\Http\Controllers\OfficialDocumentController::class, 'myDocuments'])->name('my-documents');
+    Route::post('/store', [App\Http\Controllers\OfficialDocumentController::class, 'store'])->name('store');
+});
+
+// Partner API Keys Routes
+Route::middleware(['auth'])->prefix('partner/api-keys')->name('partner.api-keys.')->group(function () {
+    Route::post('/create', [App\Http\Controllers\Partner\ApiKeyController::class, 'create'])->name('create');
+    Route::post('/revoke', [App\Http\Controllers\Partner\ApiKeyController::class, 'revoke'])->name('revoke');
+});
+
+// API Documentation Route
+Route::get('/api/docs', [App\Http\Controllers\DocumentationController::class, 'apiDocs'])->name('api.docs.page');
+
+// CulturalTranslate API v1 Route
+// Route::get('/culturaltranslate/v1', [App\Http\Controllers\API\ApiController::class, 'v1Info'])->name('culturaltranslate/v1');
+
+// Admin Dashboard Routes
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/ai-agent-chat/send', [App\Http\Controllers\Admin\AiAgentChatController::class, 'send'])->name('ai-agent-chat.send');
+});
+
+// Partner Dashboard Route
+Route::middleware(['auth'])->group(function () {
+    Route::get('/partner/dashboard', [App\Http\Controllers\PartnerController::class, 'dashboard'])->name('partner.dashboard');
+});
+
+Route::get('/about-cts', function () {
+    return view('cts.about');
+})->name('cts.about');
+
+Route::get('/cts-standard', function () {
+    return view('cts.standard');
+})->name('cts.standard');
+
+Route::get('/cultural-risk-engine', function () {
+    return view('cts.risk-engine');
+})->name('cts.risk-engine');
+
+Route::get('/certificate-verification', function () {
+    return view('cts.verification');
+})->name('cts.verification');
+
+Route::get('/verify-certificate', function () {
+    return view('cts.verify');
+})->name('cts.verify');
+
+Route::post('/verify-certificate', function () {
+    // TODO: Implement certificate verification logic
+    return back()->with('message', 'Certificate verification feature coming soon');
+})->name('cts.verify.post');
+
+
+Route::get('/docs/partners', function () {
+    return view('partners.program');
+})->name('partners.program');
+
+Route::get('/api/v1', function () {
+    return view('docs.api');
+})->name('api.docs.page');
+
+Route::get('/partner-api-swagger.yaml', function () {
+    // TODO: Generate OpenAPI specification
+    return response()->json([
+        'openapi' => '3.0.0',
+        'info' => [
+            'title' => 'CulturalTranslate API',
+            'version' => '1.0.0',
+            'description' => 'API for cultural translation services'
+        ],
+        'servers' => [
+            ['url' => 'https://culturaltranslate.com/api/v1']
+        ],
+        'paths' => []
+    ]);
+})->name('api.openapi');
+
+Route::get('/partner/apply', function () {
+    return redirect()->route('contact')->with('message', 'Please contact us to apply for partnership');
+})->name('partner.apply');
+
+Route::get('/partner/dashboard', function () {
+    return redirect()->route('login')->with('message', 'Please login to access partner dashboard');
+})->name('partner.dashboard');
+
+Route::get('/docs/getting-started', function () {
+    return view('docs.getting-started');
+})->name('docs.getting-started');
+
+
+Route::prefix('partners')->name('partners.')->group(function () {
+    Route::get('/register', [\App\Http\Controllers\Partner\RegistrationController::class, 'showForm'])->name('register');
+    Route::post('/register', [\App\Http\Controllers\Partner\RegistrationController::class, 'register'])->name('register.submit');
+    Route::get('/success', [\App\Http\Controllers\Partner\RegistrationController::class, 'success'])->name('success');
+    
+    Route::middleware('auth:partner_users')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\Partner\DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/api-keys', [\App\Http\Controllers\Partner\DashboardController::class, 'apiKeys'])->name('api-keys');
+        Route::post('/api-keys/regenerate', [\App\Http\Controllers\Partner\DashboardController::class, 'regenerateApiKey'])->name('api-keys.regenerate');
+    });
+});
+
+Route::prefix('certificates')->name('certificates.')->group(function () {
+    Route::get('/verify', [\App\Http\Controllers\Certificate\VerificationController::class, 'showForm'])->name('verify');
+    Route::post('/verify', [\App\Http\Controllers\Certificate\VerificationController::class, 'verify'])->name('verify.check');
+    Route::get('/download/{id}', [\App\Http\Controllers\Certificate\VerificationController::class, 'download'])->name('download');
+});
+
+Route::get('/verify', [App\Http\Controllers\CertificateVerificationController::class, 'index'])->name('certificates.verify');
+Route::post('/verify', [App\Http\Controllers\CertificateVerificationController::class, 'verify'])->name('certificates.verify.submit');
+// Government Portal  
+// Government Portal (Clean)
+Route::get('/government', [App\Http\Controllers\Government\GovernmentController::class, 'index'])->name('government.index');
+Route::post('/government/submit', [App\Http\Controllers\Government\GovernmentController::class, 'submit'])->name('government.submit');

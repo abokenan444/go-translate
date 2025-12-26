@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Legal Pages Test</title>
+    <script>
+        async function testPages() {
+            const pages = [
+                '/privacy-policy',
+                '/sla',
+                '/legal-disclaimer',
+                '/terms',
+                '/pricing-plans'
+            ];
+            
+            const results = document.getElementById('results');
+            results.innerHTML = '<h3>Testing...</h3>';
+            
+            for (const page of pages) {
+                try {
+                    const response = await fetch('https://culturaltranslate.com' + page);
+                    const text = await response.text();
+                    const status = response.status;
+                    
+                    let row = document.createElement('div');
+                    row.style.padding = '10px';
+                    row.style.borderBottom = '1px solid #ccc';
+                    
+                    if (status === 200) {
+                        row.style.background = '#d4edda';
+                        row.innerHTML = `✅ ${page} - OK (${(text.length/1024).toFixed(2)} KB)`;
+                    } else {
+                        row.style.background = '#f8d7da';
+                        row.innerHTML = `❌ ${page} - Status: ${status}<br><pre>${text.substring(0, 500)}</pre>`;
+                    }
+                    
+                    results.appendChild(row);
+                } catch (error) {
+                    let row = document.createElement('div');
+                    row.style.padding = '10px';
+                    row.style.background = '#f8d7da';
+                    row.innerHTML = `❌ ${page} - Error: ${error.message}`;
+                    results.appendChild(row);
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+        }
+    </script>
+</head>
+<body onload="testPages()" style="font-family: monospace; padding: 20px;">
+    <h2>🔧 Legal Pages Test Results</h2>
+    <div id="results"></div>
+</body>
+</html>

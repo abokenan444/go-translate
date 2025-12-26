@@ -3,33 +3,56 @@
 namespace App\Filament\Admin\Resources;
 
 use App\Filament\Admin\Resources\IntegrationResource\Pages;
-use App\Filament\Admin\Resources\IntegrationResource\RelationManagers;
 use App\Models\Integration;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class IntegrationResource extends Resource
 {
     protected static ?string $model = Integration::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-puzzle-piece';
+    
+    protected static ?string $navigationGroup = 'Content Management';
+    
+    protected static ?int $navigationSort = 4;
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Select::make("user_id")->relationship("user", "name")->required(),
-                Forms\Components\TextInput::make("platform")->required(),
-                Forms\Components\TextInput::make("site_url"),
-                Forms\Components\Textarea::make("credentials"),
-                Forms\Components\Select::make("status")->options(["active" => "Active", "inactive" => "Inactive", "error" => "Error"]),
-                Forms\Components\KeyValue::make("metadata"),
-                Forms\Components\DateTimePicker::make("last_sync_at"),
+                Forms\Components\TextInput::make('name')
+                    ->label('Name (English)')
+                    ->required()
+                    ->maxLength(255),
+                Forms\Components\TextInput::make('name_ar')
+                    ->label('Name (Arabic)')
+                    ->required()
+                    ->maxLength(255),
+                Forms\Components\Textarea::make('description_en')
+                    ->label('Description (English)')
+                    ->rows(3),
+                Forms\Components\Textarea::make('description_ar')
+                    ->label('Description (Arabic)')
+                    ->rows(3),
+                Forms\Components\TextInput::make('logo_url')
+                    ->label('Logo URL')
+                    ->maxLength(255)
+                    ->url(),
+                Forms\Components\TextInput::make('website_url')
+                    ->label('Website URL')
+                    ->maxLength(255)
+                    ->url(),
+                Forms\Components\TextInput::make('display_order')
+                    ->label('Display Order')
+                    ->numeric()
+                    ->default(0),
+                Forms\Components\Toggle::make('is_active')
+                    ->label('Active')
+                    ->default(true),
             ]);
     }
 
@@ -37,30 +60,47 @@ class IntegrationResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make("user.name")->searchable(),
-                Tables\Columns\TextColumn::make("platform")->searchable(),
-                Tables\Columns\TextColumn::make("site_url"),
-                Tables\Columns\TextColumn::make("status"),
-                Tables\Columns\TextColumn::make("last_sync_at")->dateTime(),
+                Tables\Columns\TextColumn::make('name')
+                    ->label('Name (EN)')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('name_ar')
+                    ->label('Name (AR)')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\ImageColumn::make('logo_url')
+                    ->label('Logo')
+                    ->circular(),
+                Tables\Columns\TextColumn::make('display_order')
+                    ->label('Order')
+                    ->sortable(),
+                Tables\Columns\IconColumn::make('is_active')
+                    ->label('Active')
+                    ->boolean(),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Created')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\TernaryFilter::make('is_active')
+                    ->label('Active')
+                    ->boolean()
+                    ->trueLabel('Active only')
+                    ->falseLabel('Inactive only')
+                    ->native(false),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
+            ])
+            ->defaultSort('display_order');
     }
 
     public static function getPages(): array

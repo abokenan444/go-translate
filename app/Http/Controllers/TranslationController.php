@@ -2,184 +2,214 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\AdvancedTranslationService;
-use App\Services\CulturalAdaptationEngine;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class TranslationController extends Controller
 {
-    protected $translationService;
-    protected $culturalEngine;
-    
-    public function __construct(AdvancedTranslationService $translationService, CulturalAdaptationEngine $culturalEngine)
-    {
-        $this->translationService = $translationService;
-        $this->culturalEngine = $culturalEngine;
-    }
-    
     /**
-     * Show translation page
+     * Demo translation endpoint for guest users
+     * Uses OpenAI API for translation
      */
-    public function index()
+    public function translateDemo(Request $request)
     {
-        $languages = $this->culturalEngine->getAllCultures();
-        $tones = $this->culturalEngine->getAllTones();
-        $industries = $this->culturalEngine->getAllIndustries();
-        $taskTemplates = $this->culturalEngine->getAllTaskTemplates();
-        
-        return view('dashboard.translate', compact('languages', 'tones', 'industries', 'taskTemplates'));
-    }
-    
-    /**
-     * Translate text with advanced cultural adaptation
-     */
-    public function translate(Request $request)
-    {
+        // Validate request
         $request->validate([
-            'text' => 'required|string|max:10000',
+            'text' => 'required|string|max:400',
             'source_language' => 'required|string',
-            'target_language' => 'required|string',
-            'tone' => 'nullable|string',
-            'industry' => 'nullable|string',
-            'task_type' => 'nullable|string',
-            'context' => 'nullable|string|max:1000',
+            'target_language' => 'required|string'
         ]);
-        
-        $user = Auth::user();
-        
-        // Check if user has available quota
-        if (!$this->checkUserQuota($user)) {
+
+        $text = $request->input('text');
+        $sourceLang = $request->input('source_language');
+        $targetLang = $request->input('target_language');
+
+        // Language code mapping
+        $languageNames = [
+            'af' => 'Afrikaans',
+            'sq' => 'Albanian',
+            'am' => 'Amharic',
+            'ar' => 'Arabic',
+            'hy' => 'Armenian',
+            'az' => 'Azerbaijani',
+            'eu' => 'Basque',
+            'be' => 'Belarusian',
+            'bn' => 'Bengali',
+            'bs' => 'Bosnian',
+            'bg' => 'Bulgarian',
+            'ca' => 'Catalan',
+            'ceb' => 'Cebuano',
+            'zh' => 'Chinese (Simplified)',
+            'zh-TW' => 'Chinese (Traditional)',
+            'co' => 'Corsican',
+            'hr' => 'Croatian',
+            'cs' => 'Czech',
+            'da' => 'Danish',
+            'nl' => 'Dutch',
+            'en' => 'English',
+            'eo' => 'Esperanto',
+            'et' => 'Estonian',
+            'fi' => 'Finnish',
+            'fr' => 'French',
+            'fy' => 'Frisian',
+            'gl' => 'Galician',
+            'ka' => 'Georgian',
+            'de' => 'German',
+            'el' => 'Greek',
+            'gu' => 'Gujarati',
+            'ht' => 'Haitian Creole',
+            'ha' => 'Hausa',
+            'haw' => 'Hawaiian',
+            'he' => 'Hebrew',
+            'hi' => 'Hindi',
+            'hmn' => 'Hmong',
+            'hu' => 'Hungarian',
+            'is' => 'Icelandic',
+            'ig' => 'Igbo',
+            'id' => 'Indonesian',
+            'ga' => 'Irish',
+            'it' => 'Italian',
+            'ja' => 'Japanese',
+            'jv' => 'Javanese',
+            'kn' => 'Kannada',
+            'kk' => 'Kazakh',
+            'km' => 'Khmer',
+            'rw' => 'Kinyarwanda',
+            'ko' => 'Korean',
+            'ku' => 'Kurdish',
+            'ky' => 'Kyrgyz',
+            'lo' => 'Lao',
+            'la' => 'Latin',
+            'lv' => 'Latvian',
+            'lt' => 'Lithuanian',
+            'lb' => 'Luxembourgish',
+            'mk' => 'Macedonian',
+            'mg' => 'Malagasy',
+            'ms' => 'Malay',
+            'ml' => 'Malayalam',
+            'mt' => 'Maltese',
+            'mi' => 'Maori',
+            'mr' => 'Marathi',
+            'mn' => 'Mongolian',
+            'my' => 'Myanmar (Burmese)',
+            'ne' => 'Nepali',
+            'no' => 'Norwegian',
+            'ny' => 'Nyanja (Chichewa)',
+            'or' => 'Odia (Oriya)',
+            'ps' => 'Pashto',
+            'fa' => 'Persian',
+            'pl' => 'Polish',
+            'pt' => 'Portuguese',
+            'pa' => 'Punjabi',
+            'ro' => 'Romanian',
+            'ru' => 'Russian',
+            'sm' => 'Samoan',
+            'gd' => 'Scots Gaelic',
+            'sr' => 'Serbian',
+            'st' => 'Sesotho',
+            'sn' => 'Shona',
+            'sd' => 'Sindhi',
+            'si' => 'Sinhala (Sinhalese)',
+            'sk' => 'Slovak',
+            'sl' => 'Slovenian',
+            'so' => 'Somali',
+            'es' => 'Spanish',
+            'su' => 'Sundanese',
+            'sw' => 'Swahili',
+            'sv' => 'Swedish',
+            'tl' => 'Tagalog (Filipino)',
+            'tg' => 'Tajik',
+            'ta' => 'Tamil',
+            'tt' => 'Tatar',
+            'te' => 'Telugu',
+            'th' => 'Thai',
+            'tr' => 'Turkish',
+            'tk' => 'Turkmen',
+            'uk' => 'Ukrainian',
+            'ur' => 'Urdu',
+            'ug' => 'Uyghur',
+            'uz' => 'Uzbek',
+            'vi' => 'Vietnamese',
+            'cy' => 'Welsh',
+            'xh' => 'Xhosa',
+            'yi' => 'Yiddish',
+            'yo' => 'Yoruba',
+            'zu' => 'Zulu'
+        ];
+
+        $sourceLanguageName = $languageNames[$sourceLang] ?? $sourceLang;
+        $targetLanguageName = $languageNames[$targetLang] ?? $targetLang;
+
+        try {
+            // Get OpenAI API key from environment
+            $apiKey = env('OPENAI_API_KEY');
+            
+            if (!$apiKey) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Translation service is not configured'
+                ], 500);
+            }
+
+            // Call OpenAI Chat Completions API for translation (recommended for GPT-5 family)
+            $model = env('OPENAI_MODEL', 'gpt-5.2');
+
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $apiKey,
+                'Content-Type' => 'application/json'
+            ])->timeout(30)->post('https://api.openai.com/v1/chat/completions', [
+                'model' => $model,
+                'messages' => [
+                    [
+                        'role' => 'system',
+                        'content' => 'You are a professional translator. Translate the given text from ' . $sourceLanguageName . ' to ' . $targetLanguageName . '. Preserve the meaning, tone, and cultural context. Only return the translated text without any explanations or additional comments.'
+                    ],
+                    [
+                        'role' => 'user',
+                        'content' => $text
+                    ]
+                ],
+                'temperature' => 0.3,
+                'max_tokens' => 1000
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json() ?? [];
+                $translatedText = '';
+                
+                // Extract from standard Chat Completions format
+                if (!empty($data['choices'][0]['message']['content'])) {
+                    $translatedText = $data['choices'][0]['message']['content'];
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'translated_text' => trim($translatedText),
+                    'source_language' => $sourceLanguageName,
+                    'target_language' => $targetLanguageName
+                ]);
+            } else {
+                Log::error('OpenAI API error', [
+                    'status' => $response->status(),
+                    'body' => $response->body()
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Translation service temporarily unavailable'
+                ], 500);
+            }
+        } catch (\Exception $e) {
+            Log::error('Translation error', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return response()->json([
                 'success' => false,
-                'error' => 'Translation quota exceeded',
-                'message' => 'You have reached your translation limit. Please upgrade your plan.'
-            ], 429);
-        }
-        
-        // Validate language selection
-        if ($request->source_language === $request->target_language) {
-            return response()->json([
-                'success' => false,
-                'error' => 'Same language selected',
-                'message' => 'الرجاء اختيار لغات مختلفة'
-            ], 422);
-        }
-        
-        // Perform translation
-        $result = $this->translationService->translate([
-            'text' => $request->text,
-            'source_language' => $request->source_language,
-            'target_language' => $request->target_language,
-            'tone' => $request->tone ?? 'professional',
-            'industry' => $request->industry,
-            'task_type' => $request->task_type,
-            'context' => $request->context,
-        ]);
-        
-        if (!$result['success']) {
-            return response()->json([
-                'success' => false,
-                'error' => $result['error'] ?? 'Translation failed',
+                'message' => 'An error occurred during translation'
             ], 500);
         }
-        
-        // Save translation to database
-        try {
-            $translationId = DB::table('translations')->insertGetId([
-                'user_id' => $user->id,
-                'source_text' => $request->text,
-                'translated_text' => $result['translated_text'],
-                'source_language' => $request->source_language,
-                'target_language' => $request->target_language,
-                'tone' => $request->tone ?? 'professional',
-                'context' => $request->context,
-                'word_count' => $result['word_count'],
-                'total_tokens' => $result['total_tokens'] ?? $result['tokens_used'] ?? 0,
-                'tokens_in' => round($result['tokens_used'] * 0.6),
-                'tokens_out' => round($result['tokens_used'] * 0.4),
-                'quality_score' => $result['quality_score'] ?? null,
-                'response_time_ms' => $result['response_time_ms'] ?? 0,
-                'is_cached' => $result['cached'] ?? false,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-            
-            // Update user stats (if not cached)
-            if (!($result['cached'] ?? false)) {
-                $tokensUsed = $result['total_tokens'] ?? $result['tokens_used'] ?? 0;
-                $this->updateUserQuota($user, $tokensUsed);
-            }
-            
-        } catch (\Exception $e) {
-            // Log error but don't fail the request
-            \Log::error('Failed to save translation: ' . $e->getMessage());
-        }
-        
-        return response()->json([
-            'success' => true,
-            'translated_text' => $result['translated_text'],
-            'source_language' => $result['source_language'],
-            'target_language' => $result['target_language'],
-            'tone' => $result['tone'],
-            'word_count' => $result['word_count'],
-            'tokens_used' => $result['total_tokens'] ?? $result['tokens_used'] ?? 0,
-            'quality_score' => $result['quality_score'] ?? null,
-            'cached' => $result['cached'] ?? false,
-            'response_time_ms' => $result['response_time_ms'] ?? 0,
-        ]);
-    }
-    
-    /**
-     * Detect language
-     */
-    public function detectLanguage(Request $request)
-    {
-        $request->validate([
-            'text' => 'required|string|max:1000',
-        ]);
-        
-        $result = $this->translationService->detectLanguage($request->text);
-        
-        return response()->json($result);
-    }
-    
-    /**
-     * Get translation history
-     */
-    public function history(Request $request)
-    {
-        $user = Auth::user();
-        
-        $translations = DB::table('translations')
-            ->where('user_id', $user->id)
-            ->orderBy('created_at', 'desc')
-            ->limit(50)
-            ->get();
-        
-        return response()->json([
-            'success' => true,
-            'translations' => $translations,
-        ]);
-    }
-    
-    /**
-     * Check user translation quota
-     */
-    protected function checkUserQuota($user): bool
-    {
-        // For now, always return true
-        // TODO: Implement proper quota checking based on user plan
-        return true;
-    }
-    
-    /**
-     * Update user quota usage
-     */
-    protected function updateUserQuota($user, int $tokensUsed): void
-    {
-        // TODO: Implement quota tracking
-        // This would update user_stats table or similar
     }
 }

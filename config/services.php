@@ -1,6 +1,9 @@
 <?php
 
 return [
+    'openai' => [
+        'key' => env('OPENAI_API_KEY'),
+    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -72,6 +75,7 @@ return [
 
     // External translation API endpoints
     'translation_api' => [
+        'key' => env('TRANSLATION_API_KEY'),
         'pages_endpoint' => env('TRANSLATION_PAGES_ENDPOINT', env('APP_URL') . '/api/translate-pages'),
     ],
 
@@ -101,6 +105,32 @@ return [
             'key' => env('ELEVENLABS_API_KEY'),
             'default_voice' => env('ELEVENLABS_DEFAULT_VOICE', '21m00Tcm4TlvDq8ikWAM'),
         ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Google reCAPTCHA Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for Google reCAPTCHA v3
+    | Get your keys from: https://www.google.com/recaptcha/admin
+    |
+    */
+
+    'recaptcha' => [
+        'site_key' => env('RECAPTCHA_SITE_KEY', ''),
+        'secret_key' => env('RECAPTCHA_SECRET_KEY', ''),
+        'min_score' => env('RECAPTCHA_MIN_SCORE', 0.5), // Score threshold (0.0 to 1.0)
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Firebase Cloud Messaging (FCM) - Push Notifications
+    |--------------------------------------------------------------------------
+    */
+
+    'fcm' => [
+        'server_key' => env('FCM_SERVER_KEY'),
     ],
 
 ];

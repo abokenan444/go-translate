@@ -4,7 +4,9 @@ use Illuminate\Support\Facades\Route;
 
 // Health endpoints (بسيطة للمراقبة)
 Route::get('/health', [AIDeveloperController::class, 'publicHealth'])->name('health.public');
-Route::get('/api/health', [AIDeveloperController::class, 'apiHealth'])->name('health.api');
+Route::middleware(['web', 'ai.dev.auth', 'throttle:30,1'])
+    ->get('/api/health', [AIDeveloperController::class, 'apiHealth'])
+    ->name('health.api');
 
 // صفحة تسجيل الدخول (غير محمية)
 Route::get('/ai-developer/login', [AIDeveloperController::class, 'showLogin'])->name('ai-developer.login');

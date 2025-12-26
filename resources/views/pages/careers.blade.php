@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', __('pages.careers.title'))
+@section('title', 'Careers - CulturalTranslate')
 
 @section('content')
 <div class="container mx-auto px-4 py-10">
     <div class="max-w-3xl">
-        <h1 class="text-3xl font-semibold">{{ __('pages.careers.heading') }}</h1>
-        <p class="text-gray-600 mt-2">{{ __('pages.careers.intro') }}</p>
+        <h1 class="text-3xl font-semibold">Join Our Team</h1>
+        <p class="text-gray-600 mt-2">Help us build the future of culturally intelligent translation technology</p>
     </div>
 
     <!-- Mission & Values -->
@@ -35,8 +35,9 @@
 
     <!-- Open Roles -->
     <div class="mt-10">
-        <h2 class="text-2xl font-semibold">{{ __('pages.careers.open_roles') }}</h2>
-        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <h2 class="text-2xl font-semibold">Open Positions</h2>
+        <p class="text-gray-600 mt-2 mb-6">No open roles at the moment. Please check back soon.</p>
+        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6 opacity-50">
             <div class="p-5 border rounded-lg bg-white">
                 <h3 class="text-lg font-medium">Senior Laravel Engineer</h3>
                 <p class="text-gray-700 mt-2">Own backend architecture, performance, and reliability across our API and admin stack.</p>
@@ -74,8 +75,8 @@
 
     <!-- How to Apply -->
     <div class="mt-10 p-5 border rounded-lg bg-white">
-        <h2 class="text-xl font-medium">{{ __('pages.careers.how_to_apply') }}</h2>
-        <p class="text-gray-700 mt-2">{{ __('pages.careers.apply_instructions') }}</p>
+        <h2 class="text-xl font-medium">How to Apply</h2>
+        <p class="text-gray-700 mt-2">Interested in joining our team? Send your resume and portfolio to our careers email. We're always looking for talented individuals passionate about language and technology.</p>
         <p class="mt-2"><a href="mailto:careers@culturaltranslate.com" class="text-blue-600 hover:underline">careers@culturaltranslate.com</a></p>
     </div>
 </div>
@@ -85,6 +86,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('favicon.png') }}">
     <title>Careers - CulturalTranslate</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>

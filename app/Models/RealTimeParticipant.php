@@ -15,6 +15,8 @@ class RealTimeParticipant extends Model
         'user_id',
         'external_id',
         'display_name',
+        'send_language',
+        'receive_language',
         'role',
         'status',
         'is_muted',

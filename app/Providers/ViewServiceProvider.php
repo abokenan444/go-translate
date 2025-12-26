@@ -20,26 +20,11 @@ class ViewServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // مشاركة عناصر القائمة فقط مع جميع الـ Views
-        // الإحصائيات يتم تمريرها من Controllers المختصة
+        // مشاركة عناصر قائمة فارغة لتجنب الأخطاء
         View::composer('*', function ($view) {
-            // جلب عناصر قائمة الهيدر
-            $headerMenuItems = MenuItem::active()
-                ->inLocation('header')
-                ->topLevel()
-                ->ordered()
-                ->get();
-
-            // جلب عناصر قائمة الفوتر
-            $footerMenuItems = MenuItem::active()
-                ->inLocation('footer')
-                ->topLevel()
-                ->ordered()
-                ->get();
-
             $view->with([
-                'headerMenuItems' => $headerMenuItems,
-                'footerMenuItems' => $footerMenuItems,
+                'headerMenuItems' => collect(),
+                'footerMenuItems' => collect(),
             ]);
         });
     }

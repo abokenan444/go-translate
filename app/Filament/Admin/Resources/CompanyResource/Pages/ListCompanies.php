@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Filament\Admin\Resources\CompanyResource\Pages;
 
 use App\Filament\Admin\Resources\CompanyResource;

@@ -27,7 +27,7 @@ class OpenAIService
                 'Authorization' => 'Bearer ' . $this->apiKey,
                 'Content-Type' => 'application/json',
             ])->timeout(60)->post($this->baseUrl . '/chat/completions', [
-                'model' => $options['model'] ?? 'gpt-4',
+                'model' => $options['model'] ?? 'gpt-5',
                 'messages' => [
                     [
                         'role' => 'system',
@@ -49,7 +49,7 @@ class OpenAIService
                 return [
                     'success' => true,
                     'translated_text' => trim($translatedText),
-                    'model' => $data['model'] ?? 'gpt-4',
+                    'model' => $data['model'] ?? 'gpt-5',
                     'usage' => $data['usage'] ?? [],
                 ];
             }
@@ -172,7 +172,7 @@ class OpenAIService
                 'Authorization' => 'Bearer ' . $this->apiKey,
                 'Content-Type' => 'application/json',
             ])->timeout(30)->post($this->baseUrl . '/chat/completions', [
-                'model' => 'gpt-4',
+                'model' => 'gpt-5',
                 'messages' => [
                     ['role' => 'system', 'content' => 'You are a text analysis expert.'],
                     ['role' => 'user', 'content' => $prompt]

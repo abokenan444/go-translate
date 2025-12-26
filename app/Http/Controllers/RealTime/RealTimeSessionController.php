@@ -4,13 +4,21 @@ namespace App\Http\Controllers\RealTime;
 
 use App\Http\Controllers\Controller;
 use App\Models\RealTimeSession;
+use App\Models\MobileContact;
+use App\Models\MobileNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class RealTimeSessionController extends Controller
 {
     public function create(Request $request)
     {
+        Log::info('RealTimeSession create called', [
+            'input' => $request->all(),
+            'user_id' => $request->user()?->id,
+        ]);
+        
         $data = $request->validate([
             'type' => 'nullable|string|in:meeting,call,game,webinar',
             'title' => 'nullable|string|max:255',
@@ -22,6 +30,7 @@ class RealTimeSessionController extends Controller
             'record_audio' => 'boolean',
             'record_transcript' => 'boolean',
             'max_participants' => 'nullable|integer|min:2|max:50',
+            'contact_id' => 'nullable|integer|exists:mobile_contacts,id',
         ]);
 
         $user = $request->user();
@@ -46,6 +55,35 @@ class RealTimeSessionController extends Controller
             ],
         ]);
 
+        // If calling a contact, send notification to the receiver
+        if (!empty($data['contact_id'])) {
+            Log::info('Contact ID provided, looking for contact', ['contact_id' => $data['contact_id']]);
+            $contact = MobileContact::find($data['contact_id']);
+            Log::info('Contact found', ['contact' => $contact?->toArray()]);
+            
+            if ($contact && $contact->contact_user_id) {
+                Log::info('Creating incoming_call notification for user', ['receiver_user_id' => $contact->contact_user_id]);
+                MobileNotification::create([
+                    'user_id' => $contact->contact_user_id,
+                    'type' => 'incoming_call',
+                    'title' => '📞 مكالمة واردة',
+                    'body' => "{$user->name} يتصل بك الآن",
+                    'data' => [
+                        'session_id' => $session->public_id,
+                        'caller_id' => $user->id,
+                        'caller_name' => $user->name,
+                        'source_language' => $data['source_language'],
+                        'target_language' => $data['target_language'],
+                    ],
+                ]);
+                Log::info('Notification created successfully');
+            } else {
+                Log::warning('Contact has no contact_user_id', ['contact_id' => $data['contact_id']]);
+            }
+        } else {
+            Log::info('No contact_id provided in request');
+        }
+
         return response()->json([
             'ok' => true,
             'session' => [
@@ -62,5 +100,38 @@ class RealTimeSessionController extends Controller
             ->firstOrFail();
 
         return view('realtime.meeting', compact('session'));
+    }
+
+    /**
+     * End a realtime session
+     */
+    public function end(Request $request, string $publicId)
+    {
+        $session = RealTimeSession::where('public_id', $publicId)->first();
+
+        if (!$session) {
+            return response()->json([
+                'ok' => true,
+                'message' => 'Session already ended or not found',
+            ]);
+        }
+
+        // Update session
+        $session->update([
+            'is_active' => false,
+            'ended_at' => now(),
+        ]);
+
+        // Disconnect all participants
+        $session->participants()->update([
+            'status' => 'disconnected',
+            'left_at' => now(),
+        ]);
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Session ended successfully',
+            'duration_seconds' => $session->started_at ? now()->diffInSeconds($session->started_at) : 0,
+        ]);
     }
 }

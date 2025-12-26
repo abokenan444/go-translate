@@ -10,11 +10,68 @@ use Illuminate\Support\Facades\Auth;
 class TranslationService
 {
     protected $apiKey;
-    protected $model = 'gpt-4o-mini';
+    /**
+     * OpenAI model ID (defaults to GPT-5.2; override via OPENAI_MODEL).
+     */
+    protected string $model;
+
+    /**
+     * OpenAI Chat Completions API endpoint.
+     */
+    protected string $endpoint = 'https://api.openai.com/v1/chat/completions';
 
     public function __construct()
     {
         $this->apiKey = env('OPENAI_API_KEY');
+        $this->model = env('OPENAI_MODEL', 'gpt-5.2');
+    }
+
+    /**
+     * Minimal wrapper around the Chat Completions API.
+     *
+     * @param array $messages Chat-style messages: [['role'=>'system'|'user'|'assistant','content'=>string], ...]
+     * @param int $maxOutputTokens
+     * @param float|null $temperature
+     */
+    protected function callOpenAI(array $messages, int $maxOutputTokens = 1024, ?float $temperature = null): array
+    {
+        $body = [
+            'model' => $this->model,
+            'messages' => $messages,
+            'max_tokens' => $maxOutputTokens,
+        ];
+
+        if ($temperature !== null) {
+            $body['temperature'] = $temperature;
+        }
+
+        $resp = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $this->apiKey,
+            'Content-Type' => 'application/json',
+        ])->timeout(60)->post($this->endpoint, $body);
+
+        return [
+            'ok' => $resp->successful(),
+            'json' => $resp->successful() ? ($resp->json() ?? []) : [],
+            'body' => $resp->body(),
+            'status' => $resp->status(),
+        ];
+    }
+
+    /**
+     * Extract output text from Chat Completions API response.
+     */
+    protected function extractOutputText(array $payload): string
+    {
+        // Standard Chat Completions API response format
+        if (!empty($payload['choices']) && is_array($payload['choices'])) {
+            $firstChoice = $payload['choices'][0] ?? null;
+            if ($firstChoice && isset($firstChoice['message']['content'])) {
+                return $firstChoice['message']['content'];
+            }
+        }
+
+        return '';
     }
 
     /**
@@ -25,28 +82,20 @@ class TranslationService
         $prompt = $this->buildCulturalPrompt($text, $sourceLang, $targetLang, $context, $tone);
         
         try {
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->apiKey,
-                'Content-Type' => 'application/json',
-            ])->timeout(60)->post('https://api.openai.com/v1/chat/completions', [
-                'model' => $this->model,
-                'messages' => [
-                    [
-                        'role' => 'system',
-                        'content' => 'You are a professional cultural translator. Your job is to translate text while preserving cultural context, emotional tone, and brand voice. Always provide natural, culturally appropriate translations that resonate with the target audience.'
-                    ],
-                    [
-                        'role' => 'user',
-                        'content' => $prompt
-                    ]
+            $api = $this->callOpenAI([
+                [
+                    'role' => 'system',
+                    'content' => 'You are a professional cultural translator. Your job is to translate text while preserving cultural context, emotional tone, and brand voice. Always provide natural, culturally appropriate translations that resonate with the target audience.'
                 ],
-                'temperature' => 0.7,
-                'max_tokens' => 2000,
-            ]);
+                [
+                    'role' => 'user',
+                    'content' => $prompt
+                ],
+            ], 2000, 0.3);
 
-            if ($response->successful()) {
-                $data = $response->json();
-                $translation = $data['choices'][0]['message']['content'] ?? '';
+            if ($api['ok']) {
+                $data = $api['json'];
+                $translation = $this->extractOutputText($data);
                 
                 $result = [
                     'success' => true,
@@ -58,7 +107,8 @@ class TranslationService
                     'tone' => $tone,
                     'context' => $context,
                     'word_count' => str_word_count($text ?? ''),
-                    'total_tokens' => $data['usage']['total_tokens'] ?? 0,
+                    // Usage shape differs between APIs; keep it defensive.
+                    'total_tokens' => $data['usage']['total_tokens'] ?? ($data['usage']['output_tokens'] ?? 0),
                 ];
 
                 // Save training data asynchronously (won't affect response time)
@@ -70,7 +120,7 @@ class TranslationService
             return [
                 'success' => false,
                 'error' => 'API request failed',
-                'message' => $response->body()
+                'message' => $api['body']
             ];
         } catch (\Exception $e) {
             Log::error('Translation error: ' . $e->getMessage());
@@ -186,28 +236,20 @@ class TranslationService
     public function detectLanguage($text)
     {
         try {
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->apiKey,
-                'Content-Type' => 'application/json',
-            ])->timeout(30)->post('https://api.openai.com/v1/chat/completions', [
-                'model' => $this->model,
-                'messages' => [
-                    [
-                        'role' => 'system',
-                        'content' => 'You are a language detection expert. Respond with only the ISO 639-1 language code (e.g., en, ar, es, fr).'
-                    ],
-                    [
-                        'role' => 'user',
-                        'content' => "Detect the language of this text and respond with only the language code:\n\n{$text}"
-                    ]
+            $api = $this->callOpenAI([
+                [
+                    'role' => 'system',
+                    'content' => 'You are a language detection expert. Respond with only the ISO 639-1 language code (e.g., en, ar, es, fr).'
                 ],
-                'temperature' => 0.3,
-                'max_tokens' => 10,
-            ]);
+                [
+                    'role' => 'user',
+                    'content' => "Detect the language of this text and respond with only the language code:\n\n{$text}"
+                ]
+            ], 10, 0.0);
 
-            if ($response->successful()) {
-                $data = $response->json();
-                $langCode = trim($data['choices'][0]['message']['content'] ?? 'en');
+            if ($api['ok']) {
+                $data = $api['json'];
+                $langCode = trim($this->extractOutputText($data) ?: 'en');
                 return strtolower($langCode);
             }
 

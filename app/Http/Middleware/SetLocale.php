@@ -14,47 +14,81 @@ class SetLocale
      */
     public function handle(Request $request, Closure $next)
     {
-        // Priority: Session > Cookie > Browser > Default
-        $locale = Session::get('locale') 
-                  ?? $request->cookie('locale')
-                  ?? $this->getBrowserLocale($request)
-                  ?? config('app.locale');
+        // Get locale from various sources (priority order)
+        $locale = $this->getLocale($request);
         
-        // Validate and set locale
-        if (in_array($locale, ['en', 'ar'])) {
-            App::setLocale($locale);
-            
-            // Set direction for RTL languages
-            if ($locale === 'ar') {
-                config(['app.direction' => 'rtl']);
-            }
-        }
+        // Set application locale
+        App::setLocale($locale);
+        
+        // Store in session for persistence
+        Session::put('locale', $locale);
         
         return $next($request);
     }
     
     /**
-     * Get browser preferred language
+     * Get locale from request
      */
-    private function getBrowserLocale(Request $request)
+    protected function getLocale(Request $request): string
     {
-        $browserLang = $request->server('HTTP_ACCEPT_LANGUAGE');
-        
-        if (!$browserLang) {
-            return null;
-        }
-        
-        // Parse Accept-Language header
-        $languages = explode(',', $browserLang);
-        
-        foreach ($languages as $lang) {
-            $lang = strtolower(substr($lang, 0, 2));
-            
-            if (in_array($lang, ['en', 'ar'])) {
-                return $lang;
+        // 1. Check URL parameter (?lang=ar)
+        if ($request->has('lang')) {
+            $locale = $request->get('lang');
+            if ($this->isValidLocale($locale)) {
+                return $locale;
             }
         }
         
-        return null;
+        // 2. Check session
+        if (Session::has('locale')) {
+            $locale = Session::get('locale');
+            if ($this->isValidLocale($locale)) {
+                return $locale;
+            }
+        }
+        
+        // 3. Check user preference (if authenticated)
+        if (auth()->check() && auth()->user()->locale) {
+            $locale = auth()->user()->locale;
+            if ($this->isValidLocale($locale)) {
+                return $locale;
+            }
+        }
+        
+        // 4. Default to English (don't auto-detect browser language)
+        return config('app.locale', 'en');
+    }
+    
+    /**
+     * Check if locale is valid
+     */
+    protected function isValidLocale(string $locale): bool
+    {
+        return in_array($locale, $this->getSupportedLocales());
+    }
+    
+    /**
+     * Get supported locales
+     */
+    protected function getSupportedLocales(): array
+    {
+        return [
+            'ar', // Arabic
+            'en', // English
+            'nl', // Dutch
+            'de', // German
+            'fr', // French
+            'es', // Spanish
+            'pl', // Polish
+            'tr', // Turkish
+            'ja', // Japanese
+            'zh', // Chinese
+            'hi', // Hindi
+            'ru', // Russian
+            'ko', // Korean
+            'pt', // Portuguese
+            'it', // Italian
+            'id', // Indonesian
+        ];
     }
 }

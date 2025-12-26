@@ -2,29 +2,31 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ApiKey extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
+        'user_id',
         'company_id',
-        'name',
         'key',
-        'type',
-        'daily_limit',
+        'name',
+        'scopes',
+        'expires_at',
         'is_active',
-        'last_used_at',
     ];
 
     protected $casts = [
+        'expires_at' => 'datetime',
         'is_active' => 'boolean',
-        'daily_limit' => 'integer',
-        'last_used_at' => 'datetime',
+        'scopes' => 'array',
     ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function company(): BelongsTo
     {

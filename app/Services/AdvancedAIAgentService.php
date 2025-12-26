@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\File;
 class AdvancedAIAgentService
 {
     protected string $openaiApiKey;
-    protected string $model = 'gpt-4';
+    protected string $model = 'gpt-5';
     protected array $conversationHistory = [];
 
     public function __construct()

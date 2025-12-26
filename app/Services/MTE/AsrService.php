@@ -33,10 +33,13 @@ class AsrService
             return ['success' => false, 'error' => 'Whisper CLI not found. Set WHISPER_CLI_PATH'];
         }
 
-        $lang = $language === 'auto' ? '' : '--language ' . escapeshellarg($language);
+        $langArg = $language === 'auto' ? '' : ('--language ' . escapeshellarg($language));
         $outputDir = dirname($audioPath);
-        $cmd = sprintf('"%s" "%s" %s --output_dir "%s" --output_format json 2>&1',
-            $whisperPath, $audioPath, $lang, $outputDir);
+        $cmd = escapeshellarg($whisperPath)
+            . ' ' . escapeshellarg($audioPath)
+            . ($langArg !== '' ? (' ' . $langArg) : '')
+            . ' --output_dir ' . escapeshellarg($outputDir)
+            . ' --output_format json 2>&1';
         
         $output = shell_exec($cmd);
         $jsonPath = $audioPath . '.json';

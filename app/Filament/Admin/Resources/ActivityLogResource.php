@@ -16,97 +16,105 @@ class ActivityLogResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
     
-    protected static ?string $navigationLabel = 'سجل النشاطات';
+    protected static ?string $navigationGroup = 'Analytics & Logs';
     
-    protected static ?string $pluralModelLabel = 'سجل النشاطات';
-    
-    protected static ?string $navigationGroup = 'النظام';
-    
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 2;
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                Forms\Components\Select::make('user_id')
+                    ->label('User')
+                    ->relationship('user', 'name')
+                    ->searchable()
+                    ->preload(),
+                Forms\Components\TextInput::make('action')
+                    ->label('Action')
+                    ->required()
+                    ->maxLength(255),
+                Forms\Components\TextInput::make('model_type')
+                    ->label('Model Type')
+                    ->maxLength(255),
+                Forms\Components\TextInput::make('model_id')
+                    ->label('Model ID')
+                    ->numeric(),
+                Forms\Components\Textarea::make('description')
+                    ->label('Description')
+                    ->rows(2),
+                Forms\Components\Textarea::make('changes')
+                    ->label('Changes (JSON)')
+                    ->rows(3),
+                Forms\Components\TextInput::make('ip_address')
+                    ->label('IP Address')
+                    ->maxLength(255),
+                Forms\Components\TextInput::make('user_agent')
+                    ->label('User Agent')
+                    ->maxLength(500),
+            ]);
+    }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('id')
-                    ->label('ID')
-                    ->sortable(),
-                
                 Tables\Columns\TextColumn::make('user.name')
-                    ->label('المستخدم')
-                    ->sortable()
+                    ->label('User')
                     ->searchable()
-                    ->default('نظام'),
-                
-                Tables\Columns\BadgeColumn::make('action')
-                    ->label('الإجراء')
-                    ->colors([
-                        'success' => 'create',
-                        'warning' => 'update',
-                        'danger' => 'delete',
-                        'info' => 'view',
-                        'primary' => 'login',
-                        'secondary' => 'logout',
-                    ])
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'create' => 'إنشاء',
-                        'update' => 'تحديث',
-                        'delete' => 'حذف',
-                        'view' => 'عرض',
-                        'login' => 'تسجيل دخول',
-                        'logout' => 'تسجيل خروج',
-                        default => $state,
-                    }),
-                
-                Tables\Columns\TextColumn::make('model')
-                    ->label('النموذج')
-                    ->formatStateUsing(fn ($state) => $state ? class_basename($state) : '-')
-                    ->searchable(),
-                
-                Tables\Columns\TextColumn::make('model_id')
-                    ->label('رقم السجل')
                     ->sortable(),
-                
-                Tables\Columns\TextColumn::make('ip_address')
-                    ->label('عنوان IP')
-                    ->copyable()
-                    ->copyMessage('تم نسخ IP!')
+                Tables\Columns\TextColumn::make('action')
+                    ->label('Action')
+                    ->searchable()
+                    ->badge()
+                    ->color(fn (string $state): string => match (strtolower($state)) {
+                        'created' => 'success',
+                        'updated' => 'info',
+                        'deleted' => 'danger',
+                        'login' => 'primary',
+                        'logout' => 'gray',
+                        default => 'warning',
+                    }),
+                Tables\Columns\TextColumn::make('model_type')
+                    ->label('Model')
+                    ->formatStateUsing(fn ($state) => class_basename($state))
                     ->toggleable(),
-                
+                Tables\Columns\TextColumn::make('description')
+                    ->label('Description')
+                    ->limit(50)
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('ip_address')
+                    ->label('IP')
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('التاريخ')
-                    ->dateTime('d/m/Y H:i:s')
+                    ->label('Date')
+                    ->dateTime()
                     ->sortable(),
             ])
             ->filters([
+                Tables\Filters\SelectFilter::make('user_id')
+                    ->label('User')
+                    ->relationship('user', 'name')
+                    ->searchable()
+                    ->preload(),
                 Tables\Filters\SelectFilter::make('action')
-                    ->label('الإجراء')
+                    ->label('Action')
                     ->options([
-                        'create' => 'إنشاء',
-                        'update' => 'تحديث',
-                        'delete' => 'حذف',
-                        'view' => 'عرض',
-                        'login' => 'تسجيل دخول',
-                        'logout' => 'تسجيل خروج',
+                        'created' => 'Created',
+                        'updated' => 'Updated',
+                        'deleted' => 'Deleted',
+                        'login' => 'Login',
+                        'logout' => 'Logout',
                     ]),
-                
-
-                
-                Tables\Filters\Filter::make('created_at')
-                    ->form([
-                        Forms\Components\DatePicker::make('created_from')
-                            ->label('من تاريخ'),
-                        Forms\Components\DatePicker::make('created_until')
-                            ->label('إلى تاريخ'),
-                    ])
-                    ->query(function ($query, array $data) {
-                        return $query
-                            ->when($data['created_from'], fn ($q) => $q->whereDate('created_at', '>=', $data['created_from']))
-                            ->when($data['created_until'], fn ($q) => $q->whereDate('created_at', '<=', $data['created_until']));
-                    }),
             ])
-            ->defaultSort('created_at', 'desc')
-            ->poll('30s'); // تحديث تلقائي كل 30 ثانية
+            ->actions([
+                Tables\Actions\ViewAction::make(),
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                ]),
+            ])
+            ->defaultSort('created_at', 'desc');
     }
 
     public static function getPages(): array
@@ -114,20 +122,5 @@ class ActivityLogResource extends Resource
         return [
             'index' => Pages\ListActivityLogs::route('/'),
         ];
-    }
-    
-    public static function canCreate(): bool
-    {
-        return false; // منع الإنشاء اليدوي
-    }
-    
-    public static function canEdit($record): bool
-    {
-        return false; // منع التعديل
-    }
-    
-    public static function canDelete($record): bool
-    {
-        return false; // منع الحذف
     }
 }

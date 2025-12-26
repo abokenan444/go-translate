@@ -1,13 +1,14 @@
 <?php
-
 namespace App\Http\Controllers\Auth;
-
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
-
+use App\Models\Partner;
+use App\Models\Affiliate;
+use App\Support\AccountDashboard;
 class LoginController extends Controller
 {
     /**
@@ -15,9 +16,13 @@ class LoginController extends Controller
      */
     public function showLoginForm()
     {
-        return view('auth.login');
+        // Add cache control headers to prevent Chrome from caching login page
+        return response()
+            ->view('auth.login')
+            ->header('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
     }
-
     /**
      * Handle login request
      */
@@ -27,47 +32,83 @@ class LoginController extends Controller
             'email' => 'required|email',
             'password' => 'required|string',
         ]);
-
         // Rate limiting
         $key = 'login.' . $request->ip();
         if (RateLimiter::tooManyAttempts($key, 5)) {
             $seconds = RateLimiter::availableIn($key);
             throw ValidationException::withMessages([
-                'email' => __('محاولات تسجيل دخول كثيرة. يرجى المحاولة بعد :seconds ثانية.', ['seconds' => $seconds]),
+                'email' => __('Too many login attempts. Please try again in :seconds seconds.', ['seconds' => $seconds]),
             ]);
         }
-
         $credentials = $request->only('email', 'password');
         $remember = $request->filled('remember');
-
         if (Auth::attempt($credentials, $remember)) {
             RateLimiter::clear($key);
+            
+            // Regenerate session to prevent fixation attacks
             $request->session()->regenerate();
             
-            // Create API token for Dashboard
             $user = Auth::user();
+            
+            // Log successful login
+            Log::info('User logged in successfully', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'ip' => $request->ip()
+            ]);
+            
+            // Create API token for Dashboard
             $token = $user->createToken('dashboard-token')->plainTextToken;
             session(['api_token' => $token]);
             
-            return redirect()->intended(route('dashboard'));
+            // Smart redirection based on user role
+            $redirectUrl = $this->getRedirectUrl($user);
+            
+            Log::info('Redirecting user', [
+                'user_id' => $user->id,
+                'redirect_url' => $redirectUrl
+            ]);
+            
+            // Fixed: Use redirect() instead of redirect()->intended()
+            return redirect($redirectUrl);
         }
-
         RateLimiter::hit($key, 60);
-
+        
+        Log::warning('Failed login attempt', [
+            'email' => $request->email,
+            'ip' => $request->ip()
+        ]);
+        
         throw ValidationException::withMessages([
-            'email' => __('بيانات الاعتماد غير صحيحة.'),
+            'email' => __('These credentials do not match our records.'),
         ]);
     }
-
+    /**
+     * Determine the redirect URL based on user role
+     */
+    protected function getRedirectUrl($user)
+    {
+        return AccountDashboard::pathFor($user);
+    }
+    
     /**
      * Handle logout request
      */
     public function logout(Request $request)
     {
+        $user = Auth::user();
+        
+        if ($user) {
+            Log::info('User logged out', [
+                'user_id' => $user->id,
+                'email' => $user->email
+            ]);
+        }
+        
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-
+        
         return redirect()->route('home');
     }
 }

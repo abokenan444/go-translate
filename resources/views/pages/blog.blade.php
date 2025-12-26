@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('favicon.png') }}">
     <title>Blog - CulturalTranslate</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -24,7 +27,7 @@
                         <div class="text-sm text-indigo-600 font-semibold mb-2">Translation Tips</div>
                         <h3 class="text-xl font-bold text-gray-900 mb-3">10 Best Practices for Global Marketing</h3>
                         <p class="text-gray-600 mb-4">Learn how to adapt your marketing content for international audiences while maintaining brand consistency.</p>
-                        <a href="#" class="text-indigo-600 hover:text-indigo-700 font-semibold">Read More →</a>
+                        <a href="{{ route('blog') }}" class="text-indigo-600 hover:text-indigo-700 font-semibold">Read More →</a>
                     </div>
                 </article>
                 <article class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition">
@@ -33,7 +36,7 @@
                         <div class="text-sm text-indigo-600 font-semibold mb-2">AI & Technology</div>
                         <h3 class="text-xl font-bold text-gray-900 mb-3">The Future of AI Translation</h3>
                         <p class="text-gray-600 mb-4">Explore how artificial intelligence is revolutionizing the translation industry and what it means for businesses.</p>
-                        <a href="#" class="text-indigo-600 hover:text-indigo-700 font-semibold">Read More →</a>
+                        <a href="{{ route('blog') }}" class="text-indigo-600 hover:text-indigo-700 font-semibold">Read More →</a>
                     </div>
                 </article>
                 <article class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition">
@@ -42,7 +45,7 @@
                         <div class="text-sm text-indigo-600 font-semibold mb-2">Case Studies</div>
                         <h3 class="text-xl font-bold text-gray-900 mb-3">How Company X Expanded to 50 Countries</h3>
                         <p class="text-gray-600 mb-4">A success story of international expansion powered by culturally-adapted translation.</p>
-                        <a href="#" class="text-indigo-600 hover:text-indigo-700 font-semibold">Read More →</a>
+                        <a href="{{ route('blog') }}" class="text-indigo-600 hover:text-indigo-700 font-semibold">Read More →</a>
                     </div>
                 </article>
             </div>

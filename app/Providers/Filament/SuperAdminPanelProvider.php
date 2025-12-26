@@ -23,9 +23,9 @@ class SuperAdminPanelProvider extends PanelProvider
     public function panel(Panel $panel): Panel
     {
         return $panel
-            ->id('admin')
+            ->id('super-admin')
             ->path('admin')
-            ->domain(env('SUPER_ADMIN_PANEL_DOMAIN', 'admin.localhost'))
+            ->domain(env('SUPERADMIN_DOMAIN', 'admin.culturaltranslate.com'))
             ->login()
             ->colors([
                 'primary' => Color::Blue,
@@ -66,6 +66,7 @@ class SuperAdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+                \App\Http\Middleware\SuperAdminMiddleware::class,
             ])
             ->authGuard('web')
             ->databaseNotifications()

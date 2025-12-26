@@ -9,6 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         // 1. Companies Table
+        if (!Schema::hasTable('companies')) {
         Schema::create('companies', function (Blueprint $table) {
             $table->id();
             $table->string('name');
@@ -24,8 +25,10 @@ return new class extends Migration
             $table->index('domain');
             $table->index('status');
         });
+        } // End companies guard
 
         // 2. Plans Table
+        if (!Schema::hasTable('plans')) {
         Schema::create('plans', function (Blueprint $table) {
             $table->id();
             $table->string('name');
@@ -50,8 +53,10 @@ return new class extends Migration
             $table->index('slug');
             $table->index('status');
         });
+        } // End plans guard
 
         // Update users table
+        if (!Schema::hasColumn('users', 'role')) {
         Schema::table('users', function (Blueprint $table) {
             $table->enum('role', ['super_admin', 'support_admin', 'financial_admin', 'technical_admin', 'user'])->default('user')->after('password');
             $table->foreignId('company_id')->nullable()->after('role')->constrained('companies')->nullOnDelete();
@@ -71,8 +76,10 @@ return new class extends Migration
             $table->index('plan_id');
             $table->index('account_status');
         });
+        } // End users columns guard
 
         // 3. Subscriptions Table
+        if (!Schema::hasTable('subscriptions')) {
         Schema::create('subscriptions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
@@ -90,8 +97,10 @@ return new class extends Migration
             $table->index('company_id');
             $table->index('status');
         });
+        } // End subscriptions guard
 
         // 4. API Providers Table
+        if (!Schema::hasTable('api_providers')) {
         Schema::create('api_providers', function (Blueprint $table) {
             $table->id();
             $table->string('name');
@@ -105,8 +114,10 @@ return new class extends Migration
             $table->index('slug');
             $table->index('status');
         });
+        } // End api_providers guard
 
         // 5. API Keys Table
+        if (!Schema::hasTable('api_keys')) {
         Schema::create('api_keys', function (Blueprint $table) {
             $table->id();
             $table->foreignId('provider_id')->constrained('api_providers')->cascadeOnDelete();
@@ -124,8 +135,10 @@ return new class extends Migration
             $table->index('provider_id');
             $table->index('status');
         });
+        } // End api_keys guard
 
         // 6. AI Models Table
+        if (!Schema::hasTable('ai_models')) {
         Schema::create('ai_models', function (Blueprint $table) {
             $table->id();
             $table->string('name');
@@ -139,8 +152,10 @@ return new class extends Migration
             $table->index('slug');
             $table->index('status');
         });
+        } // End ai_models guard
 
         // 7. Plan Models (Pivot)
+        if (!Schema::hasTable('plan_models')) {
         Schema::create('plan_models', function (Blueprint $table) {
             $table->id();
             $table->foreignId('plan_id')->constrained('plans')->cascadeOnDelete();
@@ -150,8 +165,10 @@ return new class extends Migration
             
             $table->unique(['plan_id', 'model_id', 'translation_type']);
         });
+        } // End plan_models guard
 
         // 8. Translations Table
+        if (!Schema::hasTable('translations')) {
         Schema::create('translations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
@@ -177,8 +194,10 @@ return new class extends Migration
             $table->index('type');
             $table->index('created_at');
         });
+        } // End translations guard
 
         // 9. Usage Stats Table
+        if (!Schema::hasTable('usage_stats')) {
         Schema::create('usage_stats', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
@@ -197,8 +216,10 @@ return new class extends Migration
             $table->index('company_id');
             $table->index('date');
         });
+        } // End usage_stats guard
 
         // 10. Invoices Table
+        if (!Schema::hasTable('invoices')) {
         Schema::create('invoices', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
@@ -220,8 +241,10 @@ return new class extends Migration
             $table->index('company_id');
             $table->index('status');
         });
+        } // End invoices guard
 
         // 11. Payments Table
+        if (!Schema::hasTable('payments')) {
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('invoice_id')->constrained('invoices')->cascadeOnDelete();
@@ -236,8 +259,10 @@ return new class extends Migration
             $table->index('invoice_id');
             $table->index('user_id');
         });
+        } // End payments guard
 
         // 12. Activity Logs Table
+        if (!Schema::hasTable('activity_logs')) {
         Schema::create('activity_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
@@ -253,8 +278,10 @@ return new class extends Migration
             $table->index('log_type');
             $table->index('created_at');
         });
+        } // End activity_logs guard
 
         // 13. System Health Table
+        if (!Schema::hasTable('system_health')) {
         Schema::create('system_health', function (Blueprint $table) {
             $table->id();
             $table->string('metric_name');
@@ -266,8 +293,10 @@ return new class extends Migration
             $table->index('metric_name');
             $table->index('checked_at');
         });
+        } // End system_health guard
 
         // 14. KPI Snapshots Table
+        if (!Schema::hasTable('kpi_snapshots')) {
         Schema::create('kpi_snapshots', function (Blueprint $table) {
             $table->id();
             $table->date('date')->unique();
@@ -284,8 +313,10 @@ return new class extends Migration
             
             $table->index('date');
         });
+        } // End kpi_snapshots guard
 
         // 15. Website Content Table
+        if (!Schema::hasTable('website_content')) {
         Schema::create('website_content', function (Blueprint $table) {
             $table->id();
             $table->string('page_slug')->unique();
@@ -300,6 +331,7 @@ return new class extends Migration
             $table->index('page_slug');
             $table->index('status');
         });
+        } // End website_content guard
     }
 
     public function down(): void

@@ -25,6 +25,8 @@ class AdminPanelProvider extends PanelProvider
         return $panel
             ->id('admin')
             ->path('admin')
+            ->domain('admin.culturaltranslate.com')
+            ->login()
             ->colors([
                 'primary' => Color::Amber,
             ])

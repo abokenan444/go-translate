@@ -89,6 +89,54 @@ return [
             ],
         ],
 
+        /*
+        |--------------------------------------------------------------------------
+        | Government Priority Queue
+        |--------------------------------------------------------------------------
+        | Highest priority queue for government documents
+        */
+        
+        'gov-urgent' => [
+            'driver' => 'database',
+            'connection' => env('DB_QUEUE_CONNECTION'),
+            'table' => env('DB_QUEUE_TABLE', 'jobs'),
+            'queue' => 'gov-urgent',
+            'retry_after' => 90,
+            'after_commit' => false,
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | PDF Generation Queue
+        |--------------------------------------------------------------------------
+        | Dedicated queue for certificate and receipt PDF generation
+        */
+        
+        'pdf' => [
+            'driver' => 'database',
+            'connection' => env('DB_QUEUE_CONNECTION'),
+            'table' => env('DB_QUEUE_TABLE', 'jobs'),
+            'queue' => 'pdf',
+            'retry_after' => 120,
+            'after_commit' => false,
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | Evidence Package Queue
+        |--------------------------------------------------------------------------
+        | Queue for court-ready evidence package generation
+        */
+        
+        'evidence' => [
+            'driver' => 'database',
+            'connection' => env('DB_QUEUE_CONNECTION'),
+            'table' => env('DB_QUEUE_TABLE', 'jobs'),
+            'queue' => 'evidence',
+            'retry_after' => 180,
+            'after_commit' => false,
+        ],
+
     ],
 
     /*

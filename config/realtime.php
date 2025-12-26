@@ -49,4 +49,10 @@ return [
         'enabled' => env('REALTIME_METRICS_ENABLED', true),
         'sample_rate' => env('REALTIME_METRICS_SAMPLE_RATE', 1.0),
     ],
+
+    // Local billing / subscription tokens
+    'billing' => [
+        // Token cost for live voice call translation (approximate; client sends duration_ms per chunk)
+        'voice_tokens_per_second' => env('REALTIME_VOICE_TOKENS_PER_SECOND', 1),
+    ],
 ];

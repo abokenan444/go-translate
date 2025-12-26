@@ -1,0 +1,55 @@
+{
+  "name": "culturaltranslate/php-sdk",
+  "description": "Official PHP SDK for CulturalTranslate API",
+  "version": "1.0.0",
+  "type": "library",
+  "keywords": [
+    "translation",
+    "cultural",
+    "localization",
+    "api",
+    "sdk",
+    "multilingual"
+  ],
+  "homepage": "https://culturaltranslate.com",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "CulturalTranslate",
+      "email": "support@culturaltranslate.com",
+      "homepage": "https://culturaltranslate.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.4",
+    "ext-curl": "*",
+    "ext-json": "*"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^9.0",
+    "phpstan/phpstan": "^1.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "CulturalTranslate\\": "src/"
+    },
+    "files": [
+      "src/helpers.php"
+    ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "CulturalTranslate\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "phpunit",
+    "analyse": "phpstan analyse src"
+  },
+  "support": {
+    "email": "support@culturaltranslate.com",
+    "docs": "https://docs.culturaltranslate.com",
+    "issues": "https://github.com/culturaltranslate/php-sdk/issues",
+    "source": "https://github.com/culturaltranslate/php-sdk"
+  }
+}

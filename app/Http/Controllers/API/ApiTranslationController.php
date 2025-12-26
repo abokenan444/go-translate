@@ -139,12 +139,31 @@ class ApiTranslationController extends Controller
     public function languages()
     {
         try {
-            $languages = $this->translationService->getSupportedLanguages();
+            $languages = [
+                'ar' => ['code' => 'ar', 'name' => 'Arabic', 'native' => 'العربية'],
+                'en' => ['code' => 'en', 'name' => 'English', 'native' => 'English'],
+                'fr' => ['code' => 'fr', 'name' => 'French', 'native' => 'Français'],
+                'de' => ['code' => 'de', 'name' => 'German', 'native' => 'Deutsch'],
+                'es' => ['code' => 'es', 'name' => 'Spanish', 'native' => 'Español'],
+                'it' => ['code' => 'it', 'name' => 'Italian', 'native' => 'Italiano'],
+                'pt' => ['code' => 'pt', 'name' => 'Portuguese', 'native' => 'Português'],
+                'ru' => ['code' => 'ru', 'name' => 'Russian', 'native' => 'Русский'],
+                'zh' => ['code' => 'zh', 'name' => 'Chinese', 'native' => '中文'],
+                'ja' => ['code' => 'ja', 'name' => 'Japanese', 'native' => '日本語'],
+                'ko' => ['code' => 'ko', 'name' => 'Korean', 'native' => '한국어'],
+                'hi' => ['code' => 'hi', 'name' => 'Hindi', 'native' => 'हिन्दी'],
+                'tr' => ['code' => 'tr', 'name' => 'Turkish', 'native' => 'Türkçe'],
+                'nl' => ['code' => 'nl', 'name' => 'Dutch', 'native' => 'Nederlands'],
+            ];
+            
             return response()->json([
                 'success' => true,
                 'languages' => $languages,
+                'total' => count($languages),
             ]);
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Languages API Error: ' . $e->getMessage());
+            
             return response()->json([
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -286,6 +305,107 @@ class ApiTranslationController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'حدث خطأ أثناء الترجمة: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Batch translate multiple texts
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function batchTranslate(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'texts' => 'required|array|min:1|max:100',
+            'texts.*' => 'required|string|max:10000',
+            'source_language' => 'required|string|in:auto,en,ar,es,fr,de,it,pt,ru,zh,ja,ko,hi,tr',
+            'target_language' => 'required|string|in:en,ar,es,fr,de,it,pt,ru,zh,ja,ko,hi,tr',
+            'target_culture' => 'nullable|string|max:32',
+            'tone' => 'nullable|string|in:professional,friendly,formal,casual,technical,marketing,creative,empathetic,authoritative',
+            'context' => 'nullable|string|max:500',
+            'apply_glossary' => 'nullable|boolean',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $results = [];
+            $applyGlossary = $request->has('apply_glossary') ? (bool) $request->apply_glossary : true;
+            $companyId = $request->attributes->get('company_id');
+
+            foreach ($request->texts as $index => $text) {
+                try {
+                    $result = $this->translationService->translate([
+                        'text' => $text,
+                        'source_language' => $request->source_language,
+                        'target_language' => $request->target_language,
+                        'target_culture' => $request->target_culture,
+                        'tone' => $request->tone ?? 'professional',
+                        'context' => $request->context,
+                        'task_type' => null,
+                        'industry' => null,
+                        'company_id' => $companyId,
+                    ]);
+
+                    if (!empty($result['success'])) {
+                        $translated = $result['translated_text'] ?? ($result['translation'] ?? '');
+                        $glossaryMatches = 0;
+                        
+                        if ($applyGlossary && $translated !== '') {
+                            [$translated, $glossaryMatches] = $this->applyGlossary(
+                                $translated, 
+                                $request->target_language, 
+                                optional($request->user())->id
+                            );
+                        }
+
+                        $results[] = [
+                            'index' => $index,
+                            'success' => true,
+                            'original_text' => $text,
+                            'translated_text' => $translated,
+                            'quality_score' => $result['quality_score'] ?? 95,
+                            'glossary_matches' => $glossaryMatches,
+                        ];
+                    } else {
+                        $results[] = [
+                            'index' => $index,
+                            'success' => false,
+                            'original_text' => $text,
+                            'error' => $result['error'] ?? 'Translation failed',
+                        ];
+                    }
+                } catch (\Exception $e) {
+                    $results[] = [
+                        'index' => $index,
+                        'success' => false,
+                        'original_text' => $text,
+                        'error' => $e->getMessage(),
+                    ];
+                }
+            }
+
+            $successCount = count(array_filter($results, fn($r) => $r['success']));
+            
+            return response()->json([
+                'success' => true,
+                'total' => count($request->texts),
+                'successful' => $successCount,
+                'failed' => count($request->texts) - $successCount,
+                'results' => $results,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
             ], 500);
         }
     }

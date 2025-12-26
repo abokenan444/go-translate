@@ -3,13 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PageSection extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'page_id',
         'section_type',
@@ -27,30 +24,12 @@ class PageSection extends Model
     ];
 
     protected $casts = [
-        'data' => 'array',
         'is_active' => 'boolean',
-        'order' => 'integer',
+        'data' => 'array',
     ];
 
-    // Relations
     public function page(): BelongsTo
     {
         return $this->belongsTo(Page::class);
-    }
-
-    // Scopes
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
-    }
-
-    public function scopeOfType($query, $type)
-    {
-        return $query->where('section_type', $type);
-    }
-
-    public function scopeOrdered($query)
-    {
-        return $query->orderBy('order');
     }
 }

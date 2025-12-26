@@ -58,7 +58,7 @@ class SuperAIAgentController extends Controller
 
         RateLimiter::hit($key, 900); // 15 دقيقة
 
-        $masterPassword = config('ai_developer.emergency_password');
+        $masterPassword = config('ai_developer.emergency.password') ?? env('AI_EMERGENCY_PASSWORD');
         
         if (!$masterPassword) {
             Log::error('SuperAI Emergency Password Not Set');

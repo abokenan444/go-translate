@@ -1,4 +1,4 @@
-<div x-data="subscriptionTab()" x-init="loadSubscription()" class="max-w-4xl mx-auto space-y-6">
+<div x-data="subscriptionTab()" x-init="loadSubscription()" class="max-w-7xl mx-auto space-y-6">
     
     <!-- Current Plan -->
     <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg p-8 text-white">
@@ -6,11 +6,15 @@
             <div>
                 <div class="text-sm opacity-90 mb-2">Current Plan</div>
                 <h2 class="text-3xl font-bold" x-text="subscription.plan_name"></h2>
-                <p class="mt-2 opacity-90" x-text="'$' + subscription.price + ' / ' + subscription.billing_cycle"></p>
+                <p class="mt-2 opacity-90" x-text="formatPrice(subscription.price, subscription.currency) + ' / ' + subscription.billing_cycle"></p>
             </div>
-            <div class="text-right">
+            <div class="text-right" x-show="subscription.renews_at">
                 <div class="text-sm opacity-90 mb-2">Renews on</div>
                 <div class="text-xl font-semibold" x-text="formatDate(subscription.renews_at)"></div>
+            </div>
+            <div class="text-right" x-show="!subscription.renews_at && subscription.is_trial">
+                <div class="text-sm opacity-90 mb-2">Trial Ends</div>
+                <div class="text-xl font-semibold" x-text="formatDate(subscription.trial_ends_at)"></div>
             </div>
         </div>
     </div>
@@ -42,39 +46,281 @@
         </div>
     </div>
     
-    <!-- Available Plans -->
-    <div>
-        <h3 class="text-xl font-bold text-gray-900 mb-4">Available Plans</h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <template x-for="plan in plans" :key="plan.id">
-                <div class="bg-white rounded-lg shadow-sm border-2 transition hover:shadow-md" 
-                     :class="plan.id === subscription.plan_id ? 'border-indigo-600' : 'border-gray-200'">
-                    <div class="p-6">
-                        <div x-show="plan.id === subscription.plan_id" class="inline-block px-3 py-1 text-xs font-semibold bg-indigo-100 text-indigo-800 rounded-full mb-4">
-                            Current Plan
-                        </div>
-                        <h4 class="text-xl font-bold text-gray-900 mb-2" x-text="plan.name"></h4>
-                        <div class="mb-4">
-                            <span class="text-3xl font-bold text-gray-900" x-text="'$' + plan.price"></span>
-                            <span class="text-gray-600">/ month</span>
-                        </div>
-                        <ul class="space-y-3 mb-6">
-                            <template x-for="feature in plan.features" :key="feature">
-                                <li class="flex items-start space-x-2 text-sm text-gray-700">
-                                    <i class="fas fa-check text-green-600 mt-0.5"></i>
-                                    <span x-text="feature"></span>
-                                </li>
-                            </template>
-                        </ul>
-                        <button @click="changePlan(plan.id)" 
-                                :disabled="plan.id === subscription.plan_id"
-                                :class="plan.id === subscription.plan_id ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-indigo-600 text-white hover:bg-indigo-700'"
-                                class="w-full px-4 py-2 rounded-lg font-semibold transition">
-                            <span x-text="plan.id === subscription.plan_id ? 'Current Plan' : (plan.price > subscription.price ? 'Upgrade' : 'Downgrade')"></span>
-                        </button>
-                    </div>
+    <!-- Pricing Plans Section (من صفحة /plans) -->
+    <div class="py-8">
+        <div class="text-center mb-12">
+            <h2 class="text-4xl font-bold text-gray-900 mb-4">Simple, Transparent Pricing</h2>
+            <p class="text-xl text-gray-600">Choose the perfect plan for your translation needs. All plans include 14-day free trial.</p>
+        </div>
+        
+        <!-- Plans Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            
+            <!-- Free Plan -->
+            <div class="bg-white rounded-2xl shadow-lg border-2 border-gray-200 p-8 hover:shadow-xl transition">
+                <h3 class="text-2xl font-bold text-gray-900 mb-2">Free</h3>
+                <div class="mb-6">
+                    <span class="text-4xl font-bold text-gray-900">$0.00</span>
+                    <span class="text-gray-600">/mo</span>
                 </div>
-            </template>
+                <p class="text-sm text-gray-600 mb-6">10K tokens/month</p>
+                <ul class="space-y-3 mb-8">
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">10K translation tokens/month</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">Up to 1 team members</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">Up to 1 projects</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">10 translations per day</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">Basic AI models</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">Community support</span>
+                    </li>
+                </ul>
+                <form action="{{ route('stripe.checkout') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="plan" value="free">
+                    <button type="submit" class="w-full bg-gray-900 text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-800 transition">
+                        Subscribe Now
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Basic Plan -->
+            <div class="bg-white rounded-2xl shadow-lg border-2 border-gray-200 p-8 hover:shadow-xl transition">
+                <h3 class="text-2xl font-bold text-gray-900 mb-2">Basic</h3>
+                <div class="mb-6">
+                    <span class="text-4xl font-bold text-gray-900">$29.00</span>
+                    <span class="text-gray-600">/mo</span>
+                </div>
+                <p class="text-sm text-gray-600 mb-6">100K tokens/month</p>
+                <ul class="space-y-3 mb-8">
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">100K translation tokens/month</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">API access</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">Up to 5 team members</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">Up to 5 projects</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">GPT-4 access</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">Email support</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">5 certified documents/month</span>
+                    </li>
+                </ul>
+                <form action="{{ route('stripe.checkout') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="plan" value="basic">
+                    <button type="submit" class="w-full bg-gray-900 text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-800 transition">
+                        Subscribe Now
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Professional Plan (MOST POPULAR) -->
+            <div class="bg-white rounded-2xl shadow-xl border-4 border-indigo-600 p-8 relative hover:shadow-2xl transition">
+                <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                    <span class="bg-indigo-600 text-white px-4 py-1 rounded-full text-xs font-semibold uppercase">Most Popular</span>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-2">Professional</h3>
+                <div class="mb-6">
+                    <span class="text-4xl font-bold text-indigo-600">$99.00</span>
+                    <span class="text-gray-600">/mo</span>
+                </div>
+                <p class="text-sm text-gray-600 mb-6">500K tokens/month</p>
+                <ul class="space-y-3 mb-8">
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">500K translation tokens/month</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">API access</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">Priority support</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">Up to 10 team members</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">Up to 20 projects</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">GPT-4 Turbo access</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">Advanced features</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">20 certified documents/month</span>
+                    </li>
+                </ul>
+                <form action="{{ route('stripe.checkout') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="plan" value="professional">
+                    <button type="submit" class="w-full bg-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-indigo-700 transition">
+                        Subscribe Now
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Enterprise Plan -->
+            <div class="bg-white rounded-2xl shadow-lg border-2 border-gray-200 p-8 hover:shadow-xl transition">
+                <h3 class="text-2xl font-bold text-gray-900 mb-2">Enterprise</h3>
+                <div class="mb-6">
+                    <span class="text-4xl font-bold text-gray-900">$499.00</span>
+                    <span class="text-gray-600">/mo</span>
+                </div>
+                <p class="text-sm text-gray-600 mb-6">2.0M tokens/month</p>
+                <ul class="space-y-3 mb-8">
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">2.0M translation tokens/month</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">API access</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">Priority support</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">Custom integrations</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">Up to 50 team members</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">Up to 100 projects</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">All AI models</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">24/7 support</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">Dedicated account manager</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-sm text-gray-700">100 certified documents/month</span>
+                    </li>
+                </ul>
+                <form action="{{ route('stripe.checkout') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="plan" value="enterprise">
+                    <button type="submit" class="w-full bg-gray-900 text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-800 transition">
+                        Subscribe Now
+                    </button>
+                </form>
+            </div>
+            
         </div>
     </div>
     
@@ -82,11 +328,11 @@
     <div class="bg-white rounded-lg shadow-sm border border-gray-200">
         <div class="p-6 border-b border-gray-200 flex items-center justify-between">
             <h3 class="text-lg font-semibold text-gray-900">Billing History</h3>
-            <button @click="downloadInvoices()" class="text-sm text-indigo-600 hover:text-indigo-700">
+            <button @click="downloadInvoices()" class="text-sm text-indigo-600 hover:text-indigo-700" x-show="invoices.length > 0">
                 <i class="fas fa-download mr-1"></i> Download All
             </button>
         </div>
-        <div class="divide-y divide-gray-200">
+        <div class="divide-y divide-gray-200" x-show="invoices.length > 0">
             <template x-for="invoice in invoices" :key="invoice.id">
                 <div class="p-6 flex items-center justify-between hover:bg-gray-50 transition">
                     <div class="flex-1">
@@ -111,17 +357,21 @@
                 </div>
             </template>
         </div>
+        <div x-show="invoices.length === 0" class="p-12 text-center">
+            <i class="fas fa-file-invoice text-4xl text-gray-300 mb-4"></i>
+            <p class="text-gray-500">No billing history yet</p>
+        </div>
     </div>
     
     <!-- Payment Method -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" x-show="paymentMethod !== null">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">Payment Method</h3>
         <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
             <div class="flex items-center space-x-3">
                 <i class="fas fa-credit-card text-2xl text-gray-400"></i>
                 <div>
-                    <div class="text-sm font-medium text-gray-900">•••• •••• •••• <span x-text="paymentMethod.last4"></span></div>
-                    <div class="text-xs text-gray-500">Expires <span x-text="paymentMethod.exp_month + '/' + paymentMethod.exp_year"></span></div>
+                    <div class="text-sm font-medium text-gray-900">•••• •••• •••• <span x-text="paymentMethod?.last4 || '0000'"></span></div>
+                    <div class="text-xs text-gray-500">Expires <span x-text="(paymentMethod?.exp_month || '00') + '/' + (paymentMethod?.exp_year || '0000')"></span></div>
                 </div>
             </div>
             <button @click="updatePaymentMethod()" class="text-sm text-indigo-600 hover:text-indigo-700">
@@ -131,7 +381,7 @@
     </div>
     
     <!-- Cancel Subscription -->
-    <div class="bg-red-50 rounded-lg border border-red-200 p-6">
+    <div class="bg-red-50 rounded-lg border border-red-200 p-6" x-show="subscription.plan_id !== null && subscription.price > 0">
         <h3 class="text-lg font-semibold text-red-900 mb-2">Cancel Subscription</h3>
         <p class="text-sm text-red-700 mb-4">Once you cancel, you'll lose access to all premium features at the end of your billing period.</p>
         <button @click="cancelSubscription()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
@@ -145,121 +395,168 @@
 function subscriptionTab() {
     return {
         subscription: {
-            plan_id: 2,
-            plan_name: 'Professional',
-            price: 49,
+            plan_id: null,
+            plan_name: 'Free',
+            price: 0,
             billing_cycle: 'month',
-            renews_at: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString()
+            renews_at: null,
+            status: 'active',
+            is_trial: false,
+            trial_ends_at: null
         },
         usage: {
-            characters_used: 45200,
-            characters_limit: 100000,
-            api_calls: 1234,
-            api_limit: 10000,
-            team_members: 5,
-            team_limit: 10
+            characters_used: 0,
+            characters_limit: 10000,
+            api_calls: 0,
+            api_limit: 100,
+            team_members: 1,
+            team_limit: 1
         },
         plans: [],
-        invoices: [
-            { id: 1, description: 'Professional Plan - January 2025', amount: 49, status: 'paid', date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString() },
-            { id: 2, description: 'Professional Plan - December 2024', amount: 49, status: 'paid', date: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString() },
-            { id: 3, description: 'Professional Plan - November 2024', amount: 49, status: 'paid', date: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString() }
-        ],
-        paymentMethod: {
-            last4: '4242',
-            exp_month: '12',
-            exp_year: '2025'
-        },
+        invoices: [],
+        paymentMethod: null,
+        loading: false,
         
         async loadSubscription() {
             try {
-                const response = await window.apiClient.getSubscription();
-                this.subscription = response.data;
-                const usageResponse = await window.apiClient.getUsage();
-                this.usage = usageResponse.data;
+                this.loading = true;
+                
+                console.log('Loading subscription data...');
+                
+                // Load subscription data
+                const subResponse = await window.apiClient.getDashboardSubscription();
+                console.log('Subscription response:', subResponse);
+                
+                if (subResponse.success && subResponse.data) {
+                    this.subscription = {
+                        plan_id: subResponse.data.plan_id,
+                        plan_name: subResponse.data.plan_name || 'Free',
+                        price: subResponse.data.price || 0,
+                        billing_cycle: subResponse.data.billing_cycle || 'month',
+                        renews_at: subResponse.data.renews_at,
+                        status: subResponse.data.status || 'active',
+                        is_trial: subResponse.data.is_trial || false,
+                        trial_ends_at: subResponse.data.trial_ends_at
+                    };
+                }
+                
+                // Load usage data
+                const usageResponse = await window.apiClient.getDashboardUsage();
+                console.log('Usage response:', usageResponse);
+                
+                if (usageResponse.success && usageResponse.data) {
+                    this.usage = usageResponse.data;
+                }
+                
+                // Load plans
                 await this.loadPlans();
+                
+                // Load invoices
+                await this.loadInvoices();
+                
             } catch (error) {
                 console.error('Failed to load subscription:', error);
+                window.showNotification('Failed to load subscription data', 'error');
+            } finally {
+                this.loading = false;
             }
         },
         
         async loadPlans() {
             try {
-                const response = await fetch('/api/pricing');
-                const data = await response.json();
-                if (data.success) {
-                    this.plans = data.plans.map(plan => ({
-                        id: plan.id,
-                        name: plan.display_name || plan.name,
-                        price: plan.price,
-                        features: this.getPlanFeatures(plan)
-                    }));
+                const response = await window.apiClient.getPlans();
+                if (response.success && response.data) {
+                    this.plans = response.data;
                 }
             } catch (error) {
                 console.error('Failed to load plans:', error);
             }
         },
         
-        getPlanFeatures(plan) {
-            const features = [];
-            features.push(`${(plan.character_limit / 1000).toLocaleString()}K characters/month`);
-            features.push(`${plan.api_calls.toLocaleString()} API calls`);
-            features.push(`${plan.team_members} team members`);
-            if (plan.features.priority_support) features.push('Priority support');
-            if (plan.features.cultural_adaptation) features.push('Cultural adaptation');
-            if (plan.features.voice_translation) features.push('Voice translation');
-            if (plan.features.real_time_translation) features.push('Real-time translation');
-            if (plan.features.custom_integrations) features.push('Custom integrations');
-            features.push('All languages');
-            return features;
+        async loadInvoices() {
+            try {
+                const response = await window.apiClient.getInvoices();
+                if (response.success && response.data) {
+                    this.invoices = response.data;
+                }
+            } catch (error) {
+                console.error('Failed to load invoices:', error);
+            }
         },
         
         async changePlan(planId) {
-            if (!confirm('Change your subscription plan?')) return;
-            
-            try {
-                await window.apiClient.subscribe(planId, 'card');
-                await this.loadSubscription();
-                this.$dispatch('show-toast', { type: 'success', message: 'Plan changed successfully!' });
-            } catch (error) {
-                this.$dispatch('show-toast', { type: 'error', message: 'Failed to change plan' });
+            if (confirm('Are you sure you want to change your plan?')) {
+                try {
+                    const response = await window.apiClient.changePlan(planId);
+                    if (response.success) {
+                        window.showNotification('Plan changed successfully', 'success');
+                        await this.loadSubscription();
+                    } else {
+                        window.showNotification(response.message || 'Failed to change plan', 'error');
+                    }
+                } catch (error) {
+                    console.error('Failed to change plan:', error);
+                    window.showNotification('Failed to change plan', 'error');
+                }
             }
         },
         
         async cancelSubscription() {
-            if (!confirm('Are you sure you want to cancel your subscription?')) return;
-            
-            try {
-                await window.apiClient.cancelSubscription();
-                this.$dispatch('show-toast', { type: 'success', message: 'Subscription cancelled' });
-            } catch (error) {
-                this.$dispatch('show-toast', { type: 'error', message: 'Failed to cancel subscription' });
+            if (confirm('Are you sure you want to cancel your subscription? You will lose access to premium features at the end of your billing period.')) {
+                try {
+                    const response = await window.apiClient.cancelSubscription();
+                    if (response.success) {
+                        window.showNotification('Subscription cancelled successfully', 'success');
+                        await this.loadSubscription();
+                    } else {
+                        window.showNotification(response.message || 'Failed to cancel subscription', 'error');
+                    }
+                } catch (error) {
+                    console.error('Failed to cancel subscription:', error);
+                    window.showNotification('Failed to cancel subscription', 'error');
+                }
             }
         },
         
-        updatePaymentMethod() {
-            this.$dispatch('show-toast', { type: 'info', message: 'Redirecting to payment portal...' });
+        async updatePaymentMethod() {
+            window.showNotification('Payment method update feature coming soon', 'info');
         },
         
-        downloadInvoice(id) {
-            this.$dispatch('show-toast', { type: 'info', message: 'Downloading invoice...' });
+        async downloadInvoice(invoiceId) {
+            try {
+                const response = await window.apiClient.downloadInvoice(invoiceId);
+                if (response.success && response.data.url) {
+                    window.open(response.data.url, '_blank');
+                }
+            } catch (error) {
+                console.error('Failed to download invoice:', error);
+                window.showNotification('Failed to download invoice', 'error');
+            }
         },
         
-        downloadInvoices() {
-            this.$dispatch('show-toast', { type: 'info', message: 'Downloading all invoices...' });
+        async downloadInvoices() {
+            window.showNotification('Downloading all invoices...', 'info');
         },
         
-        formatNumber(num) {
-            return num.toLocaleString();
+        formatPrice(price, currency = 'USD') {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: currency
+            }).format(price);
         },
         
-        formatDate(dateString) {
-            return new Date(dateString).toLocaleDateString('en-US', {
+        formatNumber(number) {
+            return new Intl.NumberFormat('en-US').format(number);
+        },
+        
+        formatDate(date) {
+            if (!date) return '';
+            return new Date(date).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
             });
         }
-    }
+    };
 }
 </script>

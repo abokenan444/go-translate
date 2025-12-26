@@ -1,0 +1,475 @@
+<!-{{-- Official Documents Tab Content --}}
+<div class="space-y-6">
+    <!-- Quick Access to My Documents -->
+    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-lg p-6 text-white">
+        <div class="flex items-center justify-between">
+            <div>
+                <h3 class="text-2xl font-bold mb-2">📁 My Documents</h3>
+                <p class="text-blue-100">View and manage all your certified translations</p>
+            </div>
+            <a href="{{ route('official.documents.my-documents') }}" class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition shadow-lg flex items-center space-x-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <span>View My Documents</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Progress Steps -->
+    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div class="flex items-center justify-center">
+            <div class="flex items-center">
+                <div class="flex items-center text-blue-600">
+                    <div class="rounded-full h-12 w-12 flex items-center justify-center bg-blue-600 text-white font-bold">1</div>
+                    <div class="ml-2 text-sm font-medium">Upload</div>
+                </div>
+                <div class="w-24 h-1 bg-gray-300 mx-4"></div>
+                <div class="flex items-center text-gray-400">
+                    <div class="rounded-full h-12 w-12 flex items-center justify-center bg-gray-300 text-gray-600 font-bold">2</div>
+                    <div class="ml-2 text-sm font-medium">Payment</div>
+                </div>
+                <div class="w-24 h-1 bg-gray-300 mx-4"></div>
+                <div class="flex items-center text-gray-400">
+                    <div class="rounded-full h-12 w-12 flex items-center justify-center bg-gray-300 text-gray-600 font-bold">3</div>
+                    <div class="ml-2 text-sm font-medium">Processing</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm p-8">
+        <h2 class="text-3xl font-bold mb-2 text-gray-900">Upload Official Document</h2>
+        <p class="text-gray-600 mb-8">Please provide your document details and upload the PDF file</p>
+
+        <form action="{{ route('official.documents.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+            @csrf
+
+            <!-- Validation Errors -->
+            @if ($errors->any())
+                <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <div class="ml-3 flex-1">
+                            <h3 class="text-sm font-bold text-red-800">يرجى تصحيح الأخطاء التالية:</h3>
+                            <div class="mt-2 text-sm text-red-700">
+                                <ul class="list-disc list-inside space-y-1">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            <!-- Document Type -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Document Type <span class="text-red-500">*</span>
+                </label>
+                <select name="document_type" required 
+                        class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                    <option value="">Select document type...</option>
+                    
+                    <!-- Personal Status Documents -->
+                    <optgroup label="Personal Status Documents">
+                        <option value="birth_certificate">Birth Certificate - شهادة الميلاد</option>
+                        <option value="marriage_certificate">Marriage Certificate - شهادة الزواج</option>
+                        <option value="divorce_certificate">Divorce Certificate - شهادة الطلاق</option>
+                        <option value="death_certificate">Death Certificate - شهادة الوفاة</option>
+                        <option value="family_book">Family Book - دفتر العائلة</option>
+                        <option value="single_status">Single Status Certificate - شهادة عدم الزواج</option>
+                        <option value="marriage_contract">Marriage Contract - عقد الزواج</option>
+                        <option value="divorce_decree">Divorce Decree - حكم الطلاق</option>
+                    </optgroup>
+                    
+                    <!-- Identity Documents -->
+                    <optgroup label="Identity Documents">
+                        <option value="passport">Passport - جواز السفر</option>
+                        <option value="national_id">National ID Card - بطاقة الهوية الوطنية</option>
+                        <option value="residence_permit">Residence Permit - إقامة</option>
+                        <option value="drivers_license">Driver's License - رخصة القيادة</option>
+                        <option value="travel_document">Travel Document - وثيقة سفر</option>
+                    </optgroup>
+                    
+                    <!-- Academic Documents -->
+                    <optgroup label="Academic Documents">
+                        <option value="academic_transcript">Academic Transcript - كشف درجات أكاديمي</option>
+                        <option value="diploma">Diploma - دبلوم</option>
+                        <option value="degree">Degree Certificate - شهادة جامعية</option>
+                        <option value="high_school_certificate">High School Certificate - شهادة الثانوية العامة</option>
+                        <option value="bachelors_degree">Bachelor's Degree - شهادة البكالوريوس</option>
+                        <option value="masters_degree">Master's Degree - شهادة الماجستير</option>
+                        <option value="phd_certificate">PhD Certificate - شهادة الدكتوراه</option>
+                        <option value="professional_certificate">Professional Certificate - شهادة مهنية</option>
+                        <option value="training_certificate">Training Certificate - شهادة تدريب</option>
+                    </optgroup>
+                    
+                    <!-- Employment Documents -->
+                    <optgroup label="Employment Documents">
+                        <option value="employment_contract">Employment Contract - عقد عمل</option>
+                        <option value="work_experience">Work Experience Certificate - شهادة خبرة</option>
+                        <option value="salary_certificate">Salary Certificate - شهادة راتب</option>
+                        <option value="job_offer">Job Offer Letter - خطاب عرض عمل</option>
+                        <option value="employment_letter">Employment Letter - خطاب من جهة العمل</option>
+                        <option value="resignation_letter">Resignation Letter - خطاب استقالة</option>
+                        <option value="termination_letter">Termination Letter - خطاب إنهاء خدمة</option>
+                    </optgroup>
+                    
+                    <!-- Medical Documents -->
+                    <optgroup label="Medical Documents">
+                        <option value="medical_report">Medical Report - تقرير طبي</option>
+                        <option value="vaccination_certificate">Vaccination Certificate - شهادة تطعيم</option>
+                        <option value="health_certificate">Health Certificate - شهادة صحية</option>
+                        <option value="medical_fitness">Medical Fitness Certificate - شهادة لياقة طبية</option>
+                        <option value="prescription">Prescription - وصفة طبية</option>
+                        <option value="lab_results">Laboratory Results - نتائج مختبرية</option>
+                    </optgroup>
+                    
+                    <!-- Legal Documents -->
+                    <optgroup label="Legal Documents">
+                        <option value="power_of_attorney">Power of Attorney - توكيل رسمي</option>
+                        <option value="court_judgment">Court Judgment - حكم قضائي</option>
+                        <option value="contract">Legal Contract - عقد قانوني</option>
+                        <option value="notarized_document">Notarized Document - وثيقة موثقة</option>
+                        <option value="affidavit">Affidavit - إقرار قانوني</option>
+                        <option value="inheritance_document">Inheritance Document - وثيقة ميراث</option>
+                        <option value="property_deed">Property Deed - سند ملكية</option>
+                    </optgroup>
+                    
+                    <!-- Financial Documents -->
+                    <optgroup label="Financial Documents">
+                        <option value="bank_statement">Bank Statement - كشف حساب بنكي</option>
+                        <option value="tax_certificate">Tax Certificate - شهادة ضريبية</option>
+                        <option value="income_statement">Income Statement - بيان دخل</option>
+                        <option value="financial_statement">Financial Statement - بيان مالي</option>
+                        <option value="sponsorship_letter">Sponsorship Letter - خطاب كفالة مالية</option>
+                        <option value="loan_agreement">Loan Agreement - اتفاقية قرض</option>
+                    </optgroup>
+                    
+                    <!-- Embassy & Visa Documents -->
+                    <optgroup label="Embassy & Visa Documents">
+                        <option value="visa_application">Visa Application - طلب تأشيرة</option>
+                        <option value="invitation_letter">Invitation Letter - خطاب دعوة</option>
+                        <option value="sponsorship_letter_visa">Sponsorship Letter - خطاب كفالة</option>
+                        <option value="travel_itinerary">Travel Itinerary - خط سير الرحلة</option>
+                        <option value="hotel_reservation">Hotel Reservation - حجز فندق</option>
+                        <option value="flight_ticket">Flight Ticket - تذكرة طيران</option>
+                    </optgroup>
+                    
+                    <!-- Government Documents -->
+                    <optgroup label="Government Documents">
+                        <option value="police_clearance">Police Clearance Certificate - شهادة حسن سيرة وسلوك</option>
+                        <option value="criminal_record">Criminal Record Check - فحص السجل الجنائي</option>
+                        <option value="tax_clearance">Tax Clearance Certificate - شهادة براءة ذمة ضريبية</option>
+                        <option value="military_service">Military Service Certificate - شهادة خدمة عسكرية</option>
+                        <option value="pension_certificate">Pension Certificate - شهادة تقاعد</option>
+                        <option value="social_security">Social Security Document - وثيقة ضمان اجتماعي</option>
+                    </optgroup>
+                    
+                    <!-- Business Documents -->
+                    <optgroup label="Business Documents">
+                        <option value="business_license">Business License - رخصة تجارية</option>
+                        <option value="commercial_registration">Commercial Registration - سجل تجاري</option>
+                        <option value="company_articles">Company Articles - عقد تأسيس شركة</option>
+                        <option value="board_resolution">Board Resolution - قرار مجلس إدارة</option>
+                        <option value="mou">Memorandum of Understanding - مذكرة تفاهم</option>
+                        <option value="partnership_agreement">Partnership Agreement - اتفاقية شراكة</option>
+                    </optgroup>
+                    
+                    <!-- Other Documents -->
+                    <optgroup label="Other Documents">
+                        <option value="birth_registration">Birth Registration - تسجيل ميلاد</option>
+                        <option value="adoption_certificate">Adoption Certificate - شهادة تبني</option>
+                        <option value="name_change">Name Change Certificate - شهادة تغيير اسم</option>
+                        <option value="utility_bill">Utility Bill - فاتورة خدمات</option>
+                        <option value="rental_agreement">Rental Agreement - عقد إيجار</option>
+                        <option value="insurance_policy">Insurance Policy - وثيقة تأمين</option>
+                        <option value="other">Other - أخرى</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <!-- Source Language -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Source Language (Original) <span class="text-red-500">*</span>
+                </label>
+                <select id="sourceLanguage" name="source_language" required 
+                        class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                    <option value="">Loading languages...</option>
+                </select>
+            </div>
+
+            <!-- Target Language -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Target Language (Translation) <span class="text-red-500">*</span>
+                </label>
+                <select id="targetLanguage" name="target_language" required 
+                        class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                    <option value="">Loading languages...</option>
+                </select>
+            </div>
+
+            <!-- Sworn Translator Seal Option -->
+            <div class="bg-gradient-to-r from-amber-50 to-yellow-50 border-2 border-amber-200 rounded-lg p-6">
+                <div class="flex items-start space-x-4">
+                    <div class="flex-shrink-0">
+                        <svg class="w-8 h-8 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <label class="flex items-center cursor-pointer">
+                            <input type="checkbox" name="sworn_translator" value="1" class="w-5 h-5 text-amber-600 border-gray-300 rounded focus:ring-amber-500">
+                            <span class="ml-3">
+                                <span class="block text-lg font-bold text-gray-900">Add Sworn Translator Seal</span>
+                                <span class="block text-sm text-gray-700 mt-1">Get your translation certified with an official sworn translator seal for legal and official use. <span class="font-semibold text-amber-700">Recommended for embassy, government, and legal submissions.</span></span>
+                                <span class="inline-block mt-2 px-3 py-1 bg-amber-100 text-amber-800 text-xs font-semibold rounded-full">+ €15.00</span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delivery Method -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-3">
+                    Delivery Method <span class="text-red-500">*</span>
+                </label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Digital PDF Option -->
+                    <label class="relative flex cursor-pointer">
+                        <input type="radio" name="delivery_method" value="digital" checked required class="sr-only peer">
+                        <div class="w-full border-2 border-gray-300 rounded-lg p-6 peer-checked:border-blue-600 peer-checked:bg-blue-50 transition hover:border-blue-400">
+                            <div class="flex items-start space-x-3">
+                                <svg class="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                </svg>
+                                <div>
+                                    <h4 class="font-bold text-gray-900">Digital PDF</h4>
+                                    <p class="text-sm text-gray-600 mt-1">Instant download after processing</p>
+                                    <p class="text-lg font-bold text-blue-600 mt-2">€10.00</p>
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- Physical Mail Option -->
+                    <label class="relative flex cursor-pointer">
+                        <input type="radio" name="delivery_method" value="physical" required class="sr-only peer">
+                        <div class="w-full border-2 border-gray-300 rounded-lg p-6 peer-checked:border-blue-600 peer-checked:bg-blue-50 transition hover:border-blue-400">
+                            <div class="flex items-start space-x-3">
+                                <svg class="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                </svg>
+                                <div>
+                                    <h4 class="font-bold text-gray-900">Physical Mail</h4>
+                                    <p class="text-sm text-gray-600 mt-1">Printed & shipped to your address</p>
+                                    <p class="text-lg font-bold text-blue-600 mt-2">€25.00</p>
+                                    <p class="text-xs text-gray-500 mt-1">Includes PDF download</p>
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Shipping Address (shown only when physical delivery is selected) -->
+            <div id="shippingAddressSection" style="display: none;" class="space-y-4 bg-gray-50 p-6 rounded-lg border border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Shipping Address</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Full Name <span class="text-red-500">*</span></label>
+                        <input type="text" name="shipping_name" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number <span class="text-red-500">*</span></label>
+                        <input type="tel" name="shipping_phone" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Street Address <span class="text-red-500">*</span></label>
+                    <input type="text" name="shipping_address" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">City <span class="text-red-500">*</span></label>
+                        <input type="text" name="shipping_city" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">State/Province</label>
+                        <input type="text" name="shipping_state" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Postal Code <span class="text-red-500">*</span></label>
+                        <input type="text" name="shipping_postal_code" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Country <span class="text-red-500">*</span></label>
+                    <select name="shipping_country" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                        <option value="">Select country...</option>
+                        <option value="DE">Germany</option>
+                        <option value="FR">France</option>
+                        <option value="ES">Spain</option>
+                        <option value="IT">Italy</option>
+                        <option value="NL">Netherlands</option>
+                        <option value="BE">Belgium</option>
+                        <option value="AT">Austria</option>
+                        <option value="CH">Switzerland</option>
+                        <option value="UK">United Kingdom</option>
+                        <option value="US">United States</option>
+                        <option value="CA">Canada</option>
+                        <option value="AU">Australia</option>
+                        <option value="AE">United Arab Emirates</option>
+                        <option value="SA">Saudi Arabia</option>
+                        <option value="QA">Qatar</option>
+                        <option value="KW">Kuwait</option>
+                        <option value="BH">Bahrain</option>
+                        <option value="OM">Oman</option>
+                        <option value="JO">Jordan</option>
+                        <option value="LB">Lebanon</option>
+                        <option value="EG">Egypt</option>
+                        <option value="MA">Morocco</option>
+                        <option value="TN">Tunisia</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- File Upload -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Upload PDF Document <span class="text-red-500">*</span>
+                </label>
+                <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-blue-400 transition">
+                    <div class="space-y-1 text-center">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <div class="flex text-sm text-gray-600">
+                            <label for="official-doc-file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                                <span>Upload a file</span>
+                                <input id="official-doc-file-upload" name="document" type="file" accept=".pdf" required class="sr-only">
+                            </label>
+                            <p class="pl-1">or drag and drop</p>
+                        </div>
+                        <p class="text-xs text-gray-500">PDF up to 20MB</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info Box -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-blue-800">Important Information</h3>
+                        <div class="mt-2 text-sm text-blue-700">
+                            <ul class="list-disc pl-5 space-y-1">
+                                <li>Your document will be processed securely</li>
+                                <li>Base price: €10.00 (Digital) or €25.00 (Physical Mail)</li>
+                                <li>Sworn translator seal: +€15.00 (optional)</li>
+                                <li>Processing time: 24-48 hours</li>
+                                <li>You'll receive a certified PDF with official seal and QR code</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="flex items-center justify-end pt-4">
+                <button type="submit" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition shadow-lg">
+                    Continue to Payment →
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Security Notice -->
+    <div class="text-center text-sm text-gray-600">
+        <p>🔒 Your documents are encrypted and stored securely. We never share your information.</p>
+    </div>
+</div>
+
+<script>
+    // File upload preview
+    document.getElementById('official-doc-file-upload')?.addEventListener('change', function(e) {
+        const fileName = e.target.files[0]?.name;
+        if (fileName) {
+            const label = document.querySelector('label[for="official-doc-file-upload"] span');
+            if (label) {
+                label.textContent = fileName;
+            }
+        }
+    });
+
+    // Load languages and industries dynamically
+    async function loadLanguages() {
+        try {
+            const response = await fetch('/api/languages');
+            const languages = await response.json();
+            
+            const sourceSelect = document.getElementById('sourceLanguage');
+            const targetSelect = document.getElementById('targetLanguage');
+            
+            if (sourceSelect && targetSelect) {
+                sourceSelect.innerHTML = '<option value="">Select source language...</option>';
+                targetSelect.innerHTML = '<option value="">Select target language...</option>';
+                
+                languages.forEach(lang => {
+                    const option1 = new Option(`${lang.name} (${lang.locale})`, lang.locale);
+                    const option2 = new Option(`${lang.name} (${lang.locale})`, lang.locale);
+                    sourceSelect.add(option1);
+                    targetSelect.add(option2);
+                });
+            }
+        } catch (error) {
+            console.error('Failed to load languages:', error);
+        }
+    }
+    
+    // Toggle shipping address section based on delivery method
+    function toggleShippingAddress() {
+        const deliveryMethod = document.querySelector('input[name="delivery_method"]:checked')?.value;
+        const shippingSection = document.getElementById('shippingAddressSection');
+        const shippingInputs = shippingSection?.querySelectorAll('input, select');
+        
+        if (deliveryMethod === 'physical') {
+            shippingSection.style.display = 'block';
+            shippingInputs?.forEach(input => input.required = true);
+        } else {
+            shippingSection.style.display = 'none';
+            shippingInputs?.forEach(input => input.required = false);
+        }
+    }
+    
+    // Load data when page is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        loadLanguages();
+        
+        // Add event listeners for delivery method radio buttons
+        document.querySelectorAll('input[name="delivery_method"]').forEach(radio => {
+            radio.addEventListener('change', toggleShippingAddress);
+        });
+        
+        // Initialize shipping address visibility
+        toggleShippingAddress();
+    });
+</script>

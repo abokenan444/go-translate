@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('favicon.png') }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Cultural Translate - الترجمة الثقافية الذكية</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -155,7 +158,8 @@
                 </div>
             </div>
             <div class="border-t border-white/10 pt-8 text-center text-sm text-gray-400">
-                <p>&copy; 2024 Cultural Translate. جميع الحقوق محفوظة.</p>
+                <p>&copy; 2025 Cultural Translate. جميع الحقوق محفوظة.</p>
+                <p class="text-sm mt-2">NL KvK 83656480</p>
             </div>
         </div>
     </footer>

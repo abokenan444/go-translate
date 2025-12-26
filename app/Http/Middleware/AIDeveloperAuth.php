@@ -9,7 +9,7 @@ class AIDeveloperAuth
     public function handle(Request $request, Closure $next)
     {
         // السماح بصفحات تسجيل الدخول
-        if ($request->routeIs('ai-developer.login') || $request->routeIs('ai-developer.authenticate')) {
+        if ($request->routeIs('ai-developer.login') || $request->routeIs('ai-developer.login.post')) {
             return $next($request);
         }
         
@@ -18,13 +18,24 @@ class AIDeveloperAuth
         // 2. Filament Auth (للمستخدمين المسجلين في Filament)
         // 3. Laravel Auth العادي
         
-        $isAiDevAuthenticated = $request->session()->has('ai_developer_authenticated');
-        $isFilamentAuthenticated = Auth::guard('web')->check(); // Filament يستخدم web guard
-        
-        if (!$isAiDevAuthenticated && !$isFilamentAuthenticated) {
-            return redirect()->route('ai-developer.login');
+        if (!config('ai_developer.enabled')) {
+            abort(403, 'AI Developer is disabled.');
         }
+
+        // 1) Session الخاصة بـ AI Developer (password-based)
+        $isAiDevAuthenticated = $request->session()->has('ai_developer_authenticated');
+        if ($isAiDevAuthenticated) {
+            return $next($request);
+        }
+
+        // 2) Allow ONLY the configured owner via normal auth
+        $user = Auth::guard('web')->user();
+        $ownerEmail = config('ai_developer.owner_email');
+        if ($user && $ownerEmail && $user->email === $ownerEmail) {
+            return $next($request);
+        }
+
+        return redirect()->route('ai-developer.login');
         
-        return $next($request);
     }
 }

@@ -51,6 +51,24 @@ return [
     */
 
     'channels' => [
+        'performance' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/performance.log'),
+            'level' => 'info',
+            'days' => 14,
+        ],
+        'certified_errors' => [
+        'support' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/support.log'),
+            'level' => 'info',
+            'days' => 90,
+        ],
+            'driver' => 'daily',
+            'path' => storage_path('logs/certified_errors.log'),
+            'level' => 'error',
+            'days' => 30,
+        ],
 
         'stack' => [
             'driver' => 'stack',

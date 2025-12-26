@@ -1,0 +1,98 @@
+<footer class="bg-gray-900 text-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+        {{-- Dynamic footer menus from database --}}
+        @if(isset($footerMenuItems) && count($footerMenuItems))
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                @foreach($footerMenuItems as $menuItem)
+                    <div>
+                        {{-- عنوان العمود (العنصر الأب) --}}
+                        <h3 class="text-lg font-semibold mb-4">
+                            {{ __($menuItem->label ?? 'Menu') }}
+                        </h3>
+
+                        {{-- الروابط التابعة (الأبناء) --}}
+                        @php
+                            // لو عندك علاقة children في الموديل
+                            $children = $menuItem->children ?? collect();
+                        @endphp
+
+                        @if($children->count())
+                            <ul class="space-y-2 text-sm">
+                                @foreach($children as $child)
+                                    <li>
+                                        <a href="{{ $child->url ?? '#' }}"
+                                           @if(!empty($child->open_in_new_tab)) target="_blank" rel="noopener" @endif
+                                           class="text-gray-300 hover:text-white">
+                                            {{ __($child->label ?? 'Link') }}
+                                        </a>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @else
+                            {{-- في حال لا يوجد أبناء، نعرض الرابط نفسه --}}
+                            <ul class="space-y-2 text-sm">
+                                <li>
+                                    <a href="{{ $menuItem->url ?? '#' }}"
+                                       @if(!empty($menuItem->open_in_new_tab)) target="_blank" rel="noopener" @endif
+                                       class="text-gray-300 hover:text-white">
+                                        {{ __($menuItem->label ?? 'Link') }}
+                                    </a>
+                                </li>
+                            </ul>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+        @else
+            {{-- حالة بديلة لو لم يكن هناك عناصر في قاعدة البيانات --}}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">
+                        {{ __('Product') }}
+                    </h3>
+                    <ul class="space-y-2 text-sm text-gray-300">
+                        <li>{{ __('AI Cultural Localization Engine') }}</li>
+                        <li>{{ __('Brand Voice Intelligence') }}</li>
+                        <li>{{ __('Real-time meetings & media translation') }}</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">
+                        {{ __('Developers') }}
+                    </h3>
+                    <ul class="space-y-2 text-sm text-gray-300">
+                        <li>{{ __('Full REST API & Webhooks') }}</li>
+                        <li>{{ __('Sandbox integration environment') }}</li>
+                        <li>{{ __('SDKs for JavaScript, PHP, Python & more') }}</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">
+                        {{ __('Company') }}
+                    </h3>
+                    <ul class="space-y-2 text-sm text-gray-300">
+                        <li>{{ __('About Cultural Translate') }}</li>
+                        <li>{{ __('Pricing & Plans') }}</li>
+                        <li>{{ __('Contact & Support') }}</li>
+                    </ul>
+                </div>
+            </div>
+        @endif
+
+        {{-- الشريط السفلي --}}
+        <div class="mt-10 border-t border-gray-800 pt-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <p class="text-sm text-gray-400">
+                &copy; {{ now()->year }} {{ config('app.name', 'Cultural Translate') }}. {{ __('All rights reserved.') }}
+            </p>
+
+            <div class="flex flex-col md:flex-row md:items-center gap-2 text-sm text-gray-400">
+                <span>
+                    {{ __('Access powerful cultural localization tools with an AI brand voice engine, ready for global teams.') }}
+                </span>
+            </div>
+        </div>
+    </div>
+</footer>

@@ -192,7 +192,7 @@
     <footer class="bg-gray-900 text-white py-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center">
-                <p class="text-gray-400">&copy; 2024 CulturalTranslate. جميع الحقوق محفوظة.</p>
+                <p class="text-gray-400">&copy; 2025 CulturalTranslate. جميع الحقوق محفوظة.</p>
             </div>
         </div>
     </footer>

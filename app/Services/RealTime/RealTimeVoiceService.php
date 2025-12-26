@@ -122,6 +122,104 @@ class RealTimeVoiceService
     }
 
     /**
+     * Process audio turn with explicit languages (used for per-participant send/receive language calls)
+     */
+    public function processAudioTurnWithLanguages(
+        RealTimeSession $session,
+        int|string|null $userId,
+        string $audioPath,
+        string $sourceLang,
+        string $targetLang,
+        string $direction = 'custom'
+    ): RealTimeTurn {
+        $start = hrtime(true);
+        $client = OpenAI::client(config('services.openai.api_key'));
+
+        // STT (Speech-to-Text)
+        $audioFullPath = Storage::disk('local')->path($audioPath);
+
+        try {
+            $transcribePayload = [
+                'model' => 'whisper-1',
+                'file' => fopen($audioFullPath, 'r'),
+                'response_format' => 'json',
+            ];
+
+            if (!empty($sourceLang) && $sourceLang !== 'auto') {
+                $transcribePayload['language'] = $sourceLang;
+            }
+
+            $stt = $client->audio()->transcribe($transcribePayload);
+
+            $sourceText = $stt->text ?? '';
+            if (empty($sourceText)) {
+                throw new \Exception('No text transcribed from audio');
+            }
+        } catch (\Exception $e) {
+            Log::error('STT Error: ' . $e->getMessage());
+            throw $e;
+        }
+
+        // Cultural Translation with adaptive level
+        $culturalAdaptationLevel = $session->cultural_adaptation_level ?? 'standard';
+
+        try {
+            $translationResult = $this->translateWithCulturalContext(
+                $session,
+                $sourceText,
+                $sourceLang,
+                $targetLang,
+                $direction,
+                $culturalAdaptationLevel
+            );
+
+            $translatedText = $translationResult['translated_text'] ?? $translationResult['output'] ?? $sourceText;
+        } catch (\Exception $e) {
+            Log::error('Cultural Translation Error: ' . $e->getMessage());
+            $translatedText = $this->fallbackTranslation($sourceText, $sourceLang, $targetLang);
+            $translationResult = ['translated_text' => $translatedText, 'fallback' => true];
+        }
+
+        // TTS (Text-to-Speech)
+        try {
+            $voice = $this->selectVoiceForLanguage($targetLang);
+
+            $ttsOutput = $client->audio()->speech([
+                'model' => 'tts-1',
+                'voice' => $voice,
+                'input' => $translatedText,
+                'format' => 'mp3',
+            ]);
+
+            $translatedAudioPath = 'realtime/' . $session->public_id . '/' . uniqid('tts_', true) . '.mp3';
+            Storage::disk('public')->put($translatedAudioPath, $ttsOutput);
+        } catch (\Exception $e) {
+            Log::error('TTS Error: ' . $e->getMessage());
+            $translatedAudioPath = null;
+        }
+
+        $latencyMs = (int) ((hrtime(true) - $start) / 1_000_000);
+
+        $turn = new RealTimeTurn();
+        $turn->session_id = $session->id;
+        $turn->user_id = is_numeric($userId) ? $userId : null;
+        $turn->external_id = is_string($userId) && !is_numeric($userId) ? $userId : null;
+        $turn->direction = $direction;
+        $turn->source_text = $sourceText;
+        $turn->translated_text = $translatedText;
+        $turn->source_language = $sourceLang;
+        $turn->target_language = $targetLang;
+        $turn->audio_path_source = $audioPath;
+        $turn->audio_path_translated = $translatedAudioPath;
+        $turn->latency_ms = $latencyMs;
+        $turn->raw_stt = method_exists($stt, 'toArray') ? $stt->toArray() : null;
+        $turn->raw_llm = $translationResult;
+        $turn->save();
+
+        return $turn;
+    }
+
+    /**
      * Translate with cultural context integration
      */
     protected function translateWithCulturalContext(
@@ -234,7 +332,7 @@ class RealTimeVoiceService
             $client = OpenAI::client(config('services.openai.api_key'));
             
             $response = $client->chat()->create([
-                'model' => 'gpt-4o-mini',
+                'model' => 'gpt-5',
                 'messages' => [
                     [
                         'role' => 'system',
